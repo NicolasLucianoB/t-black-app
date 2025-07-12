@@ -81,6 +81,14 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
             <Text style={styles.cardTitle}>Informações do Studio</Text>
             <Text style={styles.cardSubtitle}>Horários, endereço e contatos</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity style={styles.card} onPress={() => handleNavigate('FAQ')}>
+            <View style={styles.cardIcon}>
+              <Ionicons name="help-circle-outline" size={32} color="#111" />
+            </View>
+            <Text style={styles.cardTitle}>Perguntas Frequentes</Text>
+            <Text style={styles.cardSubtitle}>Tire suas dúvidas sobre nossos serviços</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.profileSection}>

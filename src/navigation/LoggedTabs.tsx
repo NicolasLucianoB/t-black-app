@@ -15,6 +15,7 @@ import StudioInfoScreen from '../screens/StudioInfoScreen';
 import CartScreen from '../screens/CartScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import CourseVideoScreen from '../screens/CourseVideoScreen';
+import FAQScreen from '../screens/FAQScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -198,6 +199,22 @@ export default function LoggedTabs() {
         options={{
           headerShown: true,
           title: 'Notificações',
+          presentation: 'modal',
+          headerStyle: {
+            backgroundColor: '#fff',
+          },
+          headerTintColor: '#111',
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          },
+        }}
+      />
+      <Stack.Screen 
+        name="FAQ" 
+        component={FAQScreen} 
+        options={{
+          headerShown: true,
+          title: 'Perguntas Frequentes',
           presentation: 'modal',
           headerStyle: {
             backgroundColor: '#fff',

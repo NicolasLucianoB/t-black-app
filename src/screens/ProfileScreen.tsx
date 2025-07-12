@@ -9,8 +9,13 @@ export default function ProfileScreen({ navigation }: any) {
       [
         { text: 'Cancelar', style: 'cancel' },
         { text: 'Sair', style: 'destructive', onPress: () => {
-          // Aqui você implementaria a lógica de logout
+          // Limpar dados do usuário (futuramente com Supabase)
           console.log('Logout realizado');
+          // Redirecionar para a tela de login
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Login' }],
+          });
         }},
       ]
     );
