@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform, ScrollView } from 'react-native';
 import { Calendar } from 'react-native-calendars';
+import { Ionicons } from '@expo/vector-icons';
 
 const barbeiros = [
   { id: 1, nome: 'Tiago', horarios: ['09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'] },
@@ -86,6 +87,22 @@ export default function BookingScreen() {
     <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
       <View style={styles.container}>
         <Text style={styles.title}>Agendar Horário</Text>
+        
+        {/* Seção de Agendamento Rápido */}
+        <View style={styles.quickBookSection}>
+          <View style={styles.quickBookHeader}>
+            <Ionicons name="flash" size={20} color="#25D366" />
+            <Text style={styles.quickBookTitle}>Agendamento Rápido</Text>
+          </View>
+          <TouchableOpacity style={styles.quickBookCard}>
+            <View style={styles.quickBookInfo}>
+              <Text style={styles.quickBookService}>Corte Degradê - Tiago</Text>
+              <Text style={styles.quickBookDate}>Último: 15/01/2024 às 14:00</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#666" />
+          </TouchableOpacity>
+        </View>
+
         <Text style={styles.label}>Barbeiro</Text>
         <View style={styles.row}>
           {barbeiros.map(b => (
@@ -285,5 +302,52 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  quickBookSection: {
+    width: '100%',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  quickBookHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  quickBookTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginLeft: 8,
+    color: '#111',
+  },
+  quickBookCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#eee',
+  },
+  quickBookInfo: {
+    flex: 1,
+  },
+  quickBookService: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#111',
+  },
+  quickBookDate: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 4,
   },
 }); 

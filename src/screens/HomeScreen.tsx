@@ -23,6 +23,9 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       {/* Header com ícones */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
+          <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('Menu')}>
+            <Ionicons name="menu" size={24} color="#111" />
+          </TouchableOpacity>
           <Text style={styles.headerTitle}>Studio T Black</Text>
         </View>
         <View style={styles.headerRight}>
@@ -47,6 +50,19 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         <View style={styles.welcomeSection}>
           <Text style={styles.title}>Bem-vindo ao Studio T Black!</Text>
           <Text style={styles.subtitle}>O que você deseja fazer hoje?</Text>
+        </View>
+
+        {/* Card de Agendamento Rápido */}
+        <View style={styles.quickBookContainer}>
+          <TouchableOpacity style={styles.quickBookCard} onPress={() => handleNavigate('Agendar')}>
+            <View style={styles.quickBookHeader}>
+              <Ionicons name="refresh" size={24} color="#25D366" />
+              <Text style={styles.quickBookTitle}>Agendar Novamente</Text>
+            </View>
+            <Text style={styles.lastService}>Último: Corte Degradê - Tiago</Text>
+            <Text style={styles.lastDate}>15/01/2024 às 14:00</Text>
+            <Text style={styles.quickBookSubtitle}>Escolha nova data e horário</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.cardsContainer}>
@@ -118,12 +134,14 @@ const styles = StyleSheet.create({
     borderBottomColor: '#eee',
   },
   headerLeft: {
-    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#111',
+    marginLeft: 10,
   },
   headerRight: {
     flexDirection: 'row',
@@ -222,5 +240,50 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#111',
     marginLeft: 8,
+  },
+  quickBookContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+  },
+  quickBookCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 2,
+    borderColor: '#25D366',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  quickBookHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  quickBookTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#111',
+    marginLeft: 10,
+  },
+  lastService: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 4,
+  },
+  lastDate: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 12,
+  },
+  quickBookSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+  },
+  menuButton: {
+    marginRight: 10,
   },
 }); 

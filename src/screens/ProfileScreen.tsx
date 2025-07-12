@@ -33,15 +33,15 @@ export default function ProfileScreen({ navigation }: any) {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Informações Pessoais</Text>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('EditProfile')}>
           <Text style={styles.menuItemText}>Editar Perfil</Text>
           <Text style={styles.menuItemArrow}>›</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('ChangePassword')}>
           <Text style={styles.menuItemText}>Alterar Senha</Text>
           <Text style={styles.menuItemArrow}>›</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Notifications')}>
           <Text style={styles.menuItemText}>Notificações</Text>
           <Text style={styles.menuItemArrow}>›</Text>
         </TouchableOpacity>
@@ -49,15 +49,15 @@ export default function ProfileScreen({ navigation }: any) {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Histórico</Text>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('MyBookings')}>
           <Text style={styles.menuItemText}>Meus Agendamentos</Text>
           <Text style={styles.menuItemArrow}>›</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('PurchaseHistory')}>
           <Text style={styles.menuItemText}>Histórico de Compras</Text>
           <Text style={styles.menuItemArrow}>›</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('MyCourses')}>
           <Text style={styles.menuItemText}>Cursos Inscritos</Text>
           <Text style={styles.menuItemArrow}>›</Text>
         </TouchableOpacity>
@@ -65,15 +65,15 @@ export default function ProfileScreen({ navigation }: any) {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Suporte</Text>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Help')}>
           <Text style={styles.menuItemText}>Ajuda</Text>
           <Text style={styles.menuItemArrow}>›</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('PrivacyPolicy')}>
           <Text style={styles.menuItemText}>Política de Privacidade</Text>
           <Text style={styles.menuItemArrow}>›</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('TermsOfUse')}>
           <Text style={styles.menuItemText}>Termos de Uso</Text>
           <Text style={styles.menuItemArrow}>›</Text>
         </TouchableOpacity>

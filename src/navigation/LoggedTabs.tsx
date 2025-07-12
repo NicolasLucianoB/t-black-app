@@ -16,6 +16,7 @@ import CartScreen from '../screens/CartScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import CourseVideoScreen from '../screens/CourseVideoScreen';
 import FAQScreen from '../screens/FAQScreen';
+import MenuScreen from '../screens/MenuScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -225,6 +226,126 @@ export default function LoggedTabs() {
           },
         }}
       />
+      <Stack.Screen 
+        name="ChangePassword" 
+        component={ChangePasswordScreen} 
+        options={{
+          headerShown: true,
+          title: 'Alterar Senha',
+          presentation: 'modal',
+          headerStyle: {
+            backgroundColor: '#fff',
+          },
+          headerTintColor: '#111',
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          },
+        }}
+      />
+      <Stack.Screen 
+        name="MyBookings" 
+        component={MyBookingsScreen} 
+        options={{
+          headerShown: true,
+          title: 'Meus Agendamentos',
+          presentation: 'modal',
+          headerStyle: {
+            backgroundColor: '#fff',
+          },
+          headerTintColor: '#111',
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          },
+        }}
+      />
+      <Stack.Screen 
+        name="PurchaseHistory" 
+        component={PurchaseHistoryScreen} 
+        options={{
+          headerShown: true,
+          title: 'Histórico de Compras',
+          presentation: 'modal',
+          headerStyle: {
+            backgroundColor: '#fff',
+          },
+          headerTintColor: '#111',
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          },
+        }}
+      />
+      <Stack.Screen 
+        name="MyCourses" 
+        component={MyCoursesScreen} 
+        options={{
+          headerShown: true,
+          title: 'Meus Cursos',
+          presentation: 'modal',
+          headerStyle: {
+            backgroundColor: '#fff',
+          },
+          headerTintColor: '#111',
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          },
+        }}
+      />
+      <Stack.Screen 
+        name="Help" 
+        component={HelpScreen} 
+        options={{
+          headerShown: true,
+          title: 'Ajuda',
+          presentation: 'modal',
+          headerStyle: {
+            backgroundColor: '#fff',
+          },
+          headerTintColor: '#111',
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          },
+        }}
+      />
+      <Stack.Screen 
+        name="PrivacyPolicy" 
+        component={PrivacyPolicyScreen} 
+        options={{
+          headerShown: true,
+          title: 'Política de Privacidade',
+          presentation: 'modal',
+          headerStyle: {
+            backgroundColor: '#fff',
+          },
+          headerTintColor: '#111',
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          },
+        }}
+      />
+      <Stack.Screen 
+        name="TermsOfUse" 
+        component={TermsOfUseScreen} 
+        options={{
+          headerShown: true,
+          title: 'Termos de Uso',
+          presentation: 'modal',
+          headerStyle: {
+            backgroundColor: '#fff',
+          },
+          headerTintColor: '#111',
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          },
+        }}
+      />
+      <Stack.Screen 
+        name="Menu" 
+        component={MenuScreen} 
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+        }}
+      />
     </Stack.Navigator>
   );
 }
@@ -234,6 +355,63 @@ function NotificationsScreen({ navigation }: any) {
   return (
     <View style={{ flex: 1, backgroundColor: '#f7f7f7', justifyContent: 'center', alignItems: 'center' }}>
       <Text style={{ fontSize: 18, color: '#666' }}>Notificações em breve!</Text>
+    </View>
+  );
+} 
+
+// Telas temporárias
+function ChangePasswordScreen({ navigation }: any) {
+  return (
+    <View style={{ flex: 1, backgroundColor: '#f7f7f7', justifyContent: 'center', alignItems: 'center' }}>
+      <Text style={{ fontSize: 18, color: '#666' }}>Alterar Senha em breve!</Text>
+    </View>
+  );
+}
+
+function MyBookingsScreen({ navigation }: any) {
+  return (
+    <View style={{ flex: 1, backgroundColor: '#f7f7f7', justifyContent: 'center', alignItems: 'center' }}>
+      <Text style={{ fontSize: 18, color: '#666' }}>Meus Agendamentos em breve!</Text>
+    </View>
+  );
+}
+
+function PurchaseHistoryScreen({ navigation }: any) {
+  return (
+    <View style={{ flex: 1, backgroundColor: '#f7f7f7', justifyContent: 'center', alignItems: 'center' }}>
+      <Text style={{ fontSize: 18, color: '#666' }}>Histórico de Compras em breve!</Text>
+    </View>
+  );
+}
+
+function MyCoursesScreen({ navigation }: any) {
+  return (
+    <View style={{ flex: 1, backgroundColor: '#f7f7f7', justifyContent: 'center', alignItems: 'center' }}>
+      <Text style={{ fontSize: 18, color: '#666' }}>Meus Cursos em breve!</Text>
+    </View>
+  );
+}
+
+function HelpScreen({ navigation }: any) {
+  return (
+    <View style={{ flex: 1, backgroundColor: '#f7f7f7', justifyContent: 'center', alignItems: 'center' }}>
+      <Text style={{ fontSize: 18, color: '#666' }}>Ajuda em breve!</Text>
+    </View>
+  );
+}
+
+function PrivacyPolicyScreen({ navigation }: any) {
+  return (
+    <View style={{ flex: 1, backgroundColor: '#f7f7f7', justifyContent: 'center', alignItems: 'center' }}>
+      <Text style={{ fontSize: 18, color: '#666' }}>Política de Privacidade em breve!</Text>
+    </View>
+  );
+}
+
+function TermsOfUseScreen({ navigation }: any) {
+  return (
+    <View style={{ flex: 1, backgroundColor: '#f7f7f7', justifyContent: 'center', alignItems: 'center' }}>
+      <Text style={{ fontSize: 18, color: '#666' }}>Termos de Uso em breve!</Text>
     </View>
   );
 } 
