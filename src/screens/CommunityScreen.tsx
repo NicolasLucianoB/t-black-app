@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 interface Message {
   id: string;
   text: string;
-  sender: 'user' | 'barber';
+  sender: 'user' | 'barber' | 'tiago' | 'lucas' | 'rafael' | 'carlos' | 'miguel';
+  senderName: string;
   timestamp: Date;
 }
 
@@ -12,20 +14,37 @@ export default function CommunityScreen() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'Olá! Como posso ajudar você hoje?',
-      sender: 'barber',
+      text: 'Olá pessoal! Como posso ajudar vocês hoje?',
+      sender: 'tiago',
+      senderName: 'Tiago',
       timestamp: new Date(),
     },
     {
       id: '2',
       text: 'Oi! Queria saber se vocês fazem barba também',
       sender: 'user',
+      senderName: 'João Silva',
       timestamp: new Date(),
     },
     {
       id: '3',
       text: 'Sim! Fazemos barba, bigode e qualquer tipo de tratamento facial. Qual horário prefere?',
-      sender: 'barber',
+      sender: 'lucas',
+      senderName: 'Lucas',
+      timestamp: new Date(),
+    },
+    {
+      id: '4',
+      text: 'Eu também quero agendar! Tem vaga hoje?',
+      sender: 'user',
+      senderName: 'Pedro Santos',
+      timestamp: new Date(),
+    },
+    {
+      id: '5',
+      text: 'Temos sim! Pode vir às 15h',
+      sender: 'rafael',
+      senderName: 'Rafael',
       timestamp: new Date(),
     },
   ]);
@@ -37,6 +56,7 @@ export default function CommunityScreen() {
         id: Date.now().toString(),
         text: newMessage,
         sender: 'user',
+        senderName: 'Você',
         timestamp: new Date(),
       };
       setMessages([...messages, message]);
@@ -44,22 +64,44 @@ export default function CommunityScreen() {
     }
   };
 
-  const renderMessage = ({ item }: { item: Message }) => (
-    <View style={[
-      styles.messageContainer,
-      item.sender === 'user' ? styles.userMessage : styles.barberMessage
-    ]}>
-      <Text style={[
-        styles.messageText,
-        item.sender === 'user' ? styles.userMessageText : styles.barberMessageText
+  const getSenderColor = (sender: string) => {
+    switch (sender) {
+      case 'tiago': return '#25D366'; // Verde WhatsApp
+      case 'lucas': return '#FF6B6B'; // Vermelho
+      case 'rafael': return '#4ECDC4'; // Turquesa
+      case 'carlos': return '#45B7D1'; // Azul
+      case 'miguel': return '#96CEB4'; // Verde claro
+      case 'user': return '#111'; // Preto para usuários
+      default: return '#999';
+    }
+  };
+
+  const renderMessage = ({ item }: { item: Message }) => {
+    const isUser = item.sender === 'user';
+    const senderColor = getSenderColor(item.sender);
+    
+    return (
+      <View style={[
+        styles.messageContainer,
+        isUser ? styles.userMessage : styles.barberMessage
       ]}>
-        {item.text}
-      </Text>
-      <Text style={styles.timestamp}>
-        {item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-      </Text>
-    </View>
-  );
+        {!isUser && (
+          <Text style={[styles.senderName, { color: senderColor }]}>
+            {item.senderName}
+          </Text>
+        )}
+        <Text style={[
+          styles.messageText,
+          isUser ? styles.userMessageText : styles.barberMessageText
+        ]}>
+          {item.text}
+        </Text>
+        <Text style={styles.timestamp}>
+          {item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </Text>
+      </View>
+    );
+  };
 
   return (
     <KeyboardAvoidingView 
@@ -94,7 +136,11 @@ export default function CommunityScreen() {
           onPress={sendMessage}
           disabled={!newMessage.trim()}
         >
-          <Text style={styles.sendButtonText}>Enviar</Text>
+          <Ionicons 
+            name="send" 
+            size={20} 
+            color={newMessage.trim() ? '#fff' : '#999'} 
+          />
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -185,10 +231,13 @@ const styles = StyleSheet.create({
   },
   sendButton: {
     backgroundColor: '#111',
-    paddingHorizontal: 20,
-    paddingVertical: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     borderRadius: 20,
     justifyContent: 'center',
+    alignItems: 'center',
+    width: 44,
+    height: 44,
   },
   sendButtonDisabled: {
     backgroundColor: '#ccc',
@@ -197,5 +246,10 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 14,
+  },
+  senderName: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginBottom: 4,
   },
 }); 
