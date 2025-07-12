@@ -6,6 +6,13 @@ import { useCart } from '../contexts/CartContext';
 export default function MenuScreen({ navigation }: any) {
   const { getCartCount } = useCart();
 
+  const navigateToTab = (screenName: string) => {
+    navigation.goBack();
+    setTimeout(() => {
+      navigation.navigate('TabNavigator', { screen: screenName });
+    }, 100);
+  };
+
   const menuItems = [
     {
       id: 'notifications',
@@ -41,7 +48,7 @@ export default function MenuScreen({ navigation }: any) {
       title: 'Meu Perfil',
       icon: 'person-outline',
       color: '#FF3B30',
-      onPress: () => navigation.navigate('Perfil'),
+      onPress: () => navigateToTab('Perfil'),
     },
     {
       id: 'bookings',
