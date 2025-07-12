@@ -2,6 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 // Importar as telas
 import HomeScreen from '../screens/HomeScreen';
@@ -27,15 +28,17 @@ function TabNavigator() {
           backgroundColor: '#fff',
           borderTopWidth: 1,
           borderTopColor: '#eee',
-          paddingBottom: 8,
+          paddingBottom: 12,
           paddingTop: 8,
-          height: 60,
+          height: 70,
+          paddingHorizontal: 10,
         },
         tabBarActiveTintColor: '#111',
         tabBarInactiveTintColor: '#999',
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '600',
+          marginTop: 2,
         },
         headerShown: false,
       }}
@@ -45,7 +48,7 @@ function TabNavigator() {
         component={HomeScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
-            <Text style={{ color, fontSize: size }}>🏠</Text>
+            <Ionicons name="home-outline" size={size} color={color} />
           ),
           tabBarLabel: 'Início',
         }}
@@ -55,7 +58,7 @@ function TabNavigator() {
         component={BookingScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
-            <Text style={{ color, fontSize: size }}>✂️</Text>
+            <Ionicons name="calendar-outline" size={size} color={color} />
           ),
           tabBarLabel: 'Agendar',
         }}
@@ -65,7 +68,7 @@ function TabNavigator() {
         component={CommunityScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
-            <Text style={{ color, fontSize: size }}>💬</Text>
+            <Ionicons name="chatbubbles-outline" size={size} color={color} />
           ),
           tabBarLabel: 'Chat',
         }}
@@ -75,7 +78,7 @@ function TabNavigator() {
         component={ProfileScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
-            <Text style={{ color, fontSize: size }}>👤</Text>
+            <Ionicons name="person-outline" size={size} color={color} />
           ),
           tabBarLabel: 'Perfil',
         }}
