@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../contexts/ThemeContext';
 
 // Importar as telas
 import HomeScreen from '../screens/HomeScreen';
@@ -17,26 +18,29 @@ import EditProfileScreen from '../screens/EditProfileScreen';
 import CourseVideoScreen from '../screens/CourseVideoScreen';
 import FAQScreen from '../screens/FAQScreen';
 import MenuScreen from '../screens/MenuScreen';
+import ThemeSettingsScreen from '../screens/ThemeSettingsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 // Componente principal com Bottom Tabs
 function TabNavigator() {
+  const { colors } = useTheme();
+  
   return (
     <Tab.Navigator
       screenOptions={{
         tabBarStyle: {
-          backgroundColor: '#fff',
+          backgroundColor: colors.surface,
           borderTopWidth: 1,
-          borderTopColor: '#eee',
+          borderTopColor: colors.border,
           paddingBottom: 16,
           paddingTop: 8,
           height: 75,
           paddingHorizontal: 10,
         },
-        tabBarActiveTintColor: '#111',
-        tabBarInactiveTintColor: '#999',
+        tabBarActiveTintColor: colors.text,
+        tabBarInactiveTintColor: colors.textSecondary,
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '600',
@@ -341,6 +345,14 @@ export default function LoggedTabs() {
       <Stack.Screen 
         name="Menu" 
         component={MenuScreen} 
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+        }}
+      />
+      <Stack.Screen 
+        name="ThemeSettings" 
+        component={ThemeSettingsScreen} 
         options={{
           headerShown: false,
           presentation: 'modal',

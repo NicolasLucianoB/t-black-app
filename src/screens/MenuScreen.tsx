@@ -2,9 +2,11 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useCart } from '../contexts/CartContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function MenuScreen({ navigation }: any) {
   const { getCartCount } = useCart();
+  const { colors } = useTheme();
 
   const navigateToTab = (screenName: string) => {
     navigation.goBack();
@@ -92,17 +94,24 @@ export default function MenuScreen({ navigation }: any) {
       color: '#007AFF',
       onPress: () => navigation.navigate('TermsOfUse'),
     },
+    {
+      id: 'theme',
+      title: 'Tema',
+      icon: 'color-palette-outline',
+      color: '#FF6B6B',
+      onPress: () => navigation.navigate('ThemeSettings'),
+    },
   ];
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Menu</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Menu</Text>
         <TouchableOpacity 
           style={styles.closeButton}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="close" size={24} color="#111" />
+          <Ionicons name="close" size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
 
@@ -111,7 +120,7 @@ export default function MenuScreen({ navigation }: any) {
           {menuItems.map((item) => (
             <TouchableOpacity
               key={item.id}
-              style={styles.menuItem}
+              style={[styles.menuItem, { backgroundColor: colors.card }]}
               onPress={item.onPress}
             >
               <View style={[styles.iconContainer, { backgroundColor: item.color + '20' }]}>
@@ -122,7 +131,7 @@ export default function MenuScreen({ navigation }: any) {
                   </View>
                 )}
               </View>
-              <Text style={styles.menuItemTitle}>{item.title}</Text>
+              <Text style={[styles.menuItemTitle, { color: colors.text }]}>{item.title}</Text>
             </TouchableOpacity>
           ))}
         </View>

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useCart } from '../contexts/CartContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface HomeScreenProps {
   navigation: any;
@@ -9,6 +10,7 @@ interface HomeScreenProps {
 
 export default function HomeScreen({ navigation }: HomeScreenProps) {
   const { getCartCount } = useCart();
+  const { colors } = useTheme();
   
   const handleNavigate = (screenName: string) => {
     try {
@@ -19,21 +21,21 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header com ícones */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <View style={styles.headerLeft}>
           <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('Menu')}>
-            <Ionicons name="menu" size={24} color="#111" />
+            <Ionicons name="menu" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Studio T Black</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>Studio T Black</Text>
         </View>
         <View style={styles.headerRight}>
           <TouchableOpacity style={styles.iconButton} onPress={() => handleNavigate('Notifications')}>
-            <Ionicons name="notifications-outline" size={24} color="#111" />
+            <Ionicons name="notifications-outline" size={24} color={colors.text} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconButton} onPress={() => handleNavigate('Cart')}>
-            <Ionicons name="cart-outline" size={24} color="#111" />
+            <Ionicons name="cart-outline" size={24} color={colors.text} />
             {getCartCount() > 0 && (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{getCartCount()}</Text>
@@ -41,76 +43,76 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
             )}
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconButton} onPress={() => handleNavigate('StudioInfo')}>
-            <Ionicons name="information-circle-outline" size={24} color="#111" />
+            <Ionicons name="information-circle-outline" size={24} color={colors.text} />
           </TouchableOpacity>
         </View>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.welcomeSection}>
-          <Text style={styles.title}>Bem-vindo ao Studio T Black!</Text>
-          <Text style={styles.subtitle}>O que você deseja fazer hoje?</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Bem-vindo ao Studio T Black!</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>O que você deseja fazer hoje?</Text>
         </View>
 
         {/* Card de Agendamento Rápido */}
         <View style={styles.quickBookContainer}>
-          <TouchableOpacity style={styles.quickBookCard} onPress={() => handleNavigate('Agendar')}>
+          <TouchableOpacity style={[styles.quickBookCard, { backgroundColor: colors.card }]} onPress={() => handleNavigate('Agendar')}>
             <View style={styles.quickBookHeader}>
               <Ionicons name="refresh" size={24} color="#25D366" />
-              <Text style={styles.quickBookTitle}>Agendar Novamente</Text>
+              <Text style={[styles.quickBookTitle, { color: colors.text }]}>Agendar Novamente</Text>
             </View>
-            <Text style={styles.lastService}>Último: Corte Degradê - Tiago</Text>
-            <Text style={styles.lastDate}>15/01/2024 às 14:00</Text>
-            <Text style={styles.quickBookSubtitle}>Escolha nova data e horário</Text>
+            <Text style={[styles.lastService, { color: colors.textSecondary }]}>Último: Corte Degradê - Tiago</Text>
+            <Text style={[styles.lastDate, { color: colors.textSecondary }]}>15/01/2024 às 14:00</Text>
+            <Text style={[styles.quickBookSubtitle, { color: colors.textSecondary }]}>Escolha nova data e horário</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.cardsContainer}>
-          <TouchableOpacity style={styles.card} onPress={() => handleNavigate('Agendar')}>
+          <TouchableOpacity style={[styles.card, { backgroundColor: colors.card }]} onPress={() => handleNavigate('Agendar')}>
             <View style={styles.cardIcon}>
-              <Ionicons name="calendar-outline" size={32} color="#111" />
+              <Ionicons name="calendar-outline" size={32} color={colors.text} />
             </View>
-            <Text style={styles.cardTitle}>Agendar Horário</Text>
-            <Text style={styles.cardSubtitle}>Marque seu horário com nossos barbeiros</Text>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>Agendar Horário</Text>
+            <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>Marque seu horário com nossos barbeiros</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.card} onPress={() => handleNavigate('Courses')}>
+          <TouchableOpacity style={[styles.card, { backgroundColor: colors.card }]} onPress={() => handleNavigate('Courses')}>
             <View style={styles.cardIcon}>
-              <Ionicons name="school-outline" size={32} color="#111" />
+              <Ionicons name="school-outline" size={32} color={colors.text} />
             </View>
-            <Text style={styles.cardTitle}>Ver Cursos</Text>
-            <Text style={styles.cardSubtitle}>Aprenda técnicas profissionais</Text>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>Ver Cursos</Text>
+            <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>Aprenda técnicas profissionais</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.card} onPress={() => handleNavigate('Products')}>
+          <TouchableOpacity style={[styles.card, { backgroundColor: colors.card }]} onPress={() => handleNavigate('Products')}>
             <View style={styles.cardIcon}>
-              <Ionicons name="bag-outline" size={32} color="#111" />
+              <Ionicons name="bag-outline" size={32} color={colors.text} />
             </View>
-            <Text style={styles.cardTitle}>Comprar Produtos</Text>
-            <Text style={styles.cardSubtitle}>Produtos profissionais para cabelo</Text>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>Comprar Produtos</Text>
+            <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>Produtos profissionais para cabelo</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.card} onPress={() => handleNavigate('StudioInfo')}>
+          <TouchableOpacity style={[styles.card, { backgroundColor: colors.card }]} onPress={() => handleNavigate('StudioInfo')}>
             <View style={styles.cardIcon}>
-              <Ionicons name="business-outline" size={32} color="#111" />
+              <Ionicons name="business-outline" size={32} color={colors.text} />
             </View>
-            <Text style={styles.cardTitle}>Informações do Studio</Text>
-            <Text style={styles.cardSubtitle}>Horários, endereço e contatos</Text>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>Informações do Studio</Text>
+            <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>Horários, endereço e contatos</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.card} onPress={() => handleNavigate('FAQ')}>
+          <TouchableOpacity style={[styles.card, { backgroundColor: colors.card }]} onPress={() => handleNavigate('FAQ')}>
             <View style={styles.cardIcon}>
-              <Ionicons name="help-circle-outline" size={32} color="#111" />
+              <Ionicons name="help-circle-outline" size={32} color={colors.text} />
             </View>
-            <Text style={styles.cardTitle}>Perguntas Frequentes</Text>
-            <Text style={styles.cardSubtitle}>Tire suas dúvidas sobre nossos serviços</Text>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>Perguntas Frequentes</Text>
+            <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>Tire suas dúvidas sobre nossos serviços</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.profileSection}>
-          <TouchableOpacity style={styles.profileButton} onPress={() => handleNavigate('Perfil')}>
-            <Ionicons name="person-outline" size={20} color="#111" />
-            <Text style={styles.profileButtonText}>Ver Perfil</Text>
+          <TouchableOpacity style={[styles.profileButton, { backgroundColor: colors.card }]} onPress={() => handleNavigate('Perfil')}>
+            <Ionicons name="person-outline" size={20} color={colors.text} />
+            <Text style={[styles.profileButtonText, { color: colors.text }]}>Ver Perfil</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
