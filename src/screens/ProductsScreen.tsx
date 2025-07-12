@@ -93,36 +93,38 @@ export default function ProductsScreen({ navigation }: any) {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {produtos.map(produto => (
-          <View key={produto.id} style={styles.productCard}>
-            <Image source={{ uri: produto.imagem }} style={styles.productImage} />
-            <View style={styles.productInfo}>
-              <Text style={styles.productName}>{produto.nome}</Text>
-              <Text style={styles.productCategory}>{produto.categoria}</Text>
-              <Text style={styles.productPrice}>R$ {produto.preco.toFixed(2)}</Text>
-              
-              {estaNoCarrinho(produto.id) ? (
-                <View style={styles.inCartContainer}>
-                  <Text style={styles.inCartText}>No Carrinho</Text>
+        <View style={styles.productsGrid}>
+          {produtos.map(produto => (
+            <View key={produto.id} style={styles.productCard}>
+              <Image source={{ uri: produto.imagem }} style={styles.productImage} />
+              <View style={styles.productInfo}>
+                <Text style={styles.productName}>{produto.nome}</Text>
+                <Text style={styles.productCategory}>{produto.categoria}</Text>
+                <Text style={styles.productPrice}>R$ {produto.preco.toFixed(2)}</Text>
+                
+                {estaNoCarrinho(produto.id) ? (
+                  <View style={styles.inCartContainer}>
+                    <Text style={styles.inCartText}>No Carrinho</Text>
+                    <TouchableOpacity 
+                      style={styles.removeButton} 
+                      onPress={() => removeFromCart(produto.id, 'product')}
+                    >
+                      <Ionicons name="remove-circle" size={24} color="#ff6b6b" />
+                    </TouchableOpacity>
+                  </View>
+                ) : (
                   <TouchableOpacity 
-                    style={styles.removeButton} 
-                    onPress={() => removeFromCart(produto.id, 'product')}
+                    style={styles.addButton} 
+                    onPress={() => addToCart(produto.id, 'product')}
                   >
-                    <Ionicons name="remove-circle" size={24} color="#ff6b6b" />
+                    <Ionicons name="add-circle" size={24} color="#111" />
+                    <Text style={styles.addButtonText}>Adicionar</Text>
                   </TouchableOpacity>
-                </View>
-              ) : (
-                <TouchableOpacity 
-                  style={styles.addButton} 
-                  onPress={() => addToCart(produto.id, 'product')}
-                >
-                  <Ionicons name="add-circle" size={24} color="#111" />
-                  <Text style={styles.addButtonText}>Adicionar</Text>
-                </TouchableOpacity>
-              )}
+                )}
+              </View>
             </View>
-          </View>
-        ))}
+          ))}
+        </View>
       </ScrollView>
 
       {cart.filter(item => item.type === 'product').length > 0 && (
@@ -174,21 +176,21 @@ const styles = StyleSheet.create({
   },
   productImage: {
     width: '100%',
-    height: 120,
+    height: 100,
     borderRadius: 8,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   productInfo: {
     flex: 1,
   },
   productName: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#111',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   productCategory: {
-    fontSize: 12,
+    fontSize: 10,
     color: '#666',
     marginBottom: 4,
   },
@@ -199,26 +201,29 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   productPrice: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#111',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   productActions: {
     alignItems: 'center',
   },
   addButton: {
-    backgroundColor: '#111',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    width: '100%',
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#111',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 16,
+    width: '100%',
   },
   addButtonText: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: 'bold',
+    marginLeft: 4,
   },
   quantityContainer: {
     flexDirection: 'row',
@@ -305,13 +310,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 8,
+    marginTop: 4,
   },
   inCartText: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#666',
   },
   removeButton: {
-    marginLeft: 10,
+    marginLeft: 4,
   },
 }); 
