@@ -82,11 +82,12 @@ export default function CommunityScreen({ navigation }: any) {
   const renderMessage = ({ item }: { item: Message }) => {
     const isUser = item.sender === 'user';
     const senderColor = getSenderColor(item.sender);
-    
     return (
       <View style={[
         styles.messageContainer,
-        isUser ? styles.userMessage : styles.barberMessage
+        isUser
+          ? { ...styles.userMessage, backgroundColor: colors.primary }
+          : { ...styles.barberMessage, backgroundColor: colors.card, shadowColor: colors.shadow }
       ]}>
         {!isUser && (
           <Text style={[styles.senderName, { color: senderColor }]}>
@@ -95,11 +96,11 @@ export default function CommunityScreen({ navigation }: any) {
         )}
         <Text style={[
           styles.messageText,
-          isUser ? styles.userMessageText : styles.barberMessageText
+          isUser ? { color: colors.card } : { color: colors.text }
         ]}>
           {item.text}
         </Text>
-        <Text style={styles.timestamp}>
+        <Text style={[styles.timestamp, { color: colors.textSecondary }]}> 
           {item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </Text>
       </View>
@@ -113,9 +114,9 @@ export default function CommunityScreen({ navigation }: any) {
         style={{ flex: 1 }} 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Comunidade Studio T Black</Text>
-          <Text style={styles.headerSubtitle}>Chat com o barbeiro</Text>
+        <View style={[styles.header, { backgroundColor: colors.primary }]}> 
+          <Text style={[styles.headerTitle, { color: colors.card }]}>Comunidade Studio T Black</Text>
+          <Text style={[styles.headerSubtitle, { color: colors.card } ]}>Chat com o barbeiro</Text>
         </View>
 
         <FlatList
@@ -127,24 +128,24 @@ export default function CommunityScreen({ navigation }: any) {
           showsVerticalScrollIndicator={false}
         />
 
-        <View style={styles.inputContainer}>
+        <View style={[styles.inputContainer, { backgroundColor: colors.card, borderTopColor: colors.border }]}> 
           <TextInput
-            style={styles.textInput}
+            style={[styles.textInput, { borderColor: colors.border, color: colors.text }]}
             value={newMessage}
             onChangeText={setNewMessage}
             placeholder="Digite sua mensagem..."
-            placeholderTextColor="#999"
+            placeholderTextColor={colors.textSecondary}
             multiline
           />
           <TouchableOpacity 
-            style={[styles.sendButton, !newMessage.trim() && styles.sendButtonDisabled]} 
+            style={[styles.sendButton, { backgroundColor: newMessage.trim() ? colors.primary : colors.textSecondary }]} 
             onPress={sendMessage}
             disabled={!newMessage.trim()}
           >
             <Ionicons 
               name="send" 
               size={20} 
-              color={newMessage.trim() ? '#fff' : '#999'} 
+              color={colors.card} 
             />
           </TouchableOpacity>
         </View>

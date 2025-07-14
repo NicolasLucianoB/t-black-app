@@ -30,16 +30,16 @@ const lightColors = {
 const darkColors = {
   primary: '#fff',
   secondary: '#999',
-  background: '#000',
-  surface: '#111',
+  background: '#18181b', // cinza escuro
+  surface: '#23272f',    // cinza escuro para cards e superfícies
   border: '#333',
   text: '#fff',
-  textSecondary: '#999',
+  textSecondary: '#aaa',
   accent: '#0A84FF',
   success: '#30D158',
   warning: '#FF9F0A',
   error: '#FF453A',
-  card: '#1c1c1e',
+  card: '#23272f',
   shadow: '#000',
 };
 
