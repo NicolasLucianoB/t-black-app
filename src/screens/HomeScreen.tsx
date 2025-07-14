@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } fr
 import { Ionicons } from '@expo/vector-icons';
 import { useCart } from '../contexts/CartContext';
 import { useTheme } from '../contexts/ThemeContext';
+import AppHeader from '../components/AppHeader';
 
 interface HomeScreenProps {
   navigation: any;
@@ -10,7 +11,8 @@ interface HomeScreenProps {
 
 export default function HomeScreen({ navigation }: HomeScreenProps) {
   const { getCartCount } = useCart();
-  const { colors } = useTheme();
+  const { colors, theme } = useTheme();
+  const iconColor = '#111';
   
   const handleNavigate = (screenName: string) => {
     try {
@@ -23,30 +25,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header com ícones */}
-      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('Menu')}>
-            <Ionicons name="menu" size={24} color={colors.text} />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Studio T Black</Text>
-        </View>
-        <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.iconButton} onPress={() => handleNavigate('Notifications')}>
-            <Ionicons name="notifications-outline" size={24} color={colors.text} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton} onPress={() => handleNavigate('Cart')}>
-            <Ionicons name="cart-outline" size={24} color={colors.text} />
-            {getCartCount() > 0 && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{getCartCount()}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton} onPress={() => handleNavigate('StudioInfo')}>
-            <Ionicons name="information-circle-outline" size={24} color={colors.text} />
-          </TouchableOpacity>
-        </View>
-      </View>
+      <AppHeader navigation={navigation} />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.welcomeSection}>
@@ -55,22 +34,24 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         </View>
 
         {/* Card de Agendamento Rápido */}
-        <View style={styles.quickBookContainer}>
-          <TouchableOpacity style={[styles.quickBookCard, { backgroundColor: colors.card }]} onPress={() => handleNavigate('Agendar')}>
-            <View style={styles.quickBookHeader}>
-              <Ionicons name="refresh" size={24} color="#25D366" />
-              <Text style={[styles.quickBookTitle, { color: colors.text }]}>Agendar Novamente</Text>
+        <View style={[styles.quickBookSection, { backgroundColor: colors.card, width: '100%', borderRadius: 12, padding: 16, marginBottom: 16, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2 }]}> 
+          <View style={[styles.quickBookHeader, { flexDirection: 'row', alignItems: 'center', marginBottom: 8 }]}> 
+            <Ionicons name="flash" size={20} color="#25D366" />
+            <Text style={[styles.quickBookTitle, { color: colors.text, fontSize: 16, fontWeight: 'bold', marginLeft: 8 }]}>Agendamento Rápido</Text>
+          </View>
+          <TouchableOpacity style={[styles.quickBookCard, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'transparent', borderRadius: 8, padding: 12, marginBottom: 8 }]} onPress={() => handleNavigate('Agendar')}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.quickBookService, { color: colors.text, fontSize: 14, fontWeight: 'bold' }]}>Corte Degradê - Tiago</Text>
+              <Text style={[styles.quickBookDate, { color: colors.textSecondary, fontSize: 12 }]}>Último: 15/01/2024 às 14:00</Text>
             </View>
-            <Text style={[styles.lastService, { color: colors.textSecondary }]}>Último: Corte Degradê - Tiago</Text>
-            <Text style={[styles.lastDate, { color: colors.textSecondary }]}>15/01/2024 às 14:00</Text>
-            <Text style={[styles.quickBookSubtitle, { color: colors.textSecondary }]}>Escolha nova data e horário</Text>
+            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.cardsContainer}>
           <TouchableOpacity style={[styles.card, { backgroundColor: colors.card }]} onPress={() => handleNavigate('Agendar')}>
             <View style={styles.cardIcon}>
-              <Ionicons name="calendar-outline" size={32} color={colors.text} />
+              <Ionicons name="calendar-outline" size={32} color={iconColor} />
             </View>
             <Text style={[styles.cardTitle, { color: colors.text }]}>Agendar Horário</Text>
             <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>Marque seu horário com nossos barbeiros</Text>
@@ -78,7 +59,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
           <TouchableOpacity style={[styles.card, { backgroundColor: colors.card }]} onPress={() => handleNavigate('Courses')}>
             <View style={styles.cardIcon}>
-              <Ionicons name="school-outline" size={32} color={colors.text} />
+              <Ionicons name="school-outline" size={32} color={iconColor} />
             </View>
             <Text style={[styles.cardTitle, { color: colors.text }]}>Ver Cursos</Text>
             <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>Aprenda técnicas profissionais</Text>
@@ -86,7 +67,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
           <TouchableOpacity style={[styles.card, { backgroundColor: colors.card }]} onPress={() => handleNavigate('Products')}>
             <View style={styles.cardIcon}>
-              <Ionicons name="bag-outline" size={32} color={colors.text} />
+              <Ionicons name="bag-outline" size={32} color={iconColor} />
             </View>
             <Text style={[styles.cardTitle, { color: colors.text }]}>Comprar Produtos</Text>
             <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>Produtos profissionais para cabelo</Text>
@@ -94,7 +75,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
           <TouchableOpacity style={[styles.card, { backgroundColor: colors.card }]} onPress={() => handleNavigate('StudioInfo')}>
             <View style={styles.cardIcon}>
-              <Ionicons name="business-outline" size={32} color={colors.text} />
+              <Ionicons name="business-outline" size={32} color={iconColor} />
             </View>
             <Text style={[styles.cardTitle, { color: colors.text }]}>Informações do Studio</Text>
             <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>Horários, endereço e contatos</Text>
@@ -102,7 +83,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
           <TouchableOpacity style={[styles.card, { backgroundColor: colors.card }]} onPress={() => handleNavigate('FAQ')}>
             <View style={styles.cardIcon}>
-              <Ionicons name="help-circle-outline" size={32} color={colors.text} />
+              <Ionicons name="help-circle-outline" size={32} color={iconColor} />
             </View>
             <Text style={[styles.cardTitle, { color: colors.text }]}>Perguntas Frequentes</Text>
             <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>Tire suas dúvidas sobre nossos serviços</Text>
@@ -258,6 +239,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   quickBookHeader: {
     flexDirection: 'row',
@@ -284,6 +268,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     textAlign: 'center',
+  },
+  quickBookSection: {
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+  },
+  quickBookInfo: {
+    flex: 1,
+  },
+  quickBookService: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  quickBookDate: {
+    fontSize: 14,
   },
   menuButton: {
     marginRight: 10,

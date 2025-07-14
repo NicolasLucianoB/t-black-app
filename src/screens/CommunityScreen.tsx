@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AppHeader from '../components/AppHeader';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface Message {
   id: string;
@@ -10,7 +12,8 @@ interface Message {
   timestamp: Date;
 }
 
-export default function CommunityScreen() {
+export default function CommunityScreen({ navigation }: any) {
+  const { colors } = useTheme();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -104,46 +107,49 @@ export default function CommunityScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Comunidade Studio T Black</Text>
-        <Text style={styles.headerSubtitle}>Chat com o barbeiro</Text>
-      </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+      <AppHeader navigation={navigation} title="Comunidade Studio T Black" />
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }} 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Comunidade Studio T Black</Text>
+          <Text style={styles.headerSubtitle}>Chat com o barbeiro</Text>
+        </View>
 
-      <FlatList
-        data={messages}
-        renderItem={renderMessage}
-        keyExtractor={(item) => item.id}
-        style={styles.messagesList}
-        contentContainerStyle={styles.messagesContainer}
-        showsVerticalScrollIndicator={false}
-      />
-
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.textInput}
-          value={newMessage}
-          onChangeText={setNewMessage}
-          placeholder="Digite sua mensagem..."
-          placeholderTextColor="#999"
-          multiline
+        <FlatList
+          data={messages}
+          renderItem={renderMessage}
+          keyExtractor={(item) => item.id}
+          style={styles.messagesList}
+          contentContainerStyle={styles.messagesContainer}
+          showsVerticalScrollIndicator={false}
         />
-        <TouchableOpacity 
-          style={[styles.sendButton, !newMessage.trim() && styles.sendButtonDisabled]} 
-          onPress={sendMessage}
-          disabled={!newMessage.trim()}
-        >
-          <Ionicons 
-            name="send" 
-            size={20} 
-            color={newMessage.trim() ? '#fff' : '#999'} 
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.textInput}
+            value={newMessage}
+            onChangeText={setNewMessage}
+            placeholder="Digite sua mensagem..."
+            placeholderTextColor="#999"
+            multiline
           />
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+          <TouchableOpacity 
+            style={[styles.sendButton, !newMessage.trim() && styles.sendButtonDisabled]} 
+            onPress={sendMessage}
+            disabled={!newMessage.trim()}
+          >
+            <Ionicons 
+              name="send" 
+              size={20} 
+              color={newMessage.trim() ? '#fff' : '#999'} 
+            />
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 

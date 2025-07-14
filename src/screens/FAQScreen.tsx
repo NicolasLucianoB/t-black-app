@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AppHeader from '../components/AppHeader';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface FAQItem {
   id: string;
@@ -110,6 +112,7 @@ const faqData: FAQItem[] = [
 const categories = ['Agendamentos', 'Serviços', 'Pagamento', 'Horários', 'Cursos'];
 
 export default function FAQScreen({ navigation }: any) {
+  const { colors } = useTheme();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
 
@@ -126,7 +129,8 @@ export default function FAQScreen({ navigation }: any) {
     : faqData.filter(item => item.category === selectedCategory);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}> 
+      <AppHeader navigation={navigation} title="Perguntas Frequentes" />
       <View style={styles.header}>
         <Text style={styles.title}>Perguntas Frequentes</Text>
         <Text style={styles.subtitle}>Tire suas dúvidas sobre nossos serviços</Text>

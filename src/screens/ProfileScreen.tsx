@@ -1,7 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function ProfileScreen({ navigation }: any) {
+  const { colors } = useTheme();
   const handleLogout = () => {
     Alert.alert(
       'Sair',
@@ -22,69 +24,69 @@ export default function ProfileScreen({ navigation }: any) {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.avatarContainer}>
-          <Text style={styles.avatarText}>JD</Text>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}> 
+      <View style={[styles.header, { backgroundColor: colors.primary }]}> 
+        <View style={[styles.avatarContainer, { backgroundColor: colors.card }]}> 
+          <Text style={[styles.avatarText, { color: colors.primary } ]}>JD</Text>
         </View>
-        <Text style={styles.userName}>João Silva</Text>
-        <Text style={styles.userEmail}>joao.silva@email.com</Text>
+        <Text style={[styles.userName, { color: colors.text } ]}>João Silva</Text>
+        <Text style={[styles.userEmail, { color: colors.textSecondary } ]}>joao.silva@email.com</Text>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Informações Pessoais</Text>
+      <View style={[styles.section, { backgroundColor: colors.card, shadowColor: colors.shadow }]}> 
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Informações Pessoais</Text>
         <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('EditProfile')}>
-          <Text style={styles.menuItemText}>Editar Perfil</Text>
-          <Text style={styles.menuItemArrow}>›</Text>
+          <Text style={[styles.menuItemText, { color: colors.text }]}>Editar Perfil</Text>
+          <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('ChangePassword')}>
-          <Text style={styles.menuItemText}>Alterar Senha</Text>
-          <Text style={styles.menuItemArrow}>›</Text>
+          <Text style={[styles.menuItemText, { color: colors.text }]}>Alterar Senha</Text>
+          <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Notifications')}>
-          <Text style={styles.menuItemText}>Notificações</Text>
-          <Text style={styles.menuItemArrow}>›</Text>
+          <Text style={[styles.menuItemText, { color: colors.text }]}>Notificações</Text>
+          <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Histórico</Text>
+      <View style={[styles.section, { backgroundColor: colors.card, shadowColor: colors.shadow }]}> 
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Histórico</Text>
         <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('MyBookings')}>
-          <Text style={styles.menuItemText}>Meus Agendamentos</Text>
-          <Text style={styles.menuItemArrow}>›</Text>
+          <Text style={[styles.menuItemText, { color: colors.text }]}>Meus Agendamentos</Text>
+          <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('PurchaseHistory')}>
-          <Text style={styles.menuItemText}>Histórico de Compras</Text>
-          <Text style={styles.menuItemArrow}>›</Text>
+          <Text style={[styles.menuItemText, { color: colors.text }]}>Histórico de Compras</Text>
+          <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('MyCourses')}>
-          <Text style={styles.menuItemText}>Cursos Inscritos</Text>
-          <Text style={styles.menuItemArrow}>›</Text>
+          <Text style={[styles.menuItemText, { color: colors.text }]}>Cursos Inscritos</Text>
+          <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Suporte</Text>
+      <View style={[styles.section, { backgroundColor: colors.card, shadowColor: colors.shadow }]}> 
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Suporte</Text>
         <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Help')}>
-          <Text style={styles.menuItemText}>Ajuda</Text>
-          <Text style={styles.menuItemArrow}>›</Text>
+          <Text style={[styles.menuItemText, { color: colors.text }]}>Ajuda</Text>
+          <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('PrivacyPolicy')}>
-          <Text style={styles.menuItemText}>Política de Privacidade</Text>
-          <Text style={styles.menuItemArrow}>›</Text>
+          <Text style={[styles.menuItemText, { color: colors.text }]}>Política de Privacidade</Text>
+          <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('TermsOfUse')}>
-          <Text style={styles.menuItemText}>Termos de Uso</Text>
-          <Text style={styles.menuItemArrow}>›</Text>
+          <Text style={[styles.menuItemText, { color: colors.text }]}>Termos de Uso</Text>
+          <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutButtonText}>Sair</Text>
+      <TouchableOpacity style={[styles.logoutButton, { backgroundColor: colors.error }]} onPress={handleLogout}>
+        <Text style={[styles.logoutButtonText, { color: colors.card }]}>Sair</Text>
       </TouchableOpacity>
 
       <View style={styles.footer}>
-        <Text style={styles.versionText}>Versão 1.0.0</Text>
+        <Text style={[styles.versionText, { color: colors.textSecondary }]}>Versão 1.0.0</Text>
       </View>
     </ScrollView>
   );
@@ -93,10 +95,8 @@ export default function ProfileScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f7f7f7',
   },
   header: {
-    backgroundColor: '#111',
     padding: 24,
     alignItems: 'center',
     paddingTop: 60,
@@ -105,7 +105,6 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -113,24 +112,19 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#111',
   },
   userName: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#fff',
     marginBottom: 4,
   },
   userEmail: {
     fontSize: 14,
-    color: '#ccc',
   },
   section: {
-    backgroundColor: '#fff',
     margin: 16,
     borderRadius: 12,
     padding: 16,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -139,7 +133,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#111',
     marginBottom: 12,
   },
   menuItem: {
@@ -148,25 +141,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
   menuItemText: {
     fontSize: 16,
-    color: '#111',
   },
   menuItemArrow: {
     fontSize: 18,
-    color: '#ccc',
   },
   logoutButton: {
-    backgroundColor: '#ff6b6b',
     margin: 16,
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
   },
   logoutButtonText: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -176,6 +164,5 @@ const styles = StyleSheet.create({
   },
   versionText: {
     fontSize: 12,
-    color: '#999',
   },
 }); 

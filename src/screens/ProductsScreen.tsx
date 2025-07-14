@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useCart } from '../contexts/CartContext';
+import { useTheme } from '../contexts/ThemeContext';
+import AppHeader from '../components/AppHeader';
 
 // Mock de produtos
 const produtos = [
@@ -57,6 +59,7 @@ const produtos = [
 
 export default function ProductsScreen({ navigation }: any) {
   const { cart, addToCart, removeFromCart } = useCart();
+  const { colors } = useTheme();
   
   console.log('ProductsScreen - Carrinho atual:', cart);
 
@@ -84,7 +87,8 @@ export default function ProductsScreen({ navigation }: any) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}> 
+      <AppHeader navigation={navigation} title="Produtos" />
       {/* Debug info */}
       <View style={styles.debugContainer}>
         <Text style={styles.debugText}>

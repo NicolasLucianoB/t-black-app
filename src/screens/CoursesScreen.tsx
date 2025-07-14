@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert, SafeAreaView } from 'react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { useCart } from '../contexts/CartContext';
+import AppHeader from '../components/AppHeader';
+import { useTheme } from '../contexts/ThemeContext';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -151,8 +153,10 @@ function MeusCursosTab({ navigation }: any) {
 }
 
 export default function CoursesScreen({ navigation }: any) {
+  const { colors } = useTheme();
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <AppHeader navigation={navigation} title="Cursos" />
       <View style={styles.header}>
         <Text style={styles.title}>Cursos</Text>
         <Text style={styles.subtitle}>Aprenda com os melhores profissionais</Text>
