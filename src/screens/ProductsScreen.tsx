@@ -89,12 +89,6 @@ export default function ProductsScreen({ navigation }: any) {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}> 
       <AppHeader navigation={navigation} title="Produtos" />
-      {/* Debug info */}
-      <View style={styles.debugContainer}>
-        <Text style={styles.debugText}>
-          Debug - Carrinho: {JSON.stringify(cart)}
-        </Text>
-      </View>
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.productsGrid}>
@@ -108,7 +102,7 @@ export default function ProductsScreen({ navigation }: any) {
                 
                 {estaNoCarrinho(produto.id) ? (
                   <View style={styles.inCartContainer}>
-                    <Text style={styles.inCartText}>No Carrinho</Text>
+                    <Text style={styles.inCartTextCentered}>No Carrinho</Text>
                     <TouchableOpacity 
                       style={styles.removeButton} 
                       onPress={() => removeFromCart(produto.id, 'product')}
@@ -121,8 +115,10 @@ export default function ProductsScreen({ navigation }: any) {
                     style={styles.addButton} 
                     onPress={() => addToCart(produto.id, 'product')}
                   >
-                    <Ionicons name="add-circle" size={24} color="#111" />
-                    <Text style={styles.addButtonText}>Adicionar</Text>
+                    <Ionicons name="add-circle" size={24} color="#111" style={{ marginRight: 4 }} />
+                    <View style={styles.addButtonTextAbsoluteContainer} pointerEvents="none">
+                      <Text style={styles.addButtonTextAbsolute}>Adicionar</Text>
+                    </View>
                   </TouchableOpacity>
                 )}
               </View>
@@ -228,6 +224,33 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
     marginLeft: 4,
+    marginTop: -2, // Ajuste para centralizar verticalmente
+  },
+  addButtonTextCentered: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+    flex: 1,
+    textAlign: 'center',
+    marginTop: -2,
+  },
+  addButtonTextAbsoluteContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+    backgroundColor: 'transparent',
+  },
+  addButtonTextAbsolute: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: -2,
   },
   quantityContainer: {
     flexDirection: 'row',
@@ -309,6 +332,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginLeft: 10,
+    marginTop: -2, // Ajuste para subir o texto
   },
   inCartContainer: {
     flexDirection: 'row',
@@ -319,6 +343,12 @@ const styles = StyleSheet.create({
   inCartText: {
     fontSize: 12,
     color: '#666',
+  },
+  inCartTextCentered: {
+    fontSize: 12,
+    color: '#666',
+    flex: 1,
+    textAlign: 'center',
   },
   removeButton: {
     marginLeft: 4,

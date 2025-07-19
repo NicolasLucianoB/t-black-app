@@ -62,7 +62,7 @@ function getHorariosDisponiveis(barbeiroId: number, data: string) {
 }
 
 export default function BookingScreen({ navigation }: any) {
-  const { colors } = useTheme();
+  const { colors, theme } = useTheme();
   const [barbeiro, setBarbeiro] = useState(barbeiros[0].id);
   const [data, setData] = useState('');
   const [horario, setHorario] = useState('');
@@ -129,16 +129,19 @@ export default function BookingScreen({ navigation }: any) {
               selectedDayBackgroundColor: colors.primary,
               selectedDayTextColor: colors.card,
               disabledArrowColor: colors.textSecondary,
-              textDisabledColor: colors.textSecondary,
-              backgroundColor: colors.card,
-              calendarBackground: colors.card,
+              textDisabledColor: theme === 'dark' ? '#333' : '#ccc',
+              textDayStyle: {
+                color: theme === 'dark' ? '#fff' : '#111',
+              },
+              backgroundColor: theme === 'dark' ? colors.surface : colors.card,
+              calendarBackground: theme === 'dark' ? colors.surface : colors.card,
               monthTextColor: colors.text,
               textMonthFontWeight: 'bold',
               textMonthFontSize: 18,
               textDayFontSize: 16,
               textDayHeaderFontSize: 14,
             }}
-            style={[styles.calendar, { backgroundColor: colors.card }]}
+            style={[styles.calendar, { backgroundColor: theme === 'dark' ? colors.surface : colors.card }]}
           />
           <Text style={[styles.label, { color: colors.text }]}>Horário</Text>
           {data && horariosDisponiveis.length > 0 ? (

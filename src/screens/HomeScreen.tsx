@@ -34,18 +34,20 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         </View>
 
         {/* Card de Agendamento Rápido */}
-        <View style={[styles.quickBookSection, { backgroundColor: colors.card, width: '100%', borderRadius: 12, padding: 16, marginBottom: 16, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2 }]}> 
-          <View style={[styles.quickBookHeader, { flexDirection: 'row', alignItems: 'center', marginBottom: 8 }]}> 
-            <Ionicons name="flash" size={20} color="#25D366" />
-            <Text style={[styles.quickBookTitle, { color: colors.text, fontSize: 16, fontWeight: 'bold', marginLeft: 8 }]}>Agendamento Rápido</Text>
-          </View>
-          <TouchableOpacity style={[styles.quickBookCard, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'transparent', borderRadius: 8, padding: 12, marginBottom: 8 }]} onPress={() => handleNavigate('Agendar')}>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.quickBookService, { color: colors.text, fontSize: 14, fontWeight: 'bold' }]}>Corte Degradê - Tiago</Text>
-              <Text style={[styles.quickBookDate, { color: colors.textSecondary, fontSize: 12 }]}>Último: 15/01/2024 às 14:00</Text>
+        <View style={styles.quickBookContainer}>
+          <View style={[styles.quickBookSection, { backgroundColor: colors.card }]}> 
+            <View style={[styles.quickBookHeader, { flexDirection: 'row', alignItems: 'center', marginBottom: 8 }]}> 
+              <Ionicons name="flash" size={20} color="#25D366" />
+              <Text style={[styles.quickBookTitle, { color: colors.text, fontSize: 16, fontWeight: 'bold', marginLeft: 8 }]}>Agendamento Rápido</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
-          </TouchableOpacity>
+            <TouchableOpacity style={[styles.quickBookCard, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'transparent', borderRadius: 8, padding: 12, marginBottom: 8 }]} onPress={() => handleNavigate('Agendar')}>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.quickBookService, { color: colors.text, fontSize: 14, fontWeight: 'bold' }]}>Corte Degradê - Tiago</Text>
+                <Text style={[styles.quickBookDate, { color: colors.textSecondary, fontSize: 12 }]}>Último: 15/01/2024 às 14:00</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.cardsContainer}>
