@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+
 import { useTheme } from '../contexts/ThemeContext';
 
 // Importar as telas
@@ -26,7 +27,7 @@ const Stack = createNativeStackNavigator();
 // Componente principal com Bottom Tabs
 function TabNavigator() {
   const { colors } = useTheme();
-  
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -102,9 +103,9 @@ export default function LoggedTabs() {
       }}
     >
       <Stack.Screen name="TabNavigator" component={TabNavigator} />
-      <Stack.Screen 
-        name="Courses" 
-        component={CoursesScreen} 
+      <Stack.Screen
+        name="Courses"
+        component={CoursesScreen}
         options={{
           headerShown: true,
           title: 'Cursos',
@@ -118,9 +119,9 @@ export default function LoggedTabs() {
           },
         }}
       />
-      <Stack.Screen 
-        name="Products" 
-        component={ProductsScreen} 
+      <Stack.Screen
+        name="Products"
+        component={ProductsScreen}
         options={{
           headerShown: true,
           title: 'Produtos',
@@ -134,9 +135,9 @@ export default function LoggedTabs() {
           },
         }}
       />
-      <Stack.Screen 
-        name="StudioInfo" 
-        component={StudioInfoScreen} 
+      <Stack.Screen
+        name="StudioInfo"
+        component={StudioInfoScreen}
         options={{
           headerShown: true,
           title: 'Informações do Studio',
@@ -150,9 +151,9 @@ export default function LoggedTabs() {
           },
         }}
       />
-      <Stack.Screen 
-        name="Cart" 
-        component={CartScreen} 
+      <Stack.Screen
+        name="Cart"
+        component={CartScreen}
         options={{
           headerShown: true,
           title: 'Carrinho',
@@ -166,9 +167,9 @@ export default function LoggedTabs() {
           },
         }}
       />
-      <Stack.Screen 
-        name="EditProfile" 
-        component={EditProfileScreen} 
+      <Stack.Screen
+        name="EditProfile"
+        component={EditProfileScreen}
         options={{
           headerShown: true,
           title: 'Editar Perfil',
@@ -182,9 +183,9 @@ export default function LoggedTabs() {
           },
         }}
       />
-      <Stack.Screen 
-        name="CourseVideo" 
-        component={CourseVideoScreen} 
+      <Stack.Screen
+        name="CourseVideo"
+        component={CourseVideoScreen}
         options={{
           headerShown: true,
           title: 'Aula',
@@ -198,9 +199,9 @@ export default function LoggedTabs() {
           },
         }}
       />
-      <Stack.Screen 
-        name="Notifications" 
-        component={NotificationsScreen} 
+      <Stack.Screen
+        name="Notifications"
+        component={NotificationsScreen}
         options={{
           headerShown: true,
           title: 'Notificações',
@@ -214,9 +215,9 @@ export default function LoggedTabs() {
           },
         }}
       />
-      <Stack.Screen 
-        name="FAQ" 
-        component={FAQScreen} 
+      <Stack.Screen
+        name="FAQ"
+        component={FAQScreen}
         options={{
           headerShown: true,
           title: 'Perguntas Frequentes',
@@ -230,9 +231,9 @@ export default function LoggedTabs() {
           },
         }}
       />
-      <Stack.Screen 
-        name="ChangePassword" 
-        component={ChangePasswordScreen} 
+      <Stack.Screen
+        name="ChangePassword"
+        component={ChangePasswordScreen}
         options={{
           headerShown: true,
           title: 'Alterar Senha',
@@ -246,9 +247,9 @@ export default function LoggedTabs() {
           },
         }}
       />
-      <Stack.Screen 
-        name="MyBookings" 
-        component={MyBookingsScreen} 
+      <Stack.Screen
+        name="MyBookings"
+        component={MyBookingsScreen}
         options={{
           headerShown: true,
           title: 'Meus Agendamentos',
@@ -262,9 +263,9 @@ export default function LoggedTabs() {
           },
         }}
       />
-      <Stack.Screen 
-        name="PurchaseHistory" 
-        component={PurchaseHistoryScreen} 
+      <Stack.Screen
+        name="PurchaseHistory"
+        component={PurchaseHistoryScreen}
         options={{
           headerShown: true,
           title: 'Histórico de Compras',
@@ -278,9 +279,9 @@ export default function LoggedTabs() {
           },
         }}
       />
-      <Stack.Screen 
-        name="MyCourses" 
-        component={MyCoursesScreen} 
+      <Stack.Screen
+        name="MyCourses"
+        component={MyCoursesScreen}
         options={{
           headerShown: true,
           title: 'Meus Cursos',
@@ -294,9 +295,9 @@ export default function LoggedTabs() {
           },
         }}
       />
-      <Stack.Screen 
-        name="Help" 
-        component={HelpScreen} 
+      <Stack.Screen
+        name="Help"
+        component={HelpScreen}
         options={{
           headerShown: true,
           title: 'Ajuda',
@@ -310,9 +311,9 @@ export default function LoggedTabs() {
           },
         }}
       />
-      <Stack.Screen 
-        name="PrivacyPolicy" 
-        component={PrivacyPolicyScreen} 
+      <Stack.Screen
+        name="PrivacyPolicy"
+        component={PrivacyPolicyScreen}
         options={{
           headerShown: true,
           title: 'Política de Privacidade',
@@ -326,9 +327,9 @@ export default function LoggedTabs() {
           },
         }}
       />
-      <Stack.Screen 
-        name="TermsOfUse" 
-        component={TermsOfUseScreen} 
+      <Stack.Screen
+        name="TermsOfUse"
+        component={TermsOfUseScreen}
         options={{
           headerShown: true,
           title: 'Termos de Uso',
@@ -342,17 +343,17 @@ export default function LoggedTabs() {
           },
         }}
       />
-      <Stack.Screen 
-        name="Menu" 
-        component={MenuScreen} 
+      <Stack.Screen
+        name="Menu"
+        component={MenuScreen}
         options={{
           headerShown: false,
           presentation: 'modal',
         }}
       />
-      <Stack.Screen 
-        name="ThemeSettings" 
-        component={ThemeSettingsScreen} 
+      <Stack.Screen
+        name="ThemeSettings"
+        component={ThemeSettingsScreen}
         options={{
           headerShown: false,
           presentation: 'modal',
@@ -365,16 +366,30 @@ export default function LoggedTabs() {
 // Tela temporária de notificações
 function NotificationsScreen({ navigation }: any) {
   return (
-    <View style={{ flex: 1, backgroundColor: '#f7f7f7', justifyContent: 'center', alignItems: 'center' }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: '#f7f7f7',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
       <Text style={{ fontSize: 18, color: '#666' }}>Notificações em breve!</Text>
     </View>
   );
-} 
+}
 
 // Telas temporárias
 function ChangePasswordScreen({ navigation }: any) {
   return (
-    <View style={{ flex: 1, backgroundColor: '#f7f7f7', justifyContent: 'center', alignItems: 'center' }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: '#f7f7f7',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
       <Text style={{ fontSize: 18, color: '#666' }}>Alterar Senha em breve!</Text>
     </View>
   );
@@ -382,7 +397,14 @@ function ChangePasswordScreen({ navigation }: any) {
 
 function MyBookingsScreen({ navigation }: any) {
   return (
-    <View style={{ flex: 1, backgroundColor: '#f7f7f7', justifyContent: 'center', alignItems: 'center' }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: '#f7f7f7',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
       <Text style={{ fontSize: 18, color: '#666' }}>Meus Agendamentos em breve!</Text>
     </View>
   );
@@ -390,7 +412,14 @@ function MyBookingsScreen({ navigation }: any) {
 
 function PurchaseHistoryScreen({ navigation }: any) {
   return (
-    <View style={{ flex: 1, backgroundColor: '#f7f7f7', justifyContent: 'center', alignItems: 'center' }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: '#f7f7f7',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
       <Text style={{ fontSize: 18, color: '#666' }}>Histórico de Compras em breve!</Text>
     </View>
   );
@@ -398,7 +427,14 @@ function PurchaseHistoryScreen({ navigation }: any) {
 
 function MyCoursesScreen({ navigation }: any) {
   return (
-    <View style={{ flex: 1, backgroundColor: '#f7f7f7', justifyContent: 'center', alignItems: 'center' }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: '#f7f7f7',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
       <Text style={{ fontSize: 18, color: '#666' }}>Meus Cursos em breve!</Text>
     </View>
   );
@@ -406,7 +442,14 @@ function MyCoursesScreen({ navigation }: any) {
 
 function HelpScreen({ navigation }: any) {
   return (
-    <View style={{ flex: 1, backgroundColor: '#f7f7f7', justifyContent: 'center', alignItems: 'center' }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: '#f7f7f7',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
       <Text style={{ fontSize: 18, color: '#666' }}>Ajuda em breve!</Text>
     </View>
   );
@@ -414,7 +457,14 @@ function HelpScreen({ navigation }: any) {
 
 function PrivacyPolicyScreen({ navigation }: any) {
   return (
-    <View style={{ flex: 1, backgroundColor: '#f7f7f7', justifyContent: 'center', alignItems: 'center' }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: '#f7f7f7',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
       <Text style={{ fontSize: 18, color: '#666' }}>Política de Privacidade em breve!</Text>
     </View>
   );
@@ -422,8 +472,15 @@ function PrivacyPolicyScreen({ navigation }: any) {
 
 function TermsOfUseScreen({ navigation }: any) {
   return (
-    <View style={{ flex: 1, backgroundColor: '#f7f7f7', justifyContent: 'center', alignItems: 'center' }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: '#f7f7f7',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
       <Text style={{ fontSize: 18, color: '#666' }}>Termos de Uso em breve!</Text>
     </View>
   );
-} 
+}

@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert } from 'react-native';
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 interface EditProfileScreenProps {
   navigation: any;
@@ -22,31 +30,23 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
       return;
     }
 
-    Alert.alert(
-      'Sucesso',
-      'Perfil atualizado com sucesso!',
-      [
-        { text: 'OK', onPress: () => navigation.goBack() }
-      ]
-    );
+    Alert.alert('Sucesso', 'Perfil atualizado com sucesso!', [
+      { text: 'OK', onPress: () => navigation.goBack() },
+    ]);
   };
 
   const handleCancelar = () => {
-    Alert.alert(
-      'Cancelar',
-      'Deseja descartar as alterações?',
-      [
-        { text: 'Continuar editando', style: 'cancel' },
-        { text: 'Descartar', style: 'destructive', onPress: () => navigation.goBack() }
-      ]
-    );
+    Alert.alert('Cancelar', 'Deseja descartar as alterações?', [
+      { text: 'Continuar editando', style: 'cancel' },
+      { text: 'Descartar', style: 'destructive', onPress: () => navigation.goBack() },
+    ]);
   };
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
         <Text style={styles.title}>Editar Perfil</Text>
-        
+
         <View style={styles.section}>
           <Text style={styles.label}>Nome</Text>
           <TextInput
@@ -176,4 +176,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-}); 
+});

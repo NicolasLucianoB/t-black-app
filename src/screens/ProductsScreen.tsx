@@ -1,84 +1,95 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import React from 'react';
+import {
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
+
+import AppHeader from '../components/AppHeader';
 import { useCart } from '../contexts/CartContext';
 import { useTheme } from '../contexts/ThemeContext';
-import AppHeader from '../components/AppHeader';
 
 // Mock de produtos
 const produtos = [
   {
     id: 1,
     nome: 'Pomada Modeladora',
-    preco: 25.90,
+    preco: 25.9,
     descricao: 'Pomada para modelar cabelo com fixação forte',
     imagem: 'https://via.placeholder.com/150x150/111/fff?text=Pomada',
-    categoria: 'Modelagem'
+    categoria: 'Modelagem',
   },
   {
     id: 2,
     nome: 'Shampoo Profissional',
-    preco: 35.50,
+    preco: 35.5,
     descricao: 'Shampoo para todos os tipos de cabelo',
     imagem: 'https://via.placeholder.com/150x150/111/fff?text=Shampoo',
-    categoria: 'Limpeza'
+    categoria: 'Limpeza',
   },
   {
     id: 3,
     nome: 'Óleo Capilar',
-    preco: 42.00,
+    preco: 42.0,
     descricao: 'Óleo nutritivo para cabelos danificados',
     imagem: 'https://via.placeholder.com/150x150/111/fff?text=Óleo',
-    categoria: 'Tratamento'
+    categoria: 'Tratamento',
   },
   {
     id: 4,
     nome: 'Gel Fixador',
-    preco: 18.90,
+    preco: 18.9,
     descricao: 'Gel com fixação média e brilho natural',
     imagem: 'https://via.placeholder.com/150x150/111/fff?text=Gel',
-    categoria: 'Modelagem'
+    categoria: 'Modelagem',
   },
   {
     id: 5,
     nome: 'Máscara Hidratante',
-    preco: 55.00,
+    preco: 55.0,
     descricao: 'Máscara de hidratação profunda',
     imagem: 'https://via.placeholder.com/150x150/111/fff?text=Máscara',
-    categoria: 'Tratamento'
+    categoria: 'Tratamento',
   },
   {
     id: 6,
     nome: 'Condicionador',
-    preco: 28.90,
+    preco: 28.9,
     descricao: 'Condicionador para cabelos normais',
     imagem: 'https://via.placeholder.com/150x150/111/fff?text=Condicionador',
-    categoria: 'Limpeza'
-  }
+    categoria: 'Limpeza',
+  },
 ];
 
 export default function ProductsScreen({ navigation }: any) {
   const { cart, addToCart, removeFromCart } = useCart();
   const { colors } = useTheme();
-  
+
   console.log('ProductsScreen - Carrinho atual:', cart);
 
   const estaNoCarrinho = (produtoId: number) => {
-    const result = cart.some(item => item.id === produtoId && item.type === 'product');
+    const result = cart.some((item) => item.id === produtoId && item.type === 'product');
     console.log(`Produto ${produtoId} está no carrinho:`, result);
     return result;
   };
 
   const quantidadeNoCarrinho = (produtoId: number) => {
-    const quantidade = cart.filter(item => item.id === produtoId && item.type === 'product').length;
+    const quantidade = cart.filter(
+      (item) => item.id === produtoId && item.type === 'product',
+    ).length;
     console.log(`Quantidade do produto ${produtoId} no carrinho:`, quantidade);
     return quantidade;
   };
 
   const totalCarrinho = cart
-    .filter(item => item.type === 'product')
+    .filter((item) => item.type === 'product')
     .reduce((total, item) => {
-      const produto = produtos.find(p => p.id === item.id);
+      const produto = produtos.find((p) => p.id === item.id);
       return total + (produto?.preco || 0);
     }, 0);
 
@@ -87,32 +98,32 @@ export default function ProductsScreen({ navigation }: any) {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}> 
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <AppHeader navigation={navigation} title="Produtos" />
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.productsGrid}>
-          {produtos.map(produto => (
+          {produtos.map((produto) => (
             <View key={produto.id} style={styles.productCard}>
               <Image source={{ uri: produto.imagem }} style={styles.productImage} />
               <View style={styles.productInfo}>
                 <Text style={styles.productName}>{produto.nome}</Text>
                 <Text style={styles.productCategory}>{produto.categoria}</Text>
                 <Text style={styles.productPrice}>R$ {produto.preco.toFixed(2)}</Text>
-                
+
                 {estaNoCarrinho(produto.id) ? (
                   <View style={styles.inCartContainer}>
                     <Text style={styles.inCartTextCentered}>No Carrinho</Text>
-                    <TouchableOpacity 
-                      style={styles.removeButton} 
+                    <TouchableOpacity
+                      style={styles.removeButton}
                       onPress={() => removeFromCart(produto.id, 'product')}
                     >
                       <Ionicons name="remove-circle" size={24} color="#ff6b6b" />
                     </TouchableOpacity>
                   </View>
                 ) : (
-                  <TouchableOpacity 
-                    style={styles.addButton} 
+                  <TouchableOpacity
+                    style={styles.addButton}
                     onPress={() => addToCart(produto.id, 'product')}
                   >
                     <Ionicons name="add-circle" size={24} color="#111" style={{ marginRight: 4 }} />
@@ -127,13 +138,11 @@ export default function ProductsScreen({ navigation }: any) {
         </View>
       </ScrollView>
 
-      {cart.filter(item => item.type === 'product').length > 0 && (
+      {cart.filter((item) => item.type === 'product').length > 0 && (
         <View style={styles.cartButtonContainer}>
           <TouchableOpacity style={styles.cartButton} onPress={irParaCarrinho}>
             <Ionicons name="cart" size={24} color="#fff" />
-            <Text style={styles.cartButtonText}>
-              Ver Carrinho (R$ {totalCarrinho.toFixed(2)})
-            </Text>
+            <Text style={styles.cartButtonText}>Ver Carrinho (R$ {totalCarrinho.toFixed(2)})</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -353,4 +362,4 @@ const styles = StyleSheet.create({
   removeButton: {
     marginLeft: 4,
   },
-}); 
+});

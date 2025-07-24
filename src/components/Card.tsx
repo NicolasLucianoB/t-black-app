@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ViewProps } from 'react-native';
+import { StyleSheet, View, ViewProps } from 'react-native';
 
 interface CardProps extends ViewProps {
   children: React.ReactNode;
@@ -7,18 +7,18 @@ interface CardProps extends ViewProps {
   padding?: number;
 }
 
-export default function Card({ 
-  children, 
-  variant = 'default', 
+export default function Card({
+  children,
+  variant = 'default',
   padding = 16,
   style,
-  ...props 
+  ...props
 }: CardProps) {
   const cardStyle = [
     styles.card,
     variant === 'elevated' ? styles.elevated : styles.default,
     { padding },
-    style
+    style,
   ];
 
   return (
@@ -45,4 +45,4 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-}); 
+});

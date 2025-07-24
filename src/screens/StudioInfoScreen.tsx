@@ -1,13 +1,22 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking, Alert, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import React from 'react';
+import {
+  Alert,
+  Linking,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 export default function StudioInfoScreen({ navigation }: any) {
   const endereco = 'Rua das Flores, 123 - Centro, São Paulo - SP, 01234-567';
   const telefone = '(11) 99999-9999';
   const whatsapp = '11999999999';
   const email = 'contato@studiotblack.com.br';
-  
+
   const coordenadas = {
     latitude: -23.5505,
     longitude: -46.6333,
@@ -85,7 +94,7 @@ export default function StudioInfoScreen({ navigation }: any) {
             <Ionicons name="call" size={24} color="#111" />
             <Text style={styles.sectionTitle}>Contato</Text>
           </View>
-          
+
           <TouchableOpacity style={styles.contactItem} onPress={fazerLigacao}>
             <Ionicons name="call-outline" size={20} color="#111" />
             <Text style={styles.contactText}>{telefone}</Text>
@@ -111,9 +120,10 @@ export default function StudioInfoScreen({ navigation }: any) {
             <Text style={styles.sectionTitle}>Sobre o Studio</Text>
           </View>
           <Text style={styles.aboutText}>
-            O Studio T Black é uma barbearia moderna e profissional, especializada em cortes masculinos, 
-            barbas e tratamentos capilares. Nossa equipe de barbeiros experientes utiliza técnicas 
-            avançadas e produtos de qualidade para garantir o melhor resultado para nossos clientes.
+            O Studio T Black é uma barbearia moderna e profissional, especializada em cortes
+            masculinos, barbas e tratamentos capilares. Nossa equipe de barbeiros experientes
+            utiliza técnicas avançadas e produtos de qualidade para garantir o melhor resultado para
+            nossos clientes.
           </Text>
         </View>
       </ScrollView>
@@ -226,4 +236,4 @@ const styles = StyleSheet.create({
     color: '#333',
     lineHeight: 24,
   },
-}); 
+});

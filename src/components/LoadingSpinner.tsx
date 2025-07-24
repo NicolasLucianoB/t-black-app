@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 interface LoadingSpinnerProps {
   size?: 'small' | 'large';
@@ -8,11 +8,11 @@ interface LoadingSpinnerProps {
   fullScreen?: boolean;
 }
 
-export default function LoadingSpinner({ 
-  size = 'large', 
-  color = '#111', 
+export default function LoadingSpinner({
+  size = 'large',
+  color = '#111',
   text,
-  fullScreen = false 
+  fullScreen = false,
 }: LoadingSpinnerProps) {
   const containerStyle = fullScreen ? styles.fullScreen : styles.container;
 
@@ -42,4 +42,4 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
   },
-}); 
+});

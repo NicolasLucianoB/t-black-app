@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 interface SplashScreenProps {
   navigation: any;
@@ -34,4 +34,4 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#111',
   },
-}); 
+});

@@ -1,13 +1,7 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  SafeAreaView,
-  ScrollView,
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import React from 'react';
+import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
 import { useTheme } from '../contexts/ThemeContext';
 
 export default function ThemeSettingsScreen({ navigation }: any) {
@@ -39,11 +33,13 @@ export default function ThemeSettingsScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
+      <View
+        style={[
+          styles.header,
+          { backgroundColor: colors.surface, borderBottomColor: colors.border },
+        ]}
+      >
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>Tema</Text>
@@ -78,9 +74,7 @@ export default function ThemeSettingsScreen({ navigation }: any) {
                   <Ionicons name={option.icon as any} size={24} color={option.color} />
                 </View>
                 <View style={styles.optionText}>
-                  <Text style={[styles.optionTitle, { color: colors.text }]}>
-                    {option.title}
-                  </Text>
+                  <Text style={[styles.optionTitle, { color: colors.text }]}>{option.title}</Text>
                   <Text style={[styles.optionDescription, { color: colors.textSecondary }]}>
                     {option.description}
                   </Text>
@@ -99,8 +93,8 @@ export default function ThemeSettingsScreen({ navigation }: any) {
           <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
             <Ionicons name="information-circle-outline" size={20} color={colors.accent} />
             <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-              O tema automático segue as configurações do seu dispositivo. 
-              Se você alterar o tema do sistema, o aplicativo será atualizado automaticamente.
+              O tema automático segue as configurações do seu dispositivo. Se você alterar o tema do
+              sistema, o aplicativo será atualizado automaticamente.
             </Text>
           </View>
         </View>
@@ -202,4 +196,4 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginLeft: 12,
   },
-}); 
+});

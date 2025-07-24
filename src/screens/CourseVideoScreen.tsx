@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 
 export default function CourseVideoScreen({ navigation, route }: any) {
@@ -29,7 +29,9 @@ export default function CourseVideoScreen({ navigation, route }: any) {
         <View style={styles.courseInfo}>
           <Text style={styles.courseTitle}>{curso.titulo}</Text>
           <Text style={styles.courseInstructor}>Instrutor: {curso.instrutor}</Text>
-          <Text style={styles.courseDuration}>{curso.duracao} • {curso.aulas} aulas</Text>
+          <Text style={styles.courseDuration}>
+            {curso.duracao} • {curso.aulas} aulas
+          </Text>
         </View>
 
         <View style={styles.section}>
@@ -196,4 +198,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#111',
   },
-}); 
+});

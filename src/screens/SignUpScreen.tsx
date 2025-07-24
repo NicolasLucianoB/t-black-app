@@ -1,6 +1,14 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 interface SignUpScreenProps {
   navigation: any;
@@ -16,7 +24,7 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
     password: '',
     confirmPassword: '',
   });
-  
+
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -51,7 +59,11 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
     // Celular
     if (!formData.phone.trim()) {
       newErrors.phone = 'Celular é obrigatório';
-    } else if (!/^\(?[1-9]{2}\)? ?(?:[2-8]|9[1-9])[0-9]{3}\-?[0-9]{4}$/.test(formData.phone.replace(/\D/g, ''))) {
+    } else if (
+      !/^\(?[1-9]{2}\)? ?(?:[2-8]|9[1-9])[0-9]{3}\-?[0-9]{4}$/.test(
+        formData.phone.replace(/\D/g, ''),
+      )
+    ) {
       newErrors.phone = 'Celular inválido';
     }
 
@@ -82,24 +94,20 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
 
   const handleSignUp = () => {
     if (validateForm()) {
-      Alert.alert(
-        'Cadastro realizado!',
-        'Bem-vindo ao Studio T Black!',
-        [
-          {
-            text: 'OK',
-            onPress: () => navigation.replace('LoggedTabs')
-          }
-        ]
-      );
+      Alert.alert('Cadastro realizado!', 'Bem-vindo ao Studio T Black!', [
+        {
+          text: 'OK',
+          onPress: () => navigation.replace('LoggedTabs'),
+        },
+      ]);
     }
   };
 
   const updateFormData = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // Limpar erro do campo quando usuário começa a digitar
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: '' }));
     }
   };
 
@@ -203,15 +211,8 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
             onChangeText={(value) => updateFormData('password', value)}
             secureTextEntry={!showPassword}
           />
-          <TouchableOpacity 
-            style={styles.eyeButton}
-            onPress={() => setShowPassword(!showPassword)}
-          >
-            <Ionicons 
-              name={showPassword ? 'eye-off' : 'eye'} 
-              size={20} 
-              color="#666" 
-            />
+          <TouchableOpacity style={styles.eyeButton} onPress={() => setShowPassword(!showPassword)}>
+            <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={20} color="#666" />
           </TouchableOpacity>
         </View>
         {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
@@ -226,18 +227,16 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
             onChangeText={(value) => updateFormData('confirmPassword', value)}
             secureTextEntry={!showConfirmPassword}
           />
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.eyeButton}
             onPress={() => setShowConfirmPassword(!showConfirmPassword)}
           >
-            <Ionicons 
-              name={showConfirmPassword ? 'eye-off' : 'eye'} 
-              size={20} 
-              color="#666" 
-            />
+            <Ionicons name={showConfirmPassword ? 'eye-off' : 'eye'} size={20} color="#666" />
           </TouchableOpacity>
         </View>
-        {errors.confirmPassword ? <Text style={styles.errorText}>{errors.confirmPassword}</Text> : null}
+        {errors.confirmPassword ? (
+          <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+        ) : null}
 
         <TouchableOpacity style={styles.button} onPress={handleSignUp}>
           <Text style={styles.buttonText}>Criar Conta</Text>
@@ -328,4 +327,4 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     maxWidth: 320,
   },
-}); 
+});

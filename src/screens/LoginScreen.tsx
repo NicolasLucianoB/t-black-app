@@ -1,6 +1,6 @@
+import { AntDesign } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native';
-import { Ionicons, AntDesign } from '@expo/vector-icons';
+import { Alert, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 interface LoginScreenProps {
   navigation: any;
@@ -72,19 +72,31 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
 
       {/* Login Social */}
       <View style={styles.socialContainer}>
-        <TouchableOpacity style={styles.socialButton} onPress={handleGoogleLogin} accessibilityRole="button">
+        <TouchableOpacity
+          style={styles.socialButton}
+          onPress={handleGoogleLogin}
+          accessibilityRole="button"
+        >
           <AntDesign name="google" size={22} color="#EA4335" style={{ marginRight: 8 }} />
           <Text style={styles.socialButtonText}>Entrar com Google</Text>
         </TouchableOpacity>
         {Platform.OS === 'ios' && (
-          <TouchableOpacity style={styles.socialButton} onPress={handleAppleLogin} accessibilityRole="button">
+          <TouchableOpacity
+            style={styles.socialButton}
+            onPress={handleAppleLogin}
+            accessibilityRole="button"
+          >
             <AntDesign name="apple1" size={22} color="#111" style={{ marginRight: 8 }} />
             <Text style={styles.socialButtonText}>Entrar com Apple</Text>
           </TouchableOpacity>
         )}
       </View>
 
-      <TouchableOpacity onPress={() => navigation.navigate('SignUp')} style={styles.linkContainer} accessibilityRole="link">
+      <TouchableOpacity
+        onPress={() => navigation.navigate('SignUp')}
+        style={styles.linkContainer}
+        accessibilityRole="link"
+      >
         <Text style={styles.linkText}>Novo por aqui? Cadastre-se</Text>
       </TouchableOpacity>
     </View>
@@ -168,4 +180,4 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     maxWidth: 320,
   },
-}); 
+});

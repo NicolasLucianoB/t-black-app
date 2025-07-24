@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
 import { useCart } from '../contexts/CartContext';
 
 // Dados mock para produtos
@@ -9,21 +9,21 @@ const produtosMock = [
     id: 1,
     nome: 'Pomada Modeladora',
     categoria: 'Produtos para Cabelo',
-    preco: 25.90,
+    preco: 25.9,
     imagem: 'https://via.placeholder.com/80x80/111/fff?text=Pomada',
   },
   {
     id: 2,
     nome: 'Shampoo Profissional',
     categoria: 'Produtos para Cabelo',
-    preco: 35.50,
+    preco: 35.5,
     imagem: 'https://via.placeholder.com/80x80/111/fff?text=Shampoo',
   },
   {
     id: 3,
     nome: 'Óleo Capilar',
     categoria: 'Produtos para Cabelo',
-    preco: 28.00,
+    preco: 28.0,
     imagem: 'https://via.placeholder.com/80x80/111/fff?text=Oleo',
   },
 ];
@@ -34,28 +34,28 @@ const cursosMock = [
     id: 1,
     titulo: 'Corte Masculino Moderno',
     instrutor: 'Tiago',
-    preco: 89.90,
+    preco: 89.9,
     imagem: 'https://via.placeholder.com/80x80/111/fff?text=Curso',
   },
   {
     id: 2,
     titulo: 'Barba e Acabamentos',
     instrutor: 'Lucas',
-    preco: 69.90,
+    preco: 69.9,
     imagem: 'https://via.placeholder.com/80x80/111/fff?text=Curso',
   },
   {
     id: 3,
     titulo: 'Colorimetria Avançada',
     instrutor: 'Rafael',
-    preco: 129.90,
+    preco: 129.9,
     imagem: 'https://via.placeholder.com/80x80/111/fff?text=Curso',
   },
   {
     id: 4,
     titulo: 'Atendimento ao Cliente',
     instrutor: 'Tiago',
-    preco: 49.90,
+    preco: 49.9,
     imagem: 'https://via.placeholder.com/80x80/111/fff?text=Curso',
   },
 ];
@@ -63,28 +63,28 @@ const cursosMock = [
 export default function CartScreen({ navigation }: any) {
   const { cart, addToCart, removeFromCart, clearCart } = useCart();
 
-  const produtosNoCarrinho = cart.filter(item => item.type === 'product');
-  const cursosNoCarrinho = cart.filter(item => item.type === 'course');
+  const produtosNoCarrinho = cart.filter((item) => item.type === 'product');
+  const cursosNoCarrinho = cart.filter((item) => item.type === 'course');
 
   const quantidadeItem = (itemId: number, type: 'product' | 'course') => {
-    return cart.filter(item => item.id === itemId && item.type === type).length;
+    return cart.filter((item) => item.id === itemId && item.type === type).length;
   };
 
-  const produtosUnicos = produtosMock.filter(produto => 
-    produtosNoCarrinho.some(item => item.id === produto.id)
+  const produtosUnicos = produtosMock.filter((produto) =>
+    produtosNoCarrinho.some((item) => item.id === produto.id),
   );
 
-  const cursosUnicos = cursosMock.filter(curso => 
-    cursosNoCarrinho.some(item => item.id === curso.id)
+  const cursosUnicos = cursosMock.filter((curso) =>
+    cursosNoCarrinho.some((item) => item.id === curso.id),
   );
 
   const totalProdutos = produtosNoCarrinho.reduce((total, item) => {
-    const produto = produtosMock.find(p => p.id === item.id);
+    const produto = produtosMock.find((p) => p.id === item.id);
     return total + (produto?.preco || 0);
   }, 0);
 
   const totalCursos = cursosNoCarrinho.reduce((total, item) => {
-    const curso = cursosMock.find(c => c.id === item.id);
+    const curso = cursosMock.find((c) => c.id === item.id);
     return total + (curso?.preco || 0);
   }, 0);
 
@@ -96,16 +96,16 @@ export default function CartScreen({ navigation }: any) {
       `Total: R$ ${totalGeral.toFixed(2)}\n\nProdutos serão retirados no estúdio no dia do seu agendamento.\nCursos estarão disponíveis imediatamente após a compra.`,
       [
         { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Confirmar', 
+        {
+          text: 'Confirmar',
           onPress: () => {
             clearCart();
             Alert.alert('Sucesso!', 'Compra realizada com sucesso!', [
-              { text: 'OK', onPress: () => navigation.navigate('Home') }
+              { text: 'OK', onPress: () => navigation.navigate('Home') },
             ]);
-          }
-        }
-      ]
+          },
+        },
+      ],
     );
   };
 
@@ -115,10 +115,16 @@ export default function CartScreen({ navigation }: any) {
         <Text style={styles.emptyTitle}>Carrinho Vazio</Text>
         <Text style={styles.emptyText}>Adicione produtos ou cursos ao carrinho para continuar</Text>
         <View style={styles.emptyButtons}>
-          <TouchableOpacity style={styles.productsButton} onPress={() => navigation.navigate('Products')}>
+          <TouchableOpacity
+            style={styles.productsButton}
+            onPress={() => navigation.navigate('Products')}
+          >
             <Text style={styles.productsButtonText}>Produtos</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.coursesButton} onPress={() => navigation.navigate('Courses')}>
+          <TouchableOpacity
+            style={styles.coursesButton}
+            onPress={() => navigation.navigate('Courses')}
+          >
             <Text style={styles.coursesButtonText}>Cursos</Text>
           </TouchableOpacity>
         </View>
@@ -141,7 +147,7 @@ export default function CartScreen({ navigation }: any) {
             {produtosUnicos.map((produto) => {
               const quantidade = quantidadeItem(produto.id, 'product');
               const subtotal = produto.preco * quantidade;
-              
+
               return (
                 <View key={`product-${produto.id}`} style={styles.cartItem}>
                   <Image source={{ uri: produto.imagem }} style={styles.itemImage} />
@@ -152,23 +158,23 @@ export default function CartScreen({ navigation }: any) {
                   </View>
                   <View style={styles.itemActions}>
                     <View style={styles.quantityContainer}>
-                      <TouchableOpacity 
-                        style={styles.quantityButton} 
+                      <TouchableOpacity
+                        style={styles.quantityButton}
                         onPress={() => removeFromCart(produto.id, 'product')}
                       >
                         <Text style={styles.quantityButtonText}>-</Text>
                       </TouchableOpacity>
                       <Text style={styles.quantityText}>{quantidade}</Text>
-                      <TouchableOpacity 
-                        style={styles.quantityButton} 
+                      <TouchableOpacity
+                        style={styles.quantityButton}
                         onPress={() => addToCart(produto.id, 'product')}
                       >
                         <Text style={styles.quantityButtonText}>+</Text>
                       </TouchableOpacity>
                     </View>
                     <Text style={styles.subtotalText}>R$ {subtotal.toFixed(2)}</Text>
-                    <TouchableOpacity 
-                      style={styles.removeButton} 
+                    <TouchableOpacity
+                      style={styles.removeButton}
                       onPress={() => {
                         for (let i = 0; i < quantidade; i++) {
                           removeFromCart(produto.id, 'product');
@@ -191,7 +197,7 @@ export default function CartScreen({ navigation }: any) {
             {cursosUnicos.map((curso) => {
               const quantidade = quantidadeItem(curso.id, 'course');
               const subtotal = curso.preco * quantidade;
-              
+
               return (
                 <View key={`course-${curso.id}`} style={styles.cartItem}>
                   <Image source={{ uri: curso.imagem }} style={styles.itemImage} />
@@ -202,8 +208,8 @@ export default function CartScreen({ navigation }: any) {
                   </View>
                   <View style={styles.itemActions}>
                     <Text style={styles.subtotalText}>R$ {subtotal.toFixed(2)}</Text>
-                    <TouchableOpacity 
-                      style={styles.removeButton} 
+                    <TouchableOpacity
+                      style={styles.removeButton}
                       onPress={() => removeFromCart(curso.id, 'course')}
                     >
                       <Text style={styles.removeButtonText}>Remover</Text>
@@ -432,4 +438,4 @@ const styles = StyleSheet.create({
     color: '#111',
     marginBottom: 8,
   },
-}); 
+});

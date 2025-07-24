@@ -1,6 +1,17 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import {
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+
 import AppHeader from '../components/AppHeader';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -69,13 +80,20 @@ export default function CommunityScreen({ navigation }: any) {
 
   const getSenderColor = (sender: string) => {
     switch (sender) {
-      case 'tiago': return '#25D366'; // Verde WhatsApp
-      case 'lucas': return '#FF6B6B'; // Vermelho
-      case 'rafael': return '#4ECDC4'; // Turquesa
-      case 'carlos': return '#45B7D1'; // Azul
-      case 'miguel': return '#96CEB4'; // Verde claro
-      case 'user': return '#111'; // Preto para usuários
-      default: return '#999';
+      case 'tiago':
+        return '#25D366'; // Verde WhatsApp
+      case 'lucas':
+        return '#FF6B6B'; // Vermelho
+      case 'rafael':
+        return '#4ECDC4'; // Turquesa
+      case 'carlos':
+        return '#45B7D1'; // Azul
+      case 'miguel':
+        return '#96CEB4'; // Verde claro
+      case 'user':
+        return '#111'; // Preto para usuários
+      default:
+        return '#999';
     }
   };
 
@@ -83,24 +101,23 @@ export default function CommunityScreen({ navigation }: any) {
     const isUser = item.sender === 'user';
     const senderColor = getSenderColor(item.sender);
     return (
-      <View style={[
-        styles.messageContainer,
-        isUser
-          ? { ...styles.userMessage, backgroundColor: colors.primary }
-          : { ...styles.barberMessage, backgroundColor: colors.card, shadowColor: colors.shadow }
-      ]}>
+      <View
+        style={[
+          styles.messageContainer,
+          isUser
+            ? { ...styles.userMessage, backgroundColor: colors.primary }
+            : { ...styles.barberMessage, backgroundColor: colors.card, shadowColor: colors.shadow },
+        ]}
+      >
         {!isUser && (
-          <Text style={[styles.senderName, { color: senderColor }]}>
-            {item.senderName}
-          </Text>
+          <Text style={[styles.senderName, { color: senderColor }]}>{item.senderName}</Text>
         )}
-        <Text style={[
-          styles.messageText,
-          isUser ? { color: colors.card } : { color: colors.text }
-        ]}>
+        <Text
+          style={[styles.messageText, isUser ? { color: colors.card } : { color: colors.text }]}
+        >
           {item.text}
         </Text>
-        <Text style={[styles.timestamp, { color: colors.textSecondary }]}> 
+        <Text style={[styles.timestamp, { color: colors.textSecondary }]}>
           {item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </Text>
       </View>
@@ -110,13 +127,15 @@ export default function CommunityScreen({ navigation }: any) {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <AppHeader navigation={navigation} title="Comunidade Studio T Black" />
-      <KeyboardAvoidingView 
-        style={{ flex: 1 }} 
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={[styles.header, { backgroundColor: colors.primary }]}> 
-          <Text style={[styles.headerTitle, { color: colors.card }]}>Comunidade Studio T Black</Text>
-          <Text style={[styles.headerSubtitle, { color: colors.card } ]}>Chat com o barbeiro</Text>
+        <View style={[styles.header, { backgroundColor: colors.primary }]}>
+          <Text style={[styles.headerTitle, { color: colors.card }]}>
+            Comunidade Studio T Black
+          </Text>
+          <Text style={[styles.headerSubtitle, { color: colors.card }]}>Chat com o barbeiro</Text>
         </View>
 
         <FlatList
@@ -128,7 +147,12 @@ export default function CommunityScreen({ navigation }: any) {
           showsVerticalScrollIndicator={false}
         />
 
-        <View style={[styles.inputContainer, { backgroundColor: colors.card, borderTopColor: colors.border }]}> 
+        <View
+          style={[
+            styles.inputContainer,
+            { backgroundColor: colors.card, borderTopColor: colors.border },
+          ]}
+        >
           <TextInput
             style={[styles.textInput, { borderColor: colors.border, color: colors.text }]}
             value={newMessage}
@@ -137,16 +161,15 @@ export default function CommunityScreen({ navigation }: any) {
             placeholderTextColor={colors.textSecondary}
             multiline
           />
-          <TouchableOpacity 
-            style={[styles.sendButton, { backgroundColor: newMessage.trim() ? colors.primary : colors.textSecondary }]} 
+          <TouchableOpacity
+            style={[
+              styles.sendButton,
+              { backgroundColor: newMessage.trim() ? colors.primary : colors.textSecondary },
+            ]}
             onPress={sendMessage}
             disabled={!newMessage.trim()}
           >
-            <Ionicons 
-              name="send" 
-              size={20} 
-              color={colors.card} 
-            />
+            <Ionicons name="send" size={20} color={colors.card} />
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -259,4 +282,4 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 4,
   },
-}); 
+});

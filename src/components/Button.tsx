@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity } from 'react-native';
 
 interface ButtonProps {
   title: string;
@@ -11,27 +11,27 @@ interface ButtonProps {
   textStyle?: any;
 }
 
-export default function Button({ 
-  title, 
-  onPress, 
-  variant = 'primary', 
-  disabled = false, 
+export default function Button({
+  title,
+  onPress,
+  variant = 'primary',
+  disabled = false,
   loading = false,
   style,
-  textStyle
+  textStyle,
 }: ButtonProps) {
   const buttonStyle = [
     styles.button,
     variant === 'primary' ? styles.primary : styles.secondary,
     disabled && styles.disabled,
-    style
+    style,
   ];
 
   const buttonTextStyle = [
     styles.text,
     variant === 'primary' ? styles.primaryText : styles.secondaryText,
     disabled && styles.disabledText,
-    textStyle
+    textStyle,
   ];
 
   return (
@@ -42,10 +42,7 @@ export default function Button({
       activeOpacity={0.8}
     >
       {loading ? (
-        <ActivityIndicator 
-          color={variant === 'primary' ? '#fff' : '#111'} 
-          size="small" 
-        />
+        <ActivityIndicator color={variant === 'primary' ? '#fff' : '#111'} size="small" />
       ) : (
         <Text style={buttonTextStyle}>{title}</Text>
       )}
@@ -91,4 +88,4 @@ const styles = StyleSheet.create({
   disabledText: {
     color: '#666',
   },
-}); 
+});

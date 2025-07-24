@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
 import AppHeader from '../components/AppHeader';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -16,97 +17,109 @@ const faqData: FAQItem[] = [
   {
     id: '1',
     question: 'Como faço para agendar um horário?',
-    answer: 'É muito fácil! Basta acessar a aba "Agendar" no app, escolher o barbeiro, a data e o horário disponível. Você receberá uma confirmação por WhatsApp.',
-    category: 'Agendamentos'
+    answer:
+      'É muito fácil! Basta acessar a aba "Agendar" no app, escolher o barbeiro, a data e o horário disponível. Você receberá uma confirmação por WhatsApp.',
+    category: 'Agendamentos',
   },
   {
     id: '2',
     question: 'Posso cancelar meu horário?',
-    answer: 'Sim! Você pode cancelar até 2 horas antes do horário agendado. Basta entrar em contato conosco pelo WhatsApp ou pelo app.',
-    category: 'Agendamentos'
+    answer:
+      'Sim! Você pode cancelar até 2 horas antes do horário agendado. Basta entrar em contato conosco pelo WhatsApp ou pelo app.',
+    category: 'Agendamentos',
   },
   {
     id: '3',
     question: 'Quais documentos preciso levar?',
-    answer: 'Não é necessário levar documentos. Apenas venha com o cabelo limpo e seco para um melhor resultado.',
-    category: 'Agendamentos'
+    answer:
+      'Não é necessário levar documentos. Apenas venha com o cabelo limpo e seco para um melhor resultado.',
+    category: 'Agendamentos',
   },
   // Serviços
   {
     id: '4',
     question: 'Quais tipos de corte vocês fazem?',
-    answer: 'Fazemos todos os tipos de corte masculino: degradê, undercut, pompadour, side part, buzz cut, e muito mais. Traga sua referência!',
-    category: 'Serviços'
+    answer:
+      'Fazemos todos os tipos de corte masculino: degradê, undercut, pompadour, side part, buzz cut, e muito mais. Traga sua referência!',
+    category: 'Serviços',
   },
   {
     id: '5',
     question: 'Fazem barba e bigode?',
-    answer: 'Sim! Fazemos barba, bigode, acabamentos e tratamentos faciais. Temos especialistas em barbas de todos os estilos.',
-    category: 'Serviços'
+    answer:
+      'Sim! Fazemos barba, bigode, acabamentos e tratamentos faciais. Temos especialistas em barbas de todos os estilos.',
+    category: 'Serviços',
   },
   {
     id: '6',
     question: 'Têm produtos para venda?',
-    answer: 'Sim! Temos uma linha completa de produtos profissionais: pomadas, shampoos, óleos capilares e muito mais. Veja na aba "Produtos".',
-    category: 'Serviços'
+    answer:
+      'Sim! Temos uma linha completa de produtos profissionais: pomadas, shampoos, óleos capilares e muito mais. Veja na aba "Produtos".',
+    category: 'Serviços',
   },
   // Pagamento
   {
     id: '7',
     question: 'Aceitam cartão?',
-    answer: 'Sim! Aceitamos cartão de crédito, débito, PIX e dinheiro. Você pode pagar online pelo app ou presencialmente.',
-    category: 'Pagamento'
+    answer:
+      'Sim! Aceitamos cartão de crédito, débito, PIX e dinheiro. Você pode pagar online pelo app ou presencialmente.',
+    category: 'Pagamento',
   },
   {
     id: '8',
     question: 'Posso pagar online?',
     answer: 'Sim! Você pode pagar online pelo app usando cartão ou PIX. É seguro e prático.',
-    category: 'Pagamento'
+    category: 'Pagamento',
   },
   {
     id: '9',
     question: 'Têm desconto para pacotes?',
-    answer: 'Sim! Temos pacotes mensais e trimestrais com desconto. Consulte nossos preços na aba "Agendar".',
-    category: 'Pagamento'
+    answer:
+      'Sim! Temos pacotes mensais e trimestrais com desconto. Consulte nossos preços na aba "Agendar".',
+    category: 'Pagamento',
   },
   // Horários
   {
     id: '10',
     question: 'Qual o horário de funcionamento?',
     answer: 'Segunda a Sexta: 09h às 20h\nSábado: 08h às 18h\nDomingo: Fechado',
-    category: 'Horários'
+    category: 'Horários',
   },
   {
     id: '11',
     question: 'Atendem aos domingos?',
     answer: 'Não, não atendemos aos domingos. Nosso horário é de segunda a sábado.',
-    category: 'Horários'
+    category: 'Horários',
   },
   {
     id: '12',
     question: 'Têm horário de almoço?',
-    answer: 'Não fechamos para almoço! Atendemos normalmente durante todo o horário de funcionamento.',
-    category: 'Horários'
+    answer:
+      'Não fechamos para almoço! Atendemos normalmente durante todo o horário de funcionamento.',
+    category: 'Horários',
   },
   // Cursos
   {
     id: '13',
     question: 'Vocês oferecem cursos?',
-    answer: 'Sim! Temos cursos online de barbearia para quem quer aprender. Veja na aba "Cursos" do app.',
-    category: 'Cursos'
+    answer:
+      'Sim! Temos cursos online de barbearia para quem quer aprender. Veja na aba "Cursos" do app.',
+    category: 'Cursos',
   },
   {
     id: '14',
     question: 'Os cursos são presenciais ou online?',
-    answer: 'Nossos cursos são 100% online, com vídeos em HD e suporte dos instrutores. Você pode assistir quando quiser.',
-    category: 'Cursos'
+    answer:
+      'Nossos cursos são 100% online, com vídeos em HD e suporte dos instrutores. Você pode assistir quando quiser.',
+    category: 'Cursos',
   },
   {
     id: '15',
     question: 'Posso acessar os cursos depois de comprar?',
-    answer: 'Sim! Você tem acesso vitalício aos cursos que comprar. Pode assistir quantas vezes quiser.',
-    category: 'Cursos'
-  }
+    answer:
+      'Sim! Você tem acesso vitalício aos cursos que comprar. Pode assistir quantas vezes quiser.',
+    category: 'Cursos',
+  },
 ];
 
 const categories = ['Agendamentos', 'Serviços', 'Pagamento', 'Horários', 'Cursos'];
@@ -117,19 +130,18 @@ export default function FAQScreen({ navigation }: any) {
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
 
   const toggleItem = (itemId: string) => {
-    setExpandedItems(prev => 
-      prev.includes(itemId) 
-        ? prev.filter(id => id !== itemId)
-        : [...prev, itemId]
+    setExpandedItems((prev) =>
+      prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId],
     );
   };
 
-  const filteredFAQ = selectedCategory === 'Todos' 
-    ? faqData 
-    : faqData.filter(item => item.category === selectedCategory);
+  const filteredFAQ =
+    selectedCategory === 'Todos'
+      ? faqData
+      : faqData.filter((item) => item.category === selectedCategory);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}> 
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <AppHeader navigation={navigation} title="Perguntas Frequentes" />
       <View style={styles.header}>
         <Text style={styles.title}>Perguntas Frequentes</Text>
@@ -137,28 +149,41 @@ export default function FAQScreen({ navigation }: any) {
       </View>
 
       {/* Categorias */}
-      <ScrollView 
-        horizontal 
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={false}
         style={styles.categoriesContainer}
         contentContainerStyle={styles.categoriesContent}
       >
-        <TouchableOpacity 
-          style={[styles.categoryButton, selectedCategory === 'Todos' && styles.categoryButtonActive]}
+        <TouchableOpacity
+          style={[
+            styles.categoryButton,
+            selectedCategory === 'Todos' && styles.categoryButtonActive,
+          ]}
           onPress={() => setSelectedCategory('Todos')}
         >
-          <Text style={[styles.categoryText, selectedCategory === 'Todos' && styles.categoryTextActive]}>
+          <Text
+            style={[styles.categoryText, selectedCategory === 'Todos' && styles.categoryTextActive]}
+          >
             Todos
           </Text>
         </TouchableOpacity>
-        
-        {categories.map(category => (
-          <TouchableOpacity 
+
+        {categories.map((category) => (
+          <TouchableOpacity
             key={category}
-            style={[styles.categoryButton, selectedCategory === category && styles.categoryButtonActive]}
+            style={[
+              styles.categoryButton,
+              selectedCategory === category && styles.categoryButtonActive,
+            ]}
             onPress={() => setSelectedCategory(category)}
           >
-            <Text style={[styles.categoryText, selectedCategory === category && styles.categoryTextActive]}>
+            <Text
+              style={[
+                styles.categoryText,
+                selectedCategory === category && styles.categoryTextActive,
+              ]}
+            >
               {category}
             </Text>
           </TouchableOpacity>
@@ -166,20 +191,17 @@ export default function FAQScreen({ navigation }: any) {
       </ScrollView>
 
       <ScrollView style={styles.faqContainer} showsVerticalScrollIndicator={false}>
-        {filteredFAQ.map(item => (
+        {filteredFAQ.map((item) => (
           <View key={item.id} style={styles.faqItem}>
-            <TouchableOpacity 
-              style={styles.questionContainer}
-              onPress={() => toggleItem(item.id)}
-            >
+            <TouchableOpacity style={styles.questionContainer} onPress={() => toggleItem(item.id)}>
               <Text style={styles.question}>{item.question}</Text>
-              <Ionicons 
-                name={expandedItems.includes(item.id) ? 'chevron-up' : 'chevron-down'} 
-                size={20} 
-                color="#666" 
+              <Ionicons
+                name={expandedItems.includes(item.id) ? 'chevron-up' : 'chevron-down'}
+                size={20}
+                color="#666"
               />
             </TouchableOpacity>
-            
+
             {expandedItems.includes(item.id) && (
               <View style={styles.answerContainer}>
                 <Text style={styles.answer}>{item.answer}</Text>
@@ -278,4 +300,4 @@ const styles = StyleSheet.create({
     color: '#666',
     lineHeight: 20,
   },
-}); 
+});

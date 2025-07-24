@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+
 import { useCart } from '../contexts/CartContext';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -14,7 +15,9 @@ export default function AppHeader({ navigation, title = 'Studio T Black' }: AppH
   const { colors } = useTheme();
 
   return (
-    <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}> 
+    <View
+      style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}
+    >
       <View style={styles.headerLeft}>
         <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('Menu')}>
           <Ionicons name="menu" size={24} color={colors.text} />
@@ -22,7 +25,10 @@ export default function AppHeader({ navigation, title = 'Studio T Black' }: AppH
         <Text style={[styles.headerTitle, { color: colors.text }]}>{title}</Text>
       </View>
       <View style={styles.headerRight}>
-        <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Notifications')}>
+        <TouchableOpacity
+          style={styles.iconButton}
+          onPress={() => navigation.navigate('Notifications')}
+        >
           <Ionicons name="notifications-outline" size={24} color={colors.text} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Cart')}>
@@ -33,7 +39,10 @@ export default function AppHeader({ navigation, title = 'Studio T Black' }: AppH
             </View>
           )}
         </TouchableOpacity>
-        <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('StudioInfo')}>
+        <TouchableOpacity
+          style={styles.iconButton}
+          onPress={() => navigation.navigate('StudioInfo')}
+        >
           <Ionicons name="information-circle-outline" size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
@@ -86,4 +95,4 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
   },
-}); 
+});

@@ -1,6 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import React from 'react';
+import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
 import { useCart } from '../contexts/CartContext';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -105,12 +106,14 @@ export default function MenuScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+      <View
+        style={[
+          styles.header,
+          { backgroundColor: colors.surface, borderBottomColor: colors.border },
+        ]}
+      >
         <Text style={[styles.headerTitle, { color: colors.text }]}>Menu</Text>
-        <TouchableOpacity 
-          style={styles.closeButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.closeButton} onPress={() => navigation.goBack()}>
           <Ionicons name="close" size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
@@ -216,4 +219,4 @@ const styles = StyleSheet.create({
     color: '#111',
     textAlign: 'center',
   },
-}); 
+});

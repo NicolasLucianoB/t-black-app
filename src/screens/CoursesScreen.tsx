@@ -1,8 +1,18 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert, SafeAreaView } from 'react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import { useCart } from '../contexts/CartContext';
+import React from 'react';
+import {
+  Alert,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+
 import AppHeader from '../components/AppHeader';
+import { useCart } from '../contexts/CartContext';
 import { useTheme } from '../contexts/ThemeContext';
 
 const Tab = createMaterialTopTabNavigator();
@@ -13,50 +23,51 @@ const cursos = [
     id: 1,
     titulo: 'Corte Masculino Moderno',
     instrutor: 'Tiago',
-    preco: 89.90,
-    descricao: 'Aprenda técnicas modernas de corte masculino, incluindo degradê, undercut e texturização.',
+    preco: 89.9,
+    descricao:
+      'Aprenda técnicas modernas de corte masculino, incluindo degradê, undercut e texturização.',
     duracao: '2h 30min',
     aulas: 8,
     imagem: 'https://via.placeholder.com/300x200/111/fff?text=Corte+Masculino',
     videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-    comprado: false
+    comprado: false,
   },
   {
     id: 2,
     titulo: 'Barba e Acabamentos',
     instrutor: 'Lucas',
-    preco: 69.90,
+    preco: 69.9,
     descricao: 'Domine as técnicas de barbearia, desde o básico até acabamentos profissionais.',
     duracao: '1h 45min',
     aulas: 6,
     imagem: 'https://via.placeholder.com/300x200/111/fff?text=Barba',
     videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-    comprado: true
+    comprado: true,
   },
   {
     id: 3,
     titulo: 'Colorimetria Avançada',
     instrutor: 'Rafael',
-    preco: 129.90,
+    preco: 129.9,
     descricao: 'Técnicas avançadas de coloração, correção de cor e tendências atuais.',
     duracao: '3h 15min',
     aulas: 12,
     imagem: 'https://via.placeholder.com/300x200/111/fff?text=Colorimetria',
     videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-    comprado: false
+    comprado: false,
   },
   {
     id: 4,
     titulo: 'Atendimento ao Cliente',
     instrutor: 'Tiago',
-    preco: 49.90,
+    preco: 49.9,
     descricao: 'Como criar uma experiência excepcional para seus clientes e fidelizá-los.',
     duracao: '1h 20min',
     aulas: 4,
     imagem: 'https://via.placeholder.com/300x200/111/fff?text=Atendimento',
     videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-    comprado: true
-  }
+    comprado: true,
+  },
 ];
 
 function TodosCursosTab({ navigation }: any) {
@@ -66,33 +77,33 @@ function TodosCursosTab({ navigation }: any) {
     console.log('Tentando adicionar curso:', curso.id);
     console.log('Carrinho atual:', cart);
     addToCart(curso.id, 'course');
-    Alert.alert('Sucesso!', `"${curso.titulo}" adicionado ao carrinho!`, [
-      { text: 'OK' }
-    ]);
+    Alert.alert('Sucesso!', `"${curso.titulo}" adicionado ao carrinho!`, [{ text: 'OK' }]);
   };
 
   const estaNoCarrinho = (cursoId: number) => {
-    const result = cart.some(item => item.id === cursoId && item.type === 'course');
+    const result = cart.some((item) => item.id === cursoId && item.type === 'course');
     console.log(`Curso ${cursoId} está no carrinho:`, result);
     return result;
   };
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
-      {cursos.map(curso => (
+      {cursos.map((curso) => (
         <View key={curso.id} style={styles.courseCard}>
           <Image source={{ uri: curso.imagem }} style={styles.courseImage} />
           <View style={styles.courseInfo}>
             <Text style={styles.courseTitle}>{curso.titulo}</Text>
             <Text style={styles.courseInstructor}>Instrutor: {curso.instrutor}</Text>
             <Text style={styles.courseDescription}>{curso.descricao}</Text>
-            <Text style={styles.courseDuration}>{curso.duracao} • {curso.aulas} aulas</Text>
+            <Text style={styles.courseDuration}>
+              {curso.duracao} • {curso.aulas} aulas
+            </Text>
             <View style={styles.courseActions}>
               <Text style={styles.coursePrice}>R$ {curso.preco.toFixed(2)}</Text>
               {estaNoCarrinho(curso.id) ? (
                 <View style={styles.inCartContainer}>
                   <Text style={styles.inCartText}>No Carrinho</Text>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.removeButton}
                     onPress={() => removeFromCart(curso.id, 'course')}
                   >
@@ -100,7 +111,7 @@ function TodosCursosTab({ navigation }: any) {
                   </TouchableOpacity>
                 </View>
               ) : (
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.buyButton}
                   onPress={() => handleAdicionarCurso(curso)}
                 >
@@ -116,7 +127,7 @@ function TodosCursosTab({ navigation }: any) {
 }
 
 function MeusCursosTab({ navigation }: any) {
-  const cursosComprados = cursos.filter(curso => curso.comprado);
+  const cursosComprados = cursos.filter((curso) => curso.comprado);
 
   const handleAssistirCurso = (curso: any) => {
     navigation.navigate('CourseVideo', { curso });
@@ -125,9 +136,9 @@ function MeusCursosTab({ navigation }: any) {
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       {cursosComprados.length > 0 ? (
-        cursosComprados.map(curso => (
-          <TouchableOpacity 
-            key={curso.id} 
+        cursosComprados.map((curso) => (
+          <TouchableOpacity
+            key={curso.id}
             style={styles.courseCard}
             onPress={() => handleAssistirCurso(curso)}
           >
@@ -135,7 +146,9 @@ function MeusCursosTab({ navigation }: any) {
             <View style={styles.courseInfo}>
               <Text style={styles.courseTitle}>{curso.titulo}</Text>
               <Text style={styles.courseInstructor}>Instrutor: {curso.instrutor}</Text>
-              <Text style={styles.courseDuration}>{curso.duracao} • {curso.aulas} aulas</Text>
+              <Text style={styles.courseDuration}>
+                {curso.duracao} • {curso.aulas} aulas
+              </Text>
               <TouchableOpacity style={styles.watchButton}>
                 <Text style={styles.watchButtonText}>▶ Assistir</Text>
               </TouchableOpacity>
@@ -145,7 +158,9 @@ function MeusCursosTab({ navigation }: any) {
       ) : (
         <View style={styles.emptyState}>
           <Text style={styles.emptyText}>Você ainda não comprou nenhum curso</Text>
-          <Text style={styles.emptySubtext}>Explore os cursos disponíveis na aba "Todos os Cursos"</Text>
+          <Text style={styles.emptySubtext}>
+            Explore os cursos disponíveis na aba "Todos os Cursos"
+          </Text>
         </View>
       )}
     </ScrollView>
@@ -171,14 +186,14 @@ export default function CoursesScreen({ navigation }: any) {
           tabBarStyle: { backgroundColor: '#fff' },
         }}
       >
-        <Tab.Screen 
-          name="TodosCursos" 
-          component={TodosCursosTab} 
+        <Tab.Screen
+          name="TodosCursos"
+          component={TodosCursosTab}
           options={{ tabBarLabel: 'Todos os Cursos' }}
         />
-        <Tab.Screen 
-          name="MeusCursos" 
-          component={MeusCursosTab} 
+        <Tab.Screen
+          name="MeusCursos"
+          component={MeusCursosTab}
           options={{ tabBarLabel: 'Meus Cursos' }}
         />
       </Tab.Navigator>
@@ -319,4 +334,4 @@ const styles = StyleSheet.create({
     color: '#666',
     marginRight: 8,
   },
-}); 
+});

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, ReactNode, useContext, useState } from 'react';
 
 interface CartItem {
   id: number;
@@ -35,17 +35,17 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   const addToCart = (id: number, type: 'product' | 'course') => {
     console.log('Adicionando ao carrinho:', { id, type });
-    setCart(prev => {
+    setCart((prev) => {
       // Para cursos, verificar se já existe no carrinho
       if (type === 'course') {
-        const cursoJaExiste = prev.some(item => item.id === id && item.type === 'course');
+        const cursoJaExiste = prev.some((item) => item.id === id && item.type === 'course');
         console.log('Verificando se curso já existe:', cursoJaExiste);
         if (cursoJaExiste) {
           console.log('Curso já existe no carrinho, não adicionando novamente');
           return prev;
         }
       }
-      
+
       const newCart = [...prev, { id, type }];
       console.log('Novo carrinho:', newCart);
       return newCart;
@@ -54,8 +54,8 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   const removeFromCart = (id: number, type: 'product' | 'course') => {
     console.log('Removendo do carrinho:', { id, type });
-    setCart(prev => {
-      const index = prev.findIndex(item => item.id === id && item.type === type);
+    setCart((prev) => {
+      const index = prev.findIndex((item) => item.id === id && item.type === type);
       if (index !== -1) {
         const newCart = prev.filter((_, i) => i !== index);
         console.log('Novo carrinho após remoção:', newCart);
@@ -78,11 +78,11 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   };
 
   const getProductCount = () => {
-    return cart.filter(item => item.type === 'product').length;
+    return cart.filter((item) => item.type === 'product').length;
   };
 
   const getCourseCount = () => {
-    return cart.filter(item => item.type === 'course').length;
+    return cart.filter((item) => item.type === 'course').length;
   };
 
   const value = {
@@ -96,9 +96,5 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     getCourseCount,
   };
 
-  return (
-    <CartContext.Provider value={value}>
-      {children}
-    </CartContext.Provider>
-  );
-}; 
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
+};

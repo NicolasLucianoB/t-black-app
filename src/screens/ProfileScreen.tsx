@@ -1,16 +1,17 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
 import { useTheme } from '../contexts/ThemeContext';
 
 export default function ProfileScreen({ navigation }: any) {
   const { colors } = useTheme();
   const handleLogout = () => {
-    Alert.alert(
-      'Sair',
-      'Tem certeza que deseja sair?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Sair', style: 'destructive', onPress: () => {
+    Alert.alert('Sair', 'Tem certeza que deseja sair?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Sair',
+        style: 'destructive',
+        onPress: () => {
           // Limpar dados do usuário (futuramente com Supabase)
           console.log('Logout realizado');
           // Redirecionar para a tela de login
@@ -18,44 +19,58 @@ export default function ProfileScreen({ navigation }: any) {
             index: 0,
             routes: [{ name: 'Login' }],
           });
-        }},
-      ]
-    );
+        },
+      },
+    ]);
   };
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}> 
-      <View style={[styles.header, { backgroundColor: colors.primary }]}> 
-        <View style={[styles.avatarContainer, { backgroundColor: colors.card }]}> 
-          <Text style={[styles.avatarText, { color: colors.primary } ]}>JD</Text>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.primary }]}>
+        <View style={[styles.avatarContainer, { backgroundColor: colors.card }]}>
+          <Text style={[styles.avatarText, { color: colors.primary }]}>JD</Text>
         </View>
-        <Text style={[styles.userName, { color: colors.text } ]}>João Silva</Text>
-        <Text style={[styles.userEmail, { color: colors.textSecondary } ]}>joao.silva@email.com</Text>
+        <Text style={[styles.userName, { color: colors.text }]}>João Silva</Text>
+        <Text style={[styles.userEmail, { color: colors.textSecondary }]}>
+          joao.silva@email.com
+        </Text>
       </View>
 
-      <View style={[styles.section, { backgroundColor: colors.card, shadowColor: colors.shadow }]}> 
+      <View style={[styles.section, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Informações Pessoais</Text>
-        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('EditProfile')}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('EditProfile')}
+        >
           <Text style={[styles.menuItemText, { color: colors.text }]}>Editar Perfil</Text>
           <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('ChangePassword')}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('ChangePassword')}
+        >
           <Text style={[styles.menuItemText, { color: colors.text }]}>Alterar Senha</Text>
           <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Notifications')}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('Notifications')}
+        >
           <Text style={[styles.menuItemText, { color: colors.text }]}>Notificações</Text>
           <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={[styles.section, { backgroundColor: colors.card, shadowColor: colors.shadow }]}> 
+      <View style={[styles.section, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Histórico</Text>
         <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('MyBookings')}>
           <Text style={[styles.menuItemText, { color: colors.text }]}>Meus Agendamentos</Text>
           <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('PurchaseHistory')}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('PurchaseHistory')}
+        >
           <Text style={[styles.menuItemText, { color: colors.text }]}>Histórico de Compras</Text>
           <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
@@ -65,13 +80,16 @@ export default function ProfileScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
 
-      <View style={[styles.section, { backgroundColor: colors.card, shadowColor: colors.shadow }]}> 
+      <View style={[styles.section, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Suporte</Text>
         <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Help')}>
           <Text style={[styles.menuItemText, { color: colors.text }]}>Ajuda</Text>
           <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('PrivacyPolicy')}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('PrivacyPolicy')}
+        >
           <Text style={[styles.menuItemText, { color: colors.text }]}>Política de Privacidade</Text>
           <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
@@ -81,7 +99,10 @@ export default function ProfileScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={[styles.logoutButton, { backgroundColor: colors.error }]} onPress={handleLogout}>
+      <TouchableOpacity
+        style={[styles.logoutButton, { backgroundColor: colors.error }]}
+        onPress={handleLogout}
+      >
         <Text style={[styles.logoutButtonText, { color: colors.card }]}>Sair</Text>
       </TouchableOpacity>
 
@@ -165,4 +186,4 @@ const styles = StyleSheet.create({
   versionText: {
     fontSize: 12,
   },
-}); 
+});
