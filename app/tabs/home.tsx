@@ -1,23 +1,21 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import AppHeader from '../components/AppHeader';
-import { useCart } from '../contexts/CartContext';
-import { useTheme } from '../contexts/ThemeContext';
+import AppHeader from '../../src/components/AppHeader';
+import { useCart } from '../../src/contexts/CartContext';
+import { useTheme } from '../../src/contexts/ThemeContext';
 
-interface HomeScreenProps {
-  navigation: any;
-}
-
-export default function HomeScreen({ navigation }: HomeScreenProps) {
+export default function HomeScreen() {
+  const router = useRouter();
   const { getCartCount } = useCart();
   const { colors, theme } = useTheme();
   const iconColor = '#111';
 
   const handleNavigate = (screenName: string) => {
     try {
-      navigation.navigate(screenName);
+      router.push(screenName);
     } catch (error) {
       console.log('Erro na navegação:', error);
     }
@@ -26,7 +24,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header com ícones */}
-      <AppHeader navigation={navigation} />
+      <AppHeader />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.welcomeSection}>
@@ -68,7 +66,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                   marginBottom: 8,
                 },
               ]}
-              onPress={() => handleNavigate('Agendar')}
+              onPress={() => handleNavigate('/tabs/booking')}
             >
               <View style={{ flex: 1 }}>
                 <Text
@@ -91,7 +89,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         <View style={styles.cardsContainer}>
           <TouchableOpacity
             style={[styles.card, { backgroundColor: colors.card }]}
-            onPress={() => handleNavigate('Agendar')}
+            onPress={() => handleNavigate('/tabs/booking')}
           >
             <View style={styles.cardIcon}>
               <Ionicons name="calendar-outline" size={32} color={iconColor} />
@@ -104,7 +102,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
           <TouchableOpacity
             style={[styles.card, { backgroundColor: colors.card }]}
-            onPress={() => handleNavigate('Courses')}
+            onPress={() => handleNavigate('courses')}
           >
             <View style={styles.cardIcon}>
               <Ionicons name="school-outline" size={32} color={iconColor} />
@@ -117,7 +115,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
           <TouchableOpacity
             style={[styles.card, { backgroundColor: colors.card }]}
-            onPress={() => handleNavigate('Products')}
+            onPress={() => handleNavigate('/product')}
           >
             <View style={styles.cardIcon}>
               <Ionicons name="bag-outline" size={32} color={iconColor} />
@@ -130,7 +128,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
           <TouchableOpacity
             style={[styles.card, { backgroundColor: colors.card }]}
-            onPress={() => handleNavigate('StudioInfo')}
+            onPress={() => handleNavigate('/studioInfo')}
           >
             <View style={styles.cardIcon}>
               <Ionicons name="business-outline" size={32} color={iconColor} />
@@ -143,7 +141,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
           <TouchableOpacity
             style={[styles.card, { backgroundColor: colors.card }]}
-            onPress={() => handleNavigate('FAQ')}
+            onPress={() => handleNavigate('/faq')}
           >
             <View style={styles.cardIcon}>
               <Ionicons name="help-circle-outline" size={32} color={iconColor} />
@@ -158,7 +156,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         <View style={styles.profileSection}>
           <TouchableOpacity
             style={[styles.profileButton, { backgroundColor: colors.card }]}
-            onPress={() => handleNavigate('Perfil')}
+            onPress={() => handleNavigate('/tabs/profile')}
           >
             <Ionicons name="person-outline" size={20} color={colors.text} />
             <Text style={[styles.profileButtonText, { color: colors.text }]}>Ver Perfil</Text>

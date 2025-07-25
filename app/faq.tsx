@@ -2,8 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import AppHeader from '../components/AppHeader';
-import { useTheme } from '../contexts/ThemeContext';
+import { useRouter } from 'expo-router';
+import AppHeader from '../src/components/AppHeader';
+import { useTheme } from '../src/contexts/ThemeContext';
 
 interface FAQItem {
   id: string;
@@ -124,10 +125,11 @@ const faqData: FAQItem[] = [
 
 const categories = ['Agendamentos', 'Serviços', 'Pagamento', 'Horários', 'Cursos'];
 
-export default function FAQScreen({ navigation }: any) {
+export default function FAQScreen() {
   const { colors } = useTheme();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
+  const router = useRouter();
 
   const toggleItem = (itemId: string) => {
     setExpandedItems((prev) =>
@@ -142,7 +144,7 @@ export default function FAQScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <AppHeader navigation={navigation} title="Perguntas Frequentes" />
+      <AppHeader title="Perguntas Frequentes" />
       <View style={styles.header}>
         <Text style={styles.title}>Perguntas Frequentes</Text>
         <Text style={styles.subtitle}>Tire suas dúvidas sobre nossos serviços</Text>

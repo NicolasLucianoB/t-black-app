@@ -10,9 +10,10 @@ import {
   View
 } from 'react-native';
 
-import AppHeader from '../components/AppHeader';
-import { useCart } from '../contexts/CartContext';
-import { useTheme } from '../contexts/ThemeContext';
+import { useRouter } from 'expo-router';
+import AppHeader from '../src/components/AppHeader';
+import { useCart } from '../src/contexts/CartContext';
+import { useTheme } from '../src/contexts/ThemeContext';
 
 // Mock de produtos
 const produtos = [
@@ -66,9 +67,10 @@ const produtos = [
   },
 ];
 
-export default function ProductsScreen({ navigation }: any) {
+export default function ProductsScreen() {
   const { cart, addToCart, removeFromCart } = useCart();
   const { colors } = useTheme();
+  const router = useRouter();
 
   console.log('ProductsScreen - Carrinho atual:', cart);
 
@@ -94,12 +96,12 @@ export default function ProductsScreen({ navigation }: any) {
     }, 0);
 
   const irParaCarrinho = () => {
-    navigation.navigate('Cart');
+    router.push('/cart');
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <AppHeader navigation={navigation} title="Produtos" />
+      <AppHeader title="Produtos" />
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.productsGrid}>

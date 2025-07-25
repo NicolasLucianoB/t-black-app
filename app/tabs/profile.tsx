@@ -1,10 +1,13 @@
 import React from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { useTheme } from '../contexts/ThemeContext';
+import { useRouter } from 'expo-router';
+import { useTheme } from '../../src/contexts/ThemeContext';
 
-export default function ProfileScreen({ navigation }: any) {
+export default function ProfileScreen() {
   const { colors } = useTheme();
+  const router = useRouter();
+
   const handleLogout = () => {
     Alert.alert('Sair', 'Tem certeza que deseja sair?', [
       { text: 'Cancelar', style: 'cancel' },
@@ -15,10 +18,7 @@ export default function ProfileScreen({ navigation }: any) {
           // Limpar dados do usuário (futuramente com Supabase)
           console.log('Logout realizado');
           // Redirecionar para a tela de login
-          navigation.reset({
-            index: 0,
-            routes: [{ name: 'Login' }],
-          });
+          router.replace('/login');
         },
       },
     ]);
@@ -40,21 +40,21 @@ export default function ProfileScreen({ navigation }: any) {
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Informações Pessoais</Text>
         <TouchableOpacity
           style={styles.menuItem}
-          onPress={() => navigation.navigate('EditProfile')}
+          onPress={() => router.push('/edit-profile')}
         >
           <Text style={[styles.menuItemText, { color: colors.text }]}>Editar Perfil</Text>
           <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.menuItem}
-          onPress={() => navigation.navigate('ChangePassword')}
+          onPress={() => router.push('/change-password')}
         >
           <Text style={[styles.menuItemText, { color: colors.text }]}>Alterar Senha</Text>
           <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.menuItem}
-          onPress={() => navigation.navigate('Notifications')}
+          onPress={() => router.push('/notifications')}
         >
           <Text style={[styles.menuItemText, { color: colors.text }]}>Notificações</Text>
           <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
@@ -63,18 +63,18 @@ export default function ProfileScreen({ navigation }: any) {
 
       <View style={[styles.section, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Histórico</Text>
-        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('MyBookings')}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/my-bookings')}>
           <Text style={[styles.menuItemText, { color: colors.text }]}>Meus Agendamentos</Text>
           <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.menuItem}
-          onPress={() => navigation.navigate('PurchaseHistory')}
+          onPress={() => router.push('/purchase-history')}
         >
           <Text style={[styles.menuItemText, { color: colors.text }]}>Histórico de Compras</Text>
           <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('MyCourses')}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/my-courses')}>
           <Text style={[styles.menuItemText, { color: colors.text }]}>Cursos Inscritos</Text>
           <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
@@ -82,18 +82,18 @@ export default function ProfileScreen({ navigation }: any) {
 
       <View style={[styles.section, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Suporte</Text>
-        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Help')}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/help')}>
           <Text style={[styles.menuItemText, { color: colors.text }]}>Ajuda</Text>
           <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.menuItem}
-          onPress={() => navigation.navigate('PrivacyPolicy')}
+          onPress={() => router.push('/privacy-policy')}
         >
           <Text style={[styles.menuItemText, { color: colors.text }]}>Política de Privacidade</Text>
           <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('TermsOfUse')}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/terms-of-use')}>
           <Text style={[styles.menuItemText, { color: colors.text }]}>Termos de Uso</Text>
           <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>

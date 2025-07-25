@@ -1,25 +1,26 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { useCart } from '../contexts/CartContext';
 import { useTheme } from '../contexts/ThemeContext';
 
-interface AppHeaderProps {
-  navigation: any;
+type AppHeaderProps = {
   title?: string;
-}
+};
 
-export default function AppHeader({ navigation, title = 'Studio T Black' }: AppHeaderProps) {
+export default function AppHeader({ title = 'Studio T Black' }: AppHeaderProps) {
   const { getCartCount } = useCart();
   const { colors } = useTheme();
+  const router = useRouter();
 
   return (
     <View
       style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}
     >
       <View style={styles.headerLeft}>
-        <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('Menu')}>
+        <TouchableOpacity style={styles.menuButton} onPress={() => router.push('/menu')}>
           <Ionicons name="menu" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>{title}</Text>
@@ -27,11 +28,11 @@ export default function AppHeader({ navigation, title = 'Studio T Black' }: AppH
       <View style={styles.headerRight}>
         <TouchableOpacity
           style={styles.iconButton}
-          onPress={() => navigation.navigate('Notifications')}
+          onPress={() => router.push('notifications')}
         >
           <Ionicons name="notifications-outline" size={24} color={colors.text} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Cart')}>
+        <TouchableOpacity style={styles.iconButton} onPress={() => router.push('/tabs/cart')}>
           <Ionicons name="cart-outline" size={24} color={colors.text} />
           {getCartCount() > 0 && (
             <View style={styles.badge}>
@@ -41,7 +42,7 @@ export default function AppHeader({ navigation, title = 'Studio T Black' }: AppH
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.iconButton}
-          onPress={() => navigation.navigate('StudioInfo')}
+          onPress={() => router.push('/studioInfo')}
         >
           <Ionicons name="information-circle-outline" size={24} color={colors.text} />
         </TouchableOpacity>

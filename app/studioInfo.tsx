@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import {
   Alert,
@@ -11,7 +12,8 @@ import {
   View,
 } from 'react-native';
 
-export default function StudioInfoScreen({ navigation }: any) {
+export default function StudioInfoScreen() {
+  const router = useRouter();
   const endereco = 'Rua das Flores, 123 - Centro, São Paulo - SP, 01234-567';
   const telefone = '(11) 99999-9999';
   const whatsapp = '11999999999';

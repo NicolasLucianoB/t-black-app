@@ -2,10 +2,12 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { useTheme } from '../contexts/ThemeContext';
+import { useRouter } from 'expo-router';
+import { useTheme } from '../src/contexts/ThemeContext';
 
-export default function ThemeSettingsScreen({ navigation }: any) {
+export default function ThemeSettingsScreen() {
   const { themeMode, setThemeMode, colors } = useTheme();
+  const router = useRouter();
 
   const themeOptions = [
     {
@@ -39,7 +41,7 @@ export default function ThemeSettingsScreen({ navigation }: any) {
           { backgroundColor: colors.surface, borderBottomColor: colors.border },
         ]}
       >
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>Tema</Text>

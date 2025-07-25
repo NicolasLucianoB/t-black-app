@@ -1,5 +1,4 @@
 import React from 'react';
-
 import { CartProvider } from '../contexts/CartContext';
 import { ThemeProvider } from '../contexts/ThemeContext';
 

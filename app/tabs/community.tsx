@@ -12,8 +12,9 @@ import {
   View,
 } from 'react-native';
 
-import AppHeader from '../components/AppHeader';
-import { useTheme } from '../contexts/ThemeContext';
+import { useRouter } from 'expo-router';
+import AppHeader from '../../src/components/AppHeader';
+import { useTheme } from '../../src/contexts/ThemeContext';
 
 interface Message {
   id: string;
@@ -23,8 +24,9 @@ interface Message {
   timestamp: Date;
 }
 
-export default function CommunityScreen({ navigation }: any) {
+export default function CommunityScreen() {
   const { colors } = useTheme();
+  const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -126,7 +128,7 @@ export default function CommunityScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <AppHeader navigation={navigation} title="Comunidade Studio T Black" />
+      <AppHeader title="Comunidade Studio T Black" />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

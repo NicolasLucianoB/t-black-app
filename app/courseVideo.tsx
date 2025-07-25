@@ -1,9 +1,51 @@
+import { useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 
-export default function CourseVideoScreen({ navigation, route }: any) {
-  const { curso } = route.params;
+const cursos = [
+  {
+    id: '1',
+    titulo: 'Curso de React Native',
+    instrutor: 'João Silva',
+    duracao: '4h 30min',
+    aulas: 12,
+    descricao: 'Aprenda a criar aplicativos móveis com React Native.',
+    videoUrl: 'https://www.youtube.com/watch?v=0-S5a0eXPoc',
+  },
+  {
+    id: '2',
+    titulo: 'Curso de Python',
+    instrutor: 'Maria Oliveira',
+    duracao: '5h 15min',
+    aulas: 15,
+    descricao: 'Domine Python para desenvolvimento web e automação.',
+    videoUrl: 'https://youtu.be/rfscVS0vtbw',
+  },
+  {
+    id: '3',
+    titulo: 'Curso de Design UX/UI',
+    instrutor: 'Carlos Pereira',
+    duracao: '3h 45min',
+    aulas: 10,
+    descricao: 'Aprenda os fundamentos do design de experiência do usuário.',
+    videoUrl: 'https://www.youtube.com/embed/9bZkp7q19f0',
+  },
+];
+
+export default function CourseVideoScreen() {
+  const { id } = useLocalSearchParams();
+  const courseId = Array.isArray(id) ? id[0] : id;
+
+  const curso = cursos.find(c => c.id === courseId);
+
+  if (!curso) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ fontSize: 18, color: '#111' }}>Curso não encontrado</Text>
+      </View>
+    );
+  }
 
   const getVideoId = (url: string) => {
     const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/;

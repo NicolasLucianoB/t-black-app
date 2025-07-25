@@ -1,12 +1,9 @@
 import { AntDesign } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-interface LoginScreenProps {
-  navigation: any;
-}
-
-export default function LoginScreen({ navigation }: LoginScreenProps) {
+export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
@@ -32,7 +29,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
 
   const handleLogin = () => {
     if (validateForm()) {
-      navigation.replace('LoggedTabs');
+      router.replace('/tabs/home');
     }
   };
 
@@ -93,7 +90,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
       </View>
 
       <TouchableOpacity
-        onPress={() => navigation.navigate('SignUp')}
+        onPress={() => router.push('/signUp')}
         style={styles.linkContainer}
         accessibilityRole="link"
       >

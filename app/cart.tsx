@@ -1,7 +1,8 @@
 import React from 'react';
 import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { useCart } from '../contexts/CartContext';
+import { useRouter } from 'expo-router';
+import { useCart } from '../src/contexts/CartContext';
 
 // Dados mock para produtos
 const produtosMock = [
@@ -60,8 +61,9 @@ const cursosMock = [
   },
 ];
 
-export default function CartScreen({ navigation }: any) {
+export default function CartScreen() {
   const { cart, addToCart, removeFromCart, clearCart } = useCart();
+  const router = useRouter();
 
   const produtosNoCarrinho = cart.filter((item) => item.type === 'product');
   const cursosNoCarrinho = cart.filter((item) => item.type === 'course');
@@ -101,7 +103,7 @@ export default function CartScreen({ navigation }: any) {
           onPress: () => {
             clearCart();
             Alert.alert('Sucesso!', 'Compra realizada com sucesso!', [
-              { text: 'OK', onPress: () => navigation.navigate('Home') },
+              { text: 'OK', onPress: () => router.push('/') },
             ]);
           },
         },
@@ -117,13 +119,13 @@ export default function CartScreen({ navigation }: any) {
         <View style={styles.emptyButtons}>
           <TouchableOpacity
             style={styles.productsButton}
-            onPress={() => navigation.navigate('Products')}
+            onPress={() => router.push('/product')}
           >
             <Text style={styles.productsButtonText}>Produtos</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.coursesButton}
-            onPress={() => navigation.navigate('Courses')}
+            onPress={() => router.push('/courses')}
           >
             <Text style={styles.coursesButtonText}>Cursos</Text>
           </TouchableOpacity>

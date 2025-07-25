@@ -10,8 +10,9 @@ import {
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 
-import AppHeader from '../components/AppHeader';
-import { useTheme } from '../contexts/ThemeContext';
+import { useRouter } from 'expo-router';
+import AppHeader from '../../src/components/AppHeader';
+import { useTheme } from '../../src/contexts/ThemeContext';
 
 const barbeiros = [
   {
@@ -85,11 +86,12 @@ function getHorariosDisponiveis(barbeiroId: number, data: string) {
   return barbeiro.horarios.filter((horario) => !horariosOcupados.includes(horario));
 }
 
-export default function BookingScreen({ navigation }: any) {
+export default function BookingScreen() {
   const { colors, theme } = useTheme();
   const [barbeiro, setBarbeiro] = useState(barbeiros[0].id);
   const [data, setData] = useState('');
   const [horario, setHorario] = useState('');
+  const router = useRouter();
 
   const horariosDisponiveis = useMemo(() => {
     return getHorariosDisponiveis(barbeiro, data);
@@ -112,7 +114,7 @@ export default function BookingScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <AppHeader navigation={navigation} />
+      <AppHeader />
       <ScrollView
         style={{ flex: 1, backgroundColor: colors.background }}
         keyboardShouldPersistTaps="handled"

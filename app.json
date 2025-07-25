@@ -1,15 +1,14 @@
 {
   "expo": {
-    "name": "studio-t-black-app",
+    "name": "Studio T-Black App",
     "slug": "studio-t-black-app",
+    "scheme": "studio-t-black-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/novo-splash-app.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
-    "entryPoint": "./App.tsx",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/novo-splash-app.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },

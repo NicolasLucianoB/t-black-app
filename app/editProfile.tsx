@@ -1,3 +1,4 @@
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   Alert,
@@ -9,15 +10,24 @@ import {
   View,
 } from 'react-native';
 
-interface EditProfileScreenProps {
-  navigation: any;
-  route: any;
-}
-
-export default function EditProfileScreen({ navigation, route }: EditProfileScreenProps) {
-  const [nome, setNome] = useState(route.params?.userData?.nome || '');
-  const [email, setEmail] = useState(route.params?.userData?.email || '');
-  const [telefone, setTelefone] = useState(route.params?.userData?.telefone || '');
+export default function EditProfileScreen() {
+  const router = useRouter();
+  const params = useLocalSearchParams();
+  let userData: any = {};
+  if (params.userData) {
+    if (typeof params.userData === 'string') {
+      try {
+        userData = JSON.parse(params.userData);
+      } catch {
+        userData = {};
+      }
+    } else {
+      userData = params.userData;
+    }
+  }
+  const [nome, setNome] = useState(userData?.nome || '');
+  const [email, setEmail] = useState(userData?.email || '');
+  const [telefone, setTelefone] = useState(userData?.telefone || '');
 
   const handleSalvar = () => {
     if (!nome.trim() || !email.trim() || !telefone.trim()) {
@@ -31,14 +41,14 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
     }
 
     Alert.alert('Sucesso', 'Perfil atualizado com sucesso!', [
-      { text: 'OK', onPress: () => navigation.goBack() },
+      { text: 'OK', onPress: () => router.back() },
     ]);
   };
 
   const handleCancelar = () => {
     Alert.alert('Cancelar', 'Deseja descartar as alterações?', [
       { text: 'Continuar editando', style: 'cancel' },
-      { text: 'Descartar', style: 'destructive', onPress: () => navigation.goBack() },
+      { text: 'Descartar', style: 'destructive', onPress: () => router.back() },
     ]);
   };
 

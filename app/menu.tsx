@@ -2,17 +2,19 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { useCart } from '../contexts/CartContext';
-import { useTheme } from '../contexts/ThemeContext';
+import { useRouter } from 'expo-router';
+import { useCart } from '../src/contexts/CartContext';
+import { useTheme } from '../src/contexts/ThemeContext';
 
-export default function MenuScreen({ navigation }: any) {
+export default function MenuScreen() {
   const { getCartCount } = useCart();
   const { colors } = useTheme();
+  const router = useRouter();
 
   const navigateToTab = (screenName: string) => {
-    navigation.goBack();
+    router.back();
     setTimeout(() => {
-      navigation.navigate('TabNavigator', { screen: screenName });
+      router.push('/tab-navigator/' + screenName.toLowerCase());
     }, 100);
   };
 
@@ -22,85 +24,85 @@ export default function MenuScreen({ navigation }: any) {
       title: 'Notificações',
       icon: 'notifications-outline',
       color: '#007AFF',
-      onPress: () => navigation.navigate('Notifications'),
+      onPress: () => router.push('/notifications'),
     },
     {
       id: 'cart',
       title: 'Carrinho',
       icon: 'cart-outline',
       color: '#FF9500',
-      badge: getCartCount(),
-      onPress: () => navigation.navigate('Cart'),
+      onPress: () => router.push('/cart'),
+      hasBadge: true,
     },
     {
       id: 'studio-info',
       title: 'Informações do Studio',
       icon: 'information-circle-outline',
       color: '#34C759',
-      onPress: () => navigation.navigate('StudioInfo'),
+      onPress: () => router.push('/studioInfo'),
     },
     {
       id: 'faq',
       title: 'Perguntas Frequentes',
       icon: 'help-circle-outline',
       color: '#5856D6',
-      onPress: () => navigation.navigate('FAQ'),
+      onPress: () => router.push('/faq'),
     },
     {
       id: 'profile',
       title: 'Meu Perfil',
       icon: 'person-outline',
       color: '#FF3B30',
-      onPress: () => navigateToTab('Perfil'),
+      onPress: () => router.push('/tabs/profile'),
     },
     {
       id: 'bookings',
       title: 'Meus Agendamentos',
       icon: 'calendar-outline',
       color: '#AF52DE',
-      onPress: () => navigation.navigate('MyBookings'),
+      onPress: () => router.push('/bookings'),
     },
     {
       id: 'courses',
       title: 'Meus Cursos',
       icon: 'school-outline',
       color: '#FF6B6B',
-      onPress: () => navigation.navigate('MyCourses'),
+      onPress: () => router.push('/courses/mine'),
     },
     {
       id: 'purchases',
       title: 'Histórico de Compras',
       icon: 'bag-outline',
       color: '#FF9500',
-      onPress: () => navigation.navigate('PurchaseHistory'),
+      onPress: () => router.push('/purchase-history'),
     },
     {
       id: 'help',
       title: 'Ajuda',
       icon: 'help-buoy-outline',
       color: '#5856D6',
-      onPress: () => navigation.navigate('Help'),
+      onPress: () => router.push('/help'),
     },
     {
       id: 'privacy',
       title: 'Política de Privacidade',
       icon: 'shield-outline',
       color: '#34C759',
-      onPress: () => navigation.navigate('PrivacyPolicy'),
+      onPress: () => router.push('/privacy-policy'),
     },
     {
       id: 'terms',
       title: 'Termos de Uso',
       icon: 'document-text-outline',
       color: '#007AFF',
-      onPress: () => navigation.navigate('TermsOfUse'),
+      onPress: () => router.push('/terms-of-use'),
     },
     {
       id: 'theme',
       title: 'Tema',
       icon: 'color-palette-outline',
       color: '#FF6B6B',
-      onPress: () => navigation.navigate('ThemeSettings'),
+      onPress: () => router.push('/themeSettings'),
     },
   ];
 
@@ -113,7 +115,7 @@ export default function MenuScreen({ navigation }: any) {
         ]}
       >
         <Text style={[styles.headerTitle, { color: colors.text }]}>Menu</Text>
-        <TouchableOpacity style={styles.closeButton} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={styles.closeButton} onPress={() => router.back()}>
           <Ionicons name="close" size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
@@ -128,9 +130,9 @@ export default function MenuScreen({ navigation }: any) {
             >
               <View style={[styles.iconContainer, { backgroundColor: item.color + '20' }]}>
                 <Ionicons name={item.icon as any} size={24} color={item.color} />
-                {item.badge && item.badge > 0 && (
+                {item.id === 'cart' && getCartCount() > 0 && (
                   <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{item.badge}</Text>
+                    <Text style={styles.badgeText}>{getCartCount()}</Text>
                   </View>
                 )}
               </View>

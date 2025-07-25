@@ -11,16 +11,13 @@ interface CartContextType {
   removeFromCart: (id: number, type: 'product' | 'course') => void;
   clearCart: () => void;
   getCartCount: () => number;
-  getCartItems: () => CartItem[];
-  getProductCount: () => number;
-  getCourseCount: () => number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-export const useCart = () => {
+export const useCart = (): CartContextType => {
   const context = useContext(CartContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useCart must be used within a CartProvider');
   }
   return context;
@@ -30,71 +27,33 @@ interface CartProviderProps {
   children: ReactNode;
 }
 
-export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
+export function CartProvider({ children }: CartProviderProps) {
   const [cart, setCart] = useState<CartItem[]>([]);
 
   const addToCart = (id: number, type: 'product' | 'course') => {
-    console.log('Adicionando ao carrinho:', { id, type });
     setCart((prev) => {
-      // Para cursos, verificar se já existe no carrinho
-      if (type === 'course') {
-        const cursoJaExiste = prev.some((item) => item.id === id && item.type === 'course');
-        console.log('Verificando se curso já existe:', cursoJaExiste);
-        if (cursoJaExiste) {
-          console.log('Curso já existe no carrinho, não adicionando novamente');
-          return prev;
-        }
+      if (type === 'course' && prev.some((item) => item.id === id && item.type === 'course')) {
+        return prev;
       }
-
-      const newCart = [...prev, { id, type }];
-      console.log('Novo carrinho:', newCart);
-      return newCart;
+      return [...prev, { id, type }];
     });
   };
 
   const removeFromCart = (id: number, type: 'product' | 'course') => {
-    console.log('Removendo do carrinho:', { id, type });
-    setCart((prev) => {
-      const index = prev.findIndex((item) => item.id === id && item.type === type);
-      if (index !== -1) {
-        const newCart = prev.filter((_, i) => i !== index);
-        console.log('Novo carrinho após remoção:', newCart);
-        return newCart;
-      }
-      return prev;
-    });
+    setCart((prev) => prev.filter((item) => !(item.id === id && item.type === type)));
   };
 
-  const clearCart = () => {
-    setCart([]);
-  };
+  const clearCart = () => setCart([]);
 
-  const getCartCount = () => {
-    return cart.length;
-  };
+  const getCartCount = () => cart.length;
 
-  const getCartItems = () => {
-    return cart;
-  };
-
-  const getProductCount = () => {
-    return cart.filter((item) => item.type === 'product').length;
-  };
-
-  const getCourseCount = () => {
-    return cart.filter((item) => item.type === 'course').length;
-  };
-
-  const value = {
+  const value: CartContextType = {
     cart,
     addToCart,
     removeFromCart,
     clearCart,
     getCartCount,
-    getCartItems,
-    getProductCount,
-    getCourseCount,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
-};
+}

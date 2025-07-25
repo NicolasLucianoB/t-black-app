@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   Alert,
@@ -10,11 +11,11 @@ import {
   View,
 } from 'react-native';
 
-interface SignUpScreenProps {
-  navigation: any;
-}
+interface SignUpScreenProps { }
 
-export default function SignUpScreen({ navigation }: SignUpScreenProps) {
+export default function SignUpScreen({ }: SignUpScreenProps) {
+  const router = useRouter();
+
   const [formData, setFormData] = useState({
     fullName: '',
     birthDate: '',
@@ -97,7 +98,7 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
       Alert.alert('Cadastro realizado!', 'Bem-vindo ao Studio T Black!', [
         {
           text: 'OK',
-          onPress: () => navigation.replace('LoggedTabs'),
+          onPress: () => router.replace('/loggedTabs'),
         },
       ]);
     }
@@ -242,7 +243,7 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
           <Text style={styles.buttonText}>Criar Conta</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.linkContainer}>
+        <TouchableOpacity onPress={() => router.push('/login')} style={styles.linkContainer}>
           <Text style={styles.linkText}>Já tem uma conta? Entrar</Text>
         </TouchableOpacity>
       </View>

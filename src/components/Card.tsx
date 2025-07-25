@@ -1,10 +1,11 @@
 import React from 'react';
-import { StyleSheet, View, ViewProps } from 'react-native';
+import { StyleProp, StyleSheet, View, ViewProps, ViewStyle } from 'react-native';
 
 interface CardProps extends ViewProps {
   children: React.ReactNode;
   variant?: 'default' | 'elevated';
   padding?: number;
+  style?: StyleProp<ViewStyle>;
 }
 
 export default function Card({
