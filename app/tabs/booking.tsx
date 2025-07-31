@@ -255,6 +255,11 @@ export default function BookingScreen() {
               </Text>
             </TouchableOpacity>
           </View>
+          <View>
+            <Text style={[styles.declarationText, { color: colors.textSecondary }]}>
+              *Declaro estar ciente de que o não honrar o compromisso de comparecer à data agendada por 3 vezes acarretará em um bloqueio temporário de novos agendamentos*
+            </Text>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -396,5 +401,12 @@ const styles = StyleSheet.create({
   confirmButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  declarationText: {
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 8,
+    marginHorizontal: 16,
+    lineHeight: 16,
   },
 });

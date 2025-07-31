@@ -32,7 +32,7 @@ export default function AppHeader({ title = 'Studio T Black' }: AppHeaderProps) 
         >
           <Ionicons name="notifications-outline" size={24} color={colors.text} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.iconButton} onPress={() => router.push('/tabs/cart')}>
+        <TouchableOpacity style={styles.iconButton} onPress={() => router.push('/cart')}>
           <Ionicons name="cart-outline" size={24} color={colors.text} />
           {getCartCount() > 0 && (
             <View style={styles.badge}>
