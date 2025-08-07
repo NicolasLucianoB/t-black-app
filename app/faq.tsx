@@ -158,38 +158,69 @@ export default function FAQScreen() {
         contentContainerStyle={styles.categoriesContent}
       >
         <TouchableOpacity
-          style={[
-            styles.categoryButton,
-            selectedCategory === 'Todos' && styles.categoryButtonActive,
-          ]}
+          style={styles.categoryWrapper}
           onPress={() => setSelectedCategory('Todos')}
         >
+          <View
+            style={[
+              styles.categoryButton,
+              selectedCategory === 'Todos' && { backgroundColor: '#111' },
+            ]}
+          >
+            <Ionicons
+              name="grid-outline"
+              size={28}
+              color={selectedCategory === 'Todos' ? '#fff' : colors.textSecondary}
+            />
+          </View>
           <Text
-            style={[styles.categoryText, selectedCategory === 'Todos' && styles.categoryTextActive]}
+            style={[
+              styles.categoryText,
+              { color: selectedCategory === 'Todos' ? '#111' : colors.textSecondary },
+            ]}
           >
             Todos
           </Text>
         </TouchableOpacity>
 
-        {categories.map((category) => (
-          <TouchableOpacity
-            key={category}
-            style={[
-              styles.categoryButton,
-              selectedCategory === category && styles.categoryButtonActive,
-            ]}
-            onPress={() => setSelectedCategory(category)}
-          >
-            <Text
-              style={[
-                styles.categoryText,
-                selectedCategory === category && styles.categoryTextActive,
-              ]}
+        {categories.map((category) => {
+          const iconsMap: Record<string, keyof typeof Ionicons.glyphMap> = {
+            Agendamentos: 'calendar-outline',
+            Serviços: 'cut-outline',
+            Pagamento: 'card-outline',
+            Horários: 'time-outline',
+            Cursos: 'school-outline',
+          };
+
+          return (
+            <TouchableOpacity
+              key={category}
+              style={styles.categoryWrapper}
+              onPress={() => setSelectedCategory(category)}
             >
-              {category}
-            </Text>
-          </TouchableOpacity>
-        ))}
+              <View
+                style={[
+                  styles.categoryButton,
+                  selectedCategory === category && { backgroundColor: '#111' },
+                ]}
+              >
+                <Ionicons
+                  name={iconsMap[category]}
+                  size={28}
+                  color={selectedCategory === category ? '#fff' : colors.textSecondary}
+                />
+              </View>
+              <Text
+                style={[
+                  styles.categoryText,
+                  { color: selectedCategory === category ? '#111' : colors.textSecondary },
+                ]}
+              >
+                {category}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
 
       <ScrollView style={styles.faqContainer} showsVerticalScrollIndicator={false}>
@@ -241,16 +272,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+    height: 0.5,
   },
   categoriesContent: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    // paddingVertical: 12,
+    alignItems: 'center',
+  },
+  categoryWrapper: {
+    alignItems: 'center',
+    marginRight: 12,
   },
   categoryButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    width: 80,
+    height: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
     borderRadius: 20,
-    marginRight: 8,
     backgroundColor: '#f0f0f0',
   },
   categoryButtonActive: {
@@ -260,9 +298,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     fontWeight: '500',
-  },
-  categoryTextActive: {
-    color: '#fff',
+    textAlign: 'center',
+    marginTop: 4,
   },
   faqContainer: {
     flex: 1,

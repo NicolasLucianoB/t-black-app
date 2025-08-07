@@ -14,14 +14,14 @@ import {
 
 export default function StudioInfoScreen() {
   const router = useRouter();
-  const endereco = 'Rua das Flores, 123 - Centro, São Paulo - SP, 01234-567';
-  const telefone = '(11) 99999-9999';
-  const whatsapp = '11999999999';
+  const endereco = 'Av. Nove de Julho, 95 - Sala 92 - Jardim Apolo, São José dos Campos - SP, 12243-000';
+  const telefone = '(12) 99637-5825';
+  const whatsapp = '(12) 99637-5825';
   const email = 'contato@studiotblack.com.br';
 
   const coordenadas = {
-    latitude: -23.5505,
-    longitude: -46.6333,
+    latitude: -23.1980737,
+    longitude: -45.8947689,
   };
 
   const abrirGoogleMaps = () => {
@@ -38,7 +38,8 @@ export default function StudioInfoScreen() {
   };
 
   const abrirWhatsapp = () => {
-    const url = `https://wa.me/55${whatsapp}`;
+    const whatsappNumber = whatsapp.replace(/\D/g, ''); // Remove caracteres não numéricos
+    const url = `https://wa.me/55${whatsappNumber}`;
     Linking.openURL(url).catch(() => {
       Alert.alert('Erro', 'Não foi possível abrir o WhatsApp');
     });

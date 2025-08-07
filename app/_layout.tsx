@@ -1,11 +1,16 @@
-import { Slot } from 'expo-router';
+import { Stack } from 'expo-router';
 import React from 'react';
 import { AppProviders } from '../src/components/AppProviders';
 
 export default function RootLayout() {
   return (
     <AppProviders>
-      <Slot />
+      <Stack
+        screenOptions={{
+          gestureEnabled: true, // Ativa gesto de swipe para voltar
+          headerShown: false,   // (opcional) oculta o cabeçalho padrão
+        }}
+      />
     </AppProviders>
   );
 }

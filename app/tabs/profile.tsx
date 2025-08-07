@@ -74,7 +74,7 @@ export default function ProfileScreen() {
           <Text style={[styles.menuItemText, { color: colors.text }]}>Histórico de Compras</Text>
           <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/my-courses')}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/courses/mine')}>
           <Text style={[styles.menuItemText, { color: colors.text }]}>Cursos Inscritos</Text>
           <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
