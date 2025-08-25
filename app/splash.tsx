@@ -3,7 +3,7 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 export default function SplashScreen() {
   return (
     <View style={styles.container}>
-      <Image source={require('../assets/novo-splash-app.png')} style={styles.logo} />
+      <Image source={require('assets/novo-splash-app.png')} style={styles.logo} />
       <Text style={styles.title}>Studio T Black</Text>
     </View>
   );

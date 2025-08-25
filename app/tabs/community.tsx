@@ -13,8 +13,8 @@ import {
 } from 'react-native';
 
 import { useRouter } from 'expo-router';
-import AppHeader from '../../src/components/AppHeader';
-import { useTheme } from '../../src/contexts/ThemeContext';
+import AppHeader from 'src/components/AppHeader';
+import { useTheme } from 'src/contexts/ThemeContext';
 
 interface Message {
   id: string;
@@ -128,18 +128,11 @@ export default function CommunityScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <AppHeader title="Comunidade Studio T Black" />
+      <AppHeader />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={[styles.header, { backgroundColor: colors.primary }]}>
-          <Text style={[styles.headerTitle, { color: colors.card }]}>
-            Comunidade Studio T Black
-          </Text>
-          <Text style={[styles.headerSubtitle, { color: colors.card }]}>Chat com o barbeiro</Text>
-        </View>
-
         <FlatList
           data={messages}
           renderItem={renderMessage}
@@ -183,22 +176,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f7f7f7',
-  },
-  header: {
-    backgroundColor: '#111',
-    padding: 16,
-    paddingTop: 60,
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#ccc',
   },
   messagesList: {
     flex: 1,

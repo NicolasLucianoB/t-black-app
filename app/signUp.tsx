@@ -11,9 +11,9 @@ import {
   View,
 } from 'react-native';
 
-interface SignUpScreenProps { }
+interface SignUpScreenProps {}
 
-export default function SignUpScreen({ }: SignUpScreenProps) {
+export default function SignUpScreen({}: SignUpScreenProps) {
   const router = useRouter();
 
   const [formData, setFormData] = useState({

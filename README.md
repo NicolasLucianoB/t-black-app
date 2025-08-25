@@ -3,6 +3,7 @@
 Mobile app for the Studio T Black barbershop, built with React Native (Expo) and TypeScript, following clean code, scalability, and maintainability best practices.
 
 ## Main Features (Planned)
+
 - Splash/Pre-load
 - Login/Sign Up (Supabase Auth)
 - Home with calendar and available times for each barber (5 employees)
@@ -13,6 +14,7 @@ Mobile app for the Studio T Black barbershop, built with React Native (Expo) and
 - Push notifications
 
 ## Stack
+
 - React Native (Expo)
 - TypeScript
 - React Navigation
@@ -36,6 +38,7 @@ src/
 ```
 
 ## Best Practices
+
 - Clean code
 - Componentization
 - Separation of concerns
@@ -75,4 +78,4 @@ src/
 
 ---
 
-Developed by Nícolas for Studio T Black ✂️ 
+Developed by Nícolas for Studio T Black ✂️

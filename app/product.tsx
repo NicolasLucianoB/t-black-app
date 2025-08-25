@@ -7,13 +7,13 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 
 import { useRouter } from 'expo-router';
-import AppHeader from '../src/components/AppHeader';
-import { useCart } from '../src/contexts/CartContext';
-import { useTheme } from '../src/contexts/ThemeContext';
+import AppHeader from 'src/components/AppHeader';
+import { useCart } from 'src/contexts/CartContext';
+import { useTheme } from 'src/contexts/ThemeContext';
 
 // Mock de produtos
 const produtos = [
@@ -101,7 +101,7 @@ export default function ProductsScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <AppHeader title="Produtos" />
+      <AppHeader />
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.productsGrid}>

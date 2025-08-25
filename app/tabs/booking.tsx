@@ -1,18 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo, useState } from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
-} from 'react-native';
+import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 
 import { useRouter } from 'expo-router';
-import AppHeader from '../../src/components/AppHeader';
-import { useTheme } from '../../src/contexts/ThemeContext';
+import AppHeader from 'src/components/AppHeader';
+import { useTheme } from 'src/contexts/ThemeContext';
 
 const barbeiros = [
   {
@@ -257,7 +250,8 @@ export default function BookingScreen() {
           </View>
           <View>
             <Text style={[styles.declarationText, { color: colors.textSecondary }]}>
-              *Declaro estar ciente de que o não honrar o compromisso de comparecer à data agendada por 3 vezes acarretará em um bloqueio temporário de novos agendamentos*
+              *Declaro estar ciente de que o não honrar o compromisso de comparecer à data agendada
+              por 3 vezes acarretará em um bloqueio temporário de novos agendamentos*
             </Text>
           </View>
         </View>

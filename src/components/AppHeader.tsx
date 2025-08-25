@@ -6,11 +6,11 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useCart } from '../contexts/CartContext';
 import { useTheme } from '../contexts/ThemeContext';
 
-type AppHeaderProps = {
+interface AppHeaderProps {
   title?: string;
-};
+}
 
-export default function AppHeader({ title = 'Studio T Black' }: AppHeaderProps) {
+export default function AppHeader({ title }: AppHeaderProps) {
   const { getCartCount } = useCart();
   const { colors } = useTheme();
   const router = useRouter();
@@ -23,13 +23,14 @@ export default function AppHeader({ title = 'Studio T Black' }: AppHeaderProps) 
         <TouchableOpacity style={styles.menuButton} onPress={() => router.push('/menu')}>
           <Ionicons name="menu" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{title}</Text>
       </View>
+      {title && (
+        <Text style={{ fontSize: 18, fontWeight: 'bold', color: colors.text, textAlign: 'center' }}>
+          {title}
+        </Text>
+      )}
       <View style={styles.headerRight}>
-        <TouchableOpacity
-          style={styles.iconButton}
-          onPress={() => router.push('notifications')}
-        >
+        <TouchableOpacity style={styles.iconButton} onPress={() => router.push('notifications')}>
           <Ionicons name="notifications-outline" size={24} color={colors.text} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.iconButton} onPress={() => router.push('/cart')}>
@@ -40,10 +41,7 @@ export default function AppHeader({ title = 'Studio T Black' }: AppHeaderProps) 
             </View>
           )}
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.iconButton}
-          onPress={() => router.push('/studioInfo')}
-        >
+        <TouchableOpacity style={styles.iconButton} onPress={() => router.push('/studioInfo')}>
           <Ionicons name="information-circle-outline" size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
@@ -63,11 +61,6 @@ const styles = StyleSheet.create({
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginLeft: 10,
   },
   headerRight: {
     flexDirection: 'row',

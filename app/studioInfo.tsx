@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import {
   Alert,
@@ -14,7 +15,8 @@ import {
 
 export default function StudioInfoScreen() {
   const router = useRouter();
-  const endereco = 'Av. Nove de Julho, 95 - Sala 92 - Jardim Apolo, São José dos Campos - SP, 12243-000';
+  const endereco =
+    'Av. Nove de Julho, 95 - Sala 92 - Jardim Apolo, São José dos Campos - SP, 12243-000';
   const telefone = '(12) 99637-5825';
   const whatsapp = '(12) 99637-5825';
   const email = 'contato@studiotblack.com.br';
@@ -53,6 +55,7 @@ export default function StudioInfoScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar style="dark" />
       <ScrollView style={styles.scrollContainer}>
         <View style={styles.header}>
           <Text style={styles.title}>Studio T Black</Text>
@@ -123,10 +126,11 @@ export default function StudioInfoScreen() {
             <Text style={styles.sectionTitle}>Sobre o Studio</Text>
           </View>
           <Text style={styles.aboutText}>
-            O Studio T Black é uma barbearia moderna e profissional, especializada em cortes
-            masculinos, barbas e tratamentos capilares. Nossa equipe de barbeiros experientes
-            utiliza técnicas avançadas e produtos de qualidade para garantir o melhor resultado para
-            nossos clientes.
+            O Studio T Black é uma barbearia moderna e profissional, dominamos todos os tipos de
+            cabelo e damos ênfase no cabelo cacheado e afro além disso fazemos barbas, tratamentos
+            capilares e treinamento para profissionais da área. Nossa equipe de barbeiros
+            experientes utiliza técnicas avançadas e produtos de qualidade para garantir o melhor
+            resultado para nossos clientes.
           </Text>
         </View>
       </ScrollView>

@@ -28,12 +28,13 @@ export default function LoadingSpinner({
   const containerStyle = fullScreen ? styles.fullScreen : styles.container;
 
   return (
-    <Animated.View
-      style={[containerStyle, { opacity: fadeAnim }]}
-      accessibilityRole="progressbar"
-    >
+    <Animated.View style={[containerStyle, { opacity: fadeAnim }]} accessibilityRole="progressbar">
       <ActivityIndicator size={size} color={color} />
-      {text && <Text style={styles.text} accessibilityLiveRegion="polite">{text}</Text>}
+      {text && (
+        <Text style={styles.text} accessibilityLiveRegion="polite">
+          {text}
+        </Text>
+      )}
     </Animated.View>
   );
 }

@@ -3,7 +3,7 @@ import React from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { useRouter } from 'expo-router';
-import { useTheme } from '../src/contexts/ThemeContext';
+import { useTheme } from 'src/contexts/ThemeContext';
 
 export default function ThemeSettingsScreen() {
   const { themeMode, setThemeMode, colors } = useTheme();

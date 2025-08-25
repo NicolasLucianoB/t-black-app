@@ -3,9 +3,9 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import AppHeader from '../../src/components/AppHeader';
-import { useCart } from '../../src/contexts/CartContext';
-import { useTheme } from '../../src/contexts/ThemeContext';
+import AppHeader from 'src/components/AppHeader';
+import { useCart } from 'src/contexts/CartContext';
+import { useTheme } from 'src/contexts/ThemeContext';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -28,9 +28,15 @@ export default function HomeScreen() {
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.welcomeSection}>
-          <Text style={[styles.title, { color: colors.text }]}>Bem-vindo ao Studio T Black!</Text>
+          <Text
+            style={[styles.title, { color: colors.text, textAlign: 'center' }]}
+            adjustsFontSizeToFit
+            minimumFontScale={0.8}
+          >
+            Bem-vindo ao Studio T. Black!
+          </Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            O que você deseja fazer hoje?
+            O que deseja fazer hoje?
           </Text>
         </View>
 
@@ -151,6 +157,19 @@ export default function HomeScreen() {
               Tire suas dúvidas sobre nossos serviços
             </Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.card, { backgroundColor: colors.card }]}
+            onPress={() => handleNavigate('/benefitsClub')}
+          >
+            <View style={styles.cardIcon}>
+              <Ionicons name="people-outline" size={32} color={iconColor} />
+            </View>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>Clube de Benefícios</Text>
+            <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+              Parceiros e vantagens exclusivas
+            </Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.profileSection}>
@@ -224,14 +243,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 12,
     color: '#111',
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#555',
     textAlign: 'center',
   },

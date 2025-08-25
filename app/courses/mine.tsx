@@ -1,6 +1,14 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import AppHeader from '../../src/components/AppHeader';
 import { useTheme } from '../../src/contexts/ThemeContext';
 
@@ -35,9 +43,9 @@ export default function MineCoursesTab() {
   const { colors } = useTheme();
   const router = useRouter();
 
-  const cursosComprados = cursos.filter(curso => curso.comprado);
+  const cursosComprados = cursos.filter((curso) => curso.comprado);
 
-  function handleAssistirCurso(curso: typeof cursos[0]) {
+  function handleAssistirCurso(curso: (typeof cursos)[0]) {
     router.push({
       pathname: '/courseVideo',
       params: { id: curso.id, nome: curso.nome },
@@ -46,14 +54,16 @@ export default function MineCoursesTab() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <AppHeader title="Meus Cursos" />
+      <AppHeader />
       {cursosComprados.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text style={[styles.emptyText, { color: colors.text }]}>Você ainda não comprou nenhum curso.</Text>
+          <Text style={[styles.emptyText, { color: colors.text }]}>
+            Você ainda não comprou nenhum curso.
+          </Text>
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContainer}>
-          {cursosComprados.map(curso => (
+          {cursosComprados.map((curso) => (
             <View key={curso.id} style={[styles.card, { backgroundColor: colors.card }]}>
               <Image source={{ uri: curso.imagem }} style={styles.image} />
               <View style={styles.content}>

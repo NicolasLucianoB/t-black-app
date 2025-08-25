@@ -3,8 +3,8 @@ import React from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { useRouter } from 'expo-router';
-import { useCart } from '../src/contexts/CartContext';
-import { useTheme } from '../src/contexts/ThemeContext';
+import { useCart } from 'src/contexts/CartContext';
+import { useTheme } from 'src/contexts/ThemeContext';
 
 export default function MenuScreen() {
   const { getCartCount } = useCart();
@@ -78,10 +78,10 @@ export default function MenuScreen() {
     },
     {
       id: 'help',
-      title: 'Ajuda',
-      icon: 'help-buoy-outline',
-      color: '#5856D6',
-      onPress: () => router.push('/help'),
+      title: 'Clube de benefícios',
+      icon: 'people-outline',
+      color: '#FFD700',
+      onPress: () => router.push('/benefitsClub'),
     },
     {
       id: 'privacy',

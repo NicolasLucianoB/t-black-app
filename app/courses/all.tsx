@@ -4,7 +4,6 @@ import AppHeader from '../../src/components/AppHeader';
 import { useCart } from '../../src/contexts/CartContext';
 import { useTheme } from '../../src/contexts/ThemeContext';
 
-
 type Curso = {
   id: number;
   title: string;
@@ -57,15 +56,19 @@ export default function TodosCursosTab() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <AppHeader title="Todos os Cursos" />
+      <AppHeader />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {cursos.map((curso) => (
           <View key={curso.id} style={[styles.card, { backgroundColor: colors.card }]}>
             <Image source={curso.image} style={styles.image} resizeMode="contain" />
             <View style={styles.info}>
               <Text style={[styles.title, { color: colors.text }]}>{curso.title}</Text>
-              <Text style={[styles.description, { color: colors.textSecondary }]}>{curso.description}</Text>
-              <Text style={[styles.price, { color: colors.primary }]}>{`R$ ${curso.price.toFixed(2)}`}</Text>
+              <Text style={[styles.description, { color: colors.textSecondary }]}>
+                {curso.description}
+              </Text>
+              <Text
+                style={[styles.price, { color: colors.primary }]}
+              >{`R$ ${curso.price.toFixed(2)}`}</Text>
               {isInCart(curso) ? (
                 <TouchableOpacity
                   style={[styles.button, styles.removeButton]}

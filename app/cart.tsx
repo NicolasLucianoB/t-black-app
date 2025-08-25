@@ -1,8 +1,17 @@
 import React from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 import { useRouter } from 'expo-router';
-import { useCart } from '../src/contexts/CartContext';
+import { useCart } from 'src/contexts/CartContext';
 
 // Dados mock para produtos
 const produtosMock = [
@@ -113,131 +122,135 @@ export default function CartScreen() {
 
   if (cart.length === 0) {
     return (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.emptyTitle}>Carrinho Vazio</Text>
-        <Text style={styles.emptyText}>Adicione produtos ou cursos ao carrinho para continuar</Text>
-        <View style={styles.emptyButtons}>
-          <TouchableOpacity
-            style={styles.productsButton}
-            onPress={() => router.push('/product')}
-          >
-            <Text style={styles.productsButtonText}>Produtos</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.coursesButton}
-            onPress={() => router.push('/courses')}
-          >
-            <Text style={styles.coursesButtonText}>Cursos</Text>
-          </TouchableOpacity>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyTitle}>Carrinho Vazio</Text>
+          <Text style={styles.emptyText}>
+            Adicione produtos ou cursos ao carrinho para continuar
+          </Text>
+          <View style={styles.emptyButtons}>
+            <TouchableOpacity style={styles.productsButton} onPress={() => router.push('/product')}>
+              <Text style={styles.productsButtonText}>Produtos</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.coursesButton} onPress={() => router.push('/courses')}>
+              <Text style={styles.coursesButtonText}>Cursos</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Carrinho</Text>
-        <Text style={styles.itemCount}>{cart.length} itens</Text>
-      </View>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Carrinho</Text>
+          <Text style={styles.itemCount}>{cart.length} itens</Text>
+        </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {/* Seção de Produtos */}
-        {produtosUnicos.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Produtos</Text>
-            {produtosUnicos.map((produto) => {
-              const quantidade = quantidadeItem(produto.id, 'product');
-              const subtotal = produto.preco * quantidade;
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+          {/* Seção de Produtos */}
+          {produtosUnicos.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Produtos</Text>
+              {produtosUnicos.map((produto) => {
+                const quantidade = quantidadeItem(produto.id, 'product');
+                const subtotal = produto.preco * quantidade;
 
-              return (
-                <View key={`product-${produto.id}`} style={styles.cartItem}>
-                  <Image source={{ uri: produto.imagem }} style={styles.itemImage} />
-                  <View style={styles.itemInfo}>
-                    <Text style={styles.itemName}>{produto.nome}</Text>
-                    <Text style={styles.itemCategory}>{produto.categoria}</Text>
-                    <Text style={styles.itemPrice}>R$ {produto.preco.toFixed(2)}</Text>
-                  </View>
-                  <View style={styles.itemActions}>
-                    <View style={styles.quantityContainer}>
+                return (
+                  <View key={`product-${produto.id}`} style={styles.cartItem}>
+                    <Image source={{ uri: produto.imagem }} style={styles.itemImage} />
+                    <View style={styles.itemInfo}>
+                      <Text style={styles.itemName}>{produto.nome}</Text>
+                      <Text style={styles.itemCategory}>{produto.categoria}</Text>
+                      <Text style={styles.itemPrice}>R$ {produto.preco.toFixed(2)}</Text>
+                    </View>
+                    <View style={styles.itemActions}>
+                      <View style={styles.quantityContainer}>
+                        <TouchableOpacity
+                          style={styles.quantityButton}
+                          onPress={() => removeFromCart(produto.id, 'product')}
+                        >
+                          <Text style={styles.quantityButtonText}>-</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.quantityText}>{quantidade}</Text>
+                        <TouchableOpacity
+                          style={styles.quantityButton}
+                          onPress={() => addToCart(produto.id, 'product')}
+                        >
+                          <Text style={styles.quantityButtonText}>+</Text>
+                        </TouchableOpacity>
+                      </View>
+                      <Text style={styles.subtotalText}>R$ {subtotal.toFixed(2)}</Text>
                       <TouchableOpacity
-                        style={styles.quantityButton}
-                        onPress={() => removeFromCart(produto.id, 'product')}
+                        style={styles.removeButton}
+                        onPress={() => {
+                          for (let i = 0; i < quantidade; i++) {
+                            removeFromCart(produto.id, 'product');
+                          }
+                        }}
                       >
-                        <Text style={styles.quantityButtonText}>-</Text>
-                      </TouchableOpacity>
-                      <Text style={styles.quantityText}>{quantidade}</Text>
-                      <TouchableOpacity
-                        style={styles.quantityButton}
-                        onPress={() => addToCart(produto.id, 'product')}
-                      >
-                        <Text style={styles.quantityButtonText}>+</Text>
+                        <Text style={styles.removeButtonText}>Remover</Text>
                       </TouchableOpacity>
                     </View>
-                    <Text style={styles.subtotalText}>R$ {subtotal.toFixed(2)}</Text>
-                    <TouchableOpacity
-                      style={styles.removeButton}
-                      onPress={() => {
-                        for (let i = 0; i < quantidade; i++) {
-                          removeFromCart(produto.id, 'product');
-                        }
-                      }}
-                    >
-                      <Text style={styles.removeButtonText}>Remover</Text>
-                    </TouchableOpacity>
                   </View>
-                </View>
-              );
-            })}
+                );
+              })}
+            </View>
+          )}
+
+          {/* Seção de Cursos */}
+          {cursosUnicos.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Cursos</Text>
+              {cursosUnicos.map((curso) => {
+                const quantidade = quantidadeItem(curso.id, 'course');
+                const subtotal = curso.preco * quantidade;
+
+                return (
+                  <View key={`course-${curso.id}`} style={styles.cartItem}>
+                    <Image source={{ uri: curso.imagem }} style={styles.itemImage} />
+                    <View style={styles.itemInfo}>
+                      <Text style={styles.itemName}>{curso.titulo}</Text>
+                      <Text style={styles.itemCategory}>Instrutor: {curso.instrutor}</Text>
+                      <Text style={styles.itemPrice}>R$ {curso.preco.toFixed(2)}</Text>
+                    </View>
+                    <View style={styles.itemActions}>
+                      <Text style={styles.subtotalText}>R$ {subtotal.toFixed(2)}</Text>
+                      <TouchableOpacity
+                        style={styles.removeButton}
+                        onPress={() => removeFromCart(curso.id, 'course')}
+                      >
+                        <Text style={styles.removeButtonText}>Remover</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          )}
+        </ScrollView>
+
+        <View style={styles.footer}>
+          <View style={styles.totalContainer}>
+            <Text style={styles.totalLabel}>Total:</Text>
+            <Text style={styles.totalValue}>R$ {totalGeral.toFixed(2)}</Text>
           </View>
-        )}
-
-        {/* Seção de Cursos */}
-        {cursosUnicos.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Cursos</Text>
-            {cursosUnicos.map((curso) => {
-              const quantidade = quantidadeItem(curso.id, 'course');
-              const subtotal = curso.preco * quantidade;
-
-              return (
-                <View key={`course-${curso.id}`} style={styles.cartItem}>
-                  <Image source={{ uri: curso.imagem }} style={styles.itemImage} />
-                  <View style={styles.itemInfo}>
-                    <Text style={styles.itemName}>{curso.titulo}</Text>
-                    <Text style={styles.itemCategory}>Instrutor: {curso.instrutor}</Text>
-                    <Text style={styles.itemPrice}>R$ {curso.preco.toFixed(2)}</Text>
-                  </View>
-                  <View style={styles.itemActions}>
-                    <Text style={styles.subtotalText}>R$ {subtotal.toFixed(2)}</Text>
-                    <TouchableOpacity
-                      style={styles.removeButton}
-                      onPress={() => removeFromCart(curso.id, 'course')}
-                    >
-                      <Text style={styles.removeButtonText}>Remover</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-        )}
-      </ScrollView>
-
-      <View style={styles.footer}>
-        <View style={styles.totalContainer}>
-          <Text style={styles.totalLabel}>Total:</Text>
-          <Text style={styles.totalValue}>R$ {totalGeral.toFixed(2)}</Text>
+          <TouchableOpacity style={styles.checkoutButton} onPress={finalizarCompra}>
+            <Text style={styles.checkoutButtonText}>Finalizar Compra</Text>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.checkoutButton} onPress={finalizarCompra}>
-          <Text style={styles.checkoutButtonText}>Finalizar Compra</Text>
-        </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#f7f7f7',
+  },
   container: {
     flex: 1,
     backgroundColor: '#f7f7f7',

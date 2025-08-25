@@ -37,7 +37,7 @@ export default function CourseVideoScreen() {
   const { id } = useLocalSearchParams();
   const courseId = Array.isArray(id) ? id[0] : id;
 
-  const curso = cursos.find(c => c.id === courseId);
+  const curso = cursos.find((c) => c.id === courseId);
 
   if (!curso) {
     return (

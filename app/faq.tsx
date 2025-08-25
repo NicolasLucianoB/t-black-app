@@ -3,8 +3,8 @@ import React, { useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { useRouter } from 'expo-router';
-import AppHeader from '../src/components/AppHeader';
-import { useTheme } from '../src/contexts/ThemeContext';
+import AppHeader from 'src/components/AppHeader';
+import { useTheme } from 'src/contexts/ThemeContext';
 
 interface FAQItem {
   id: string;
@@ -144,11 +144,7 @@ export default function FAQScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <AppHeader title="Perguntas Frequentes" />
-      <View style={styles.header}>
-        <Text style={styles.title}>Perguntas Frequentes</Text>
-        <Text style={styles.subtitle}>Tire suas dúvidas sobre nossos serviços</Text>
-      </View>
+      <AppHeader />
 
       {/* Categorias */}
       <ScrollView
@@ -252,32 +248,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f7f7f7',
   },
-  header: {
-    backgroundColor: '#111',
-    padding: 24,
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#ccc',
-    textAlign: 'center',
-  },
   categoriesContainer: {
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
-    height: 0.5,
   },
   categoriesContent: {
     paddingHorizontal: 16,
-    // paddingVertical: 12,
-    alignItems: 'center',
+    paddingVertical: 15,
+    // alignItems: 'center',
   },
   categoryWrapper: {
     alignItems: 'center',
