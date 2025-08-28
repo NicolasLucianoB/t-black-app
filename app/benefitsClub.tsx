@@ -87,35 +87,35 @@ export default function BenefitsClubScreen() {
 
         {/* Níveis de Parceria */}
         <View style={styles.levelsSection}>
-          <Text style={styles.sectionTitle}>Níveis de Parceria</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Níveis de Parceria</Text>
           <View style={styles.levelsContainer}>
             <View style={styles.levelCard}>
               <View style={[styles.levelIcon, { backgroundColor: '#FFD700' }]}>
                 <Ionicons name="star" size={24} color="#fff" />
               </View>
-              <Text style={styles.levelTitle}>Ouro</Text>
-              <Text style={styles.levelDescription}>Máxima divulgação e benefícios</Text>
+              <Text style={[styles.levelTitle, { color: colors.text }]}>Ouro</Text>
+              <Text style={[styles.levelDescription, { color: colors.textSecondary }]}>Máxima divulgação e benefícios</Text>
             </View>
             <View style={styles.levelCard}>
               <View style={[styles.levelIcon, { backgroundColor: '#C0C0C0' }]}>
                 <Ionicons name="star" size={20} color="#fff" />
               </View>
-              <Text style={styles.levelTitle}>Prata</Text>
-              <Text style={styles.levelDescription}>Divulgação média e benefícios</Text>
+              <Text style={[styles.levelTitle, { color: colors.text }]}>Prata</Text>
+              <Text style={[styles.levelDescription, { color: colors.textSecondary }]}>Divulgação média e benefícios</Text>
             </View>
             <View style={styles.levelCard}>
               <View style={[styles.levelIcon, { backgroundColor: '#CD7F32' }]}>
                 <Ionicons name="star" size={16} color="#fff" />
               </View>
-              <Text style={styles.levelTitle}>Bronze</Text>
-              <Text style={styles.levelDescription}>Divulgação básica e benefícios</Text>
+              <Text style={[styles.levelTitle, { color: colors.text }]}>Bronze</Text>
+              <Text style={[styles.levelDescription, { color: colors.textSecondary }]}>Divulgação básica e benefícios</Text>
             </View>
           </View>
         </View>
 
         {/* Parceiros */}
         <View style={styles.partnersSection}>
-          <Text style={styles.sectionTitle}>Nossos Parceiros</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Nossos Parceiros</Text>
           {partners.map((partner) => {
             const levelInfo = getLevelInfo(partner.level);
             return (
@@ -151,9 +151,9 @@ export default function BenefitsClubScreen() {
         </View>
 
         {/* Botão de Parceria */}
-        <View style={styles.partnershipSection}>
-          <Text style={styles.partnershipTitle}>Quer ser nosso parceiro?</Text>
-          <Text style={styles.partnershipDescription}>
+        <View style={[styles.partnershipSection, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.partnershipTitle, { color: colors.text }]}>Quer ser nosso parceiro?</Text>
+          <Text style={[styles.partnershipDescription, { color: colors.textSecondary }]}>
             Junte-se ao nosso clube de benefícios e ofereça vantagens exclusivas para nossos
             clientes
           </Text>
@@ -170,7 +170,6 @@ export default function BenefitsClubScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f7f7f7',
   },
   content: {
     flex: 1,
@@ -292,20 +291,17 @@ const styles = StyleSheet.create({
   partnershipSection: {
     padding: 20,
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
     margin: 20,
     borderRadius: 12,
   },
   partnershipTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#111',
     marginBottom: 8,
     textAlign: 'center',
   },
   partnershipDescription: {
     fontSize: 14,
-    color: '#666',
     textAlign: 'center',
     marginBottom: 20,
     lineHeight: 20,
