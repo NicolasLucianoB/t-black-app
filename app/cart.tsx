@@ -39,36 +39,36 @@ const produtosMock = [
 ];
 
 // Dados mock para cursos
-const cursosMock = [
-  {
-    id: 1,
-    titulo: 'Corte Masculino Moderno',
-    instrutor: 'Tiago',
-    preco: 89.9,
-    imagem: 'https://via.placeholder.com/80x80/111/fff?text=Curso',
-  },
-  {
-    id: 2,
-    titulo: 'Barba e Acabamentos',
-    instrutor: 'Lucas',
-    preco: 69.9,
-    imagem: 'https://via.placeholder.com/80x80/111/fff?text=Curso',
-  },
-  {
-    id: 3,
-    titulo: 'Colorimetria Avançada',
-    instrutor: 'Rafael',
-    preco: 129.9,
-    imagem: 'https://via.placeholder.com/80x80/111/fff?text=Curso',
-  },
-  {
-    id: 4,
-    titulo: 'Atendimento ao Cliente',
-    instrutor: 'Tiago',
-    preco: 49.9,
-    imagem: 'https://via.placeholder.com/80x80/111/fff?text=Curso',
-  },
-];
+// const cursosMock = [
+//   {
+//     id: 1,
+//     titulo: 'Corte Masculino Moderno',
+//     instrutor: 'Tiago',
+//     preco: 89.9,
+//     imagem: 'https://via.placeholder.com/80x80/111/fff?text=Curso',
+//   },
+//   {
+//     id: 2,
+//     titulo: 'Barba e Acabamentos',
+//     instrutor: 'Lucas',
+//     preco: 69.9,
+//     imagem: 'https://via.placeholder.com/80x80/111/fff?text=Curso',
+//   },
+//   {
+//     id: 3,
+//     titulo: 'Colorimetria Avançada',
+//     instrutor: 'Rafael',
+//     preco: 129.9,
+//     imagem: 'https://via.placeholder.com/80x80/111/fff?text=Curso',
+//   },
+//   {
+//     id: 4,
+//     titulo: 'Atendimento ao Cliente',
+//     instrutor: 'Tiago',
+//     preco: 49.9,
+//     imagem: 'https://via.placeholder.com/80x80/111/fff?text=Curso',
+//   },
+// ];
 
 export default function CartScreen() {
   const { cart, addToCart, removeFromCart, clearCart } = useCart();
@@ -85,21 +85,22 @@ export default function CartScreen() {
     produtosNoCarrinho.some((item) => item.id === produto.id),
   );
 
-  const cursosUnicos = cursosMock.filter((curso) =>
-    cursosNoCarrinho.some((item) => item.id === curso.id),
-  );
+  // const cursosUnicos = cursosMock.filter((curso) =>
+  //   cursosNoCarrinho.some((item) => item.id === curso.id),
+  // );
 
   const totalProdutos = produtosNoCarrinho.reduce((total, item) => {
     const produto = produtosMock.find((p) => p.id === item.id);
     return total + (produto?.preco || 0);
   }, 0);
 
-  const totalCursos = cursosNoCarrinho.reduce((total, item) => {
-    const curso = cursosMock.find((c) => c.id === item.id);
-    return total + (curso?.preco || 0);
-  }, 0);
+  // const totalCursos = cursosNoCarrinho.reduce((total, item) => {
+  //   const curso = cursosMock.find((c) => c.id === item.id);
+  //   return total + (curso?.preco || 0);
+  // }, 0);
 
-  const totalGeral = totalProdutos + totalCursos;
+  // const totalGeral = totalProdutos + totalCursos;
+  const totalGeral = totalProdutos;
 
   const finalizarCompra = () => {
     Alert.alert(
@@ -126,15 +127,16 @@ export default function CartScreen() {
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyTitle}>Carrinho Vazio</Text>
           <Text style={styles.emptyText}>
-            Adicione produtos ou cursos ao carrinho para continuar
+            {/* Adicione produtos ou cursos ao carrinho para continuar */}
+            Adicione produtos ao carrinho para continuar
           </Text>
           <View style={styles.emptyButtons}>
             <TouchableOpacity style={styles.productsButton} onPress={() => router.push('/product')}>
               <Text style={styles.productsButtonText}>Produtos</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.coursesButton} onPress={() => router.push('/courses')}>
+            {/* <TouchableOpacity style={styles.coursesButton} onPress={() => router.push('/courses')}>
               <Text style={styles.coursesButtonText}>Cursos</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </View>
       </SafeAreaView>
@@ -201,7 +203,7 @@ export default function CartScreen() {
           )}
 
           {/* Seção de Cursos */}
-          {cursosUnicos.length > 0 && (
+          {/* {cursosUnicos.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Cursos</Text>
               {cursosUnicos.map((curso) => {
@@ -229,7 +231,7 @@ export default function CartScreen() {
                 );
               })}
             </View>
-          )}
+          )} */}
         </ScrollView>
 
         <View style={styles.footer}>
@@ -302,12 +304,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     flex: 1,
   },
-  coursesButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
+  // coursesButtonText: {
+  //   color: '#fff',
+  //   fontSize: 16,
+  //   fontWeight: 'bold',
+  //   textAlign: 'center',
+  // },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',

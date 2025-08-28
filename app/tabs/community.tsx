@@ -13,13 +13,12 @@ import {
 } from 'react-native';
 
 import { useRouter } from 'expo-router';
-import AppHeader from 'src/components/AppHeader';
 import { useTheme } from 'src/contexts/ThemeContext';
 
 interface Message {
   id: string;
   text: string;
-  sender: 'user' | 'barber' | 'tiago' | 'lucas' | 'rafael' | 'carlos' | 'miguel';
+  sender: 'user' | 'barber' | 'tiago' | 'joão' | 'rafael' | 'carlos' | 'marcos';
   senderName: string;
   timestamp: Date;
 }
@@ -30,37 +29,37 @@ export default function CommunityScreen() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'Olá pessoal! Como posso ajudar vocês hoje?',
-      sender: 'tiago',
+      text: 'Fala rapaziada! quem aí já viu o vídeo sobre finalização que eu disponibilizei na aba de cursos?',
+      sender: 'barber',
       senderName: 'Tiago',
       timestamp: new Date(),
     },
     {
       id: '2',
-      text: 'Oi! Queria saber se vocês fazem barba também',
-      sender: 'user',
-      senderName: 'João Silva',
+      text: 'Pô! Não vi ainda não, vou correndo assistir, estava precisando mesmo!',
+      sender: 'marcos',
+      senderName: 'Marcos Silva',
       timestamp: new Date(),
     },
     {
       id: '3',
-      text: 'Sim! Fazemos barba, bigode e qualquer tipo de tratamento facial. Qual horário prefere?',
-      sender: 'lucas',
-      senderName: 'Lucas',
+      text: 'Eu já, ficou maneiraaaaço, já vou aplicar essa técnica depois que sair do banho.',
+      sender: 'user',
+      senderName: 'Nícolas Luciano',
       timestamp: new Date(),
     },
     {
       id: '4',
-      text: 'Eu também quero agendar! Tem vaga hoje?',
+      text: 'Tiagão, surgiu um evento de última hora! Tem vaga hoje?',
       sender: 'user',
-      senderName: 'Pedro Santos',
+      senderName: 'Nícolas Luciano',
       timestamp: new Date(),
     },
     {
       id: '5',
       text: 'Temos sim! Pode vir às 15h',
-      sender: 'rafael',
-      senderName: 'Rafael',
+      sender: 'barber',
+      senderName: 'João',
       timestamp: new Date(),
     },
   ]);
@@ -82,15 +81,15 @@ export default function CommunityScreen() {
 
   const getSenderColor = (sender: string) => {
     switch (sender) {
-      case 'tiago':
+      case 'barber':
         return '#25D366'; // Verde WhatsApp
-      case 'lucas':
+      case 'joão':
         return '#FF6B6B'; // Vermelho
       case 'rafael':
         return '#4ECDC4'; // Turquesa
       case 'carlos':
         return '#45B7D1'; // Azul
-      case 'miguel':
+      case 'marcos':
         return '#96CEB4'; // Verde claro
       case 'user':
         return '#111'; // Preto para usuários
@@ -128,7 +127,9 @@ export default function CommunityScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <AppHeader />
+      <View style={styles.header}>
+        <Text style={[styles.headerText]}>T. Black Chat</Text>
+      </View>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -260,5 +261,16 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
     marginBottom: 4,
+  },
+  header: {
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#3b3b3bff',
+  },
+  headerText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#c9b544ff',
   },
 });

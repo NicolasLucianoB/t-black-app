@@ -18,26 +18,36 @@ const cursos = [
     nome: 'Curso de Marketing para Barbeiros',
     descricao: 'Aprenda a monetizar mais com seu salão.',
     preco: 99.9,
-    imagem: require('../../assets/logo-t-black.png'),
+    videoUrl: 'https://youtu.be/YDfqXjAy5wM',
     comprado: true,
   },
   {
     id: '2',
-    nome: 'Curso de Finalização de Cachos',
-    descricao: 'Domine a arte do cabelo definido e volumoso.',
+    nome: 'Como Armar Cachos Afro',
+    descricao: 'Domine uma técnica de finalização em 5 passos simples.',
     preco: 149.9,
-    imagem: require('../../assets/logo-t-black.png'),
+    videoUrl: 'https://youtu.be/dXrYYzSd2hQ',
     comprado: false,
   },
   {
     id: '3',
-    nome: 'Curso de Corte Masculino Avançado',
-    descricao: 'Aperfeiçoe suas técnicas de corte masculino.',
+    nome: 'Como cortar cabelo Afro',
+    descricao: 'Aprenda os fundamentos do corte de cabelo afro.',
     preco: 79.9,
-    imagem: require('../../assets/logo-t-black.png'),
+    videoUrl: 'https://youtu.be/B5QOUVO9gQc',
     comprado: true,
   },
 ];
+
+function getYoutubeThumbnail(url: string) {
+  const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/;
+  const match = url.match(regex);
+  const videoId = match ? match[1] : null;
+  if (videoId) {
+    return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+  }
+  return '';
+}
 
 export default function MineCoursesTab() {
   const { colors } = useTheme();
@@ -58,14 +68,14 @@ export default function MineCoursesTab() {
       {cursosComprados.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={[styles.emptyText, { color: colors.text }]}>
-            Você ainda não comprou nenhum curso.
+            Você ainda não adquiriu nenhum curso.
           </Text>
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           {cursosComprados.map((curso) => (
             <View key={curso.id} style={[styles.card, { backgroundColor: colors.card }]}>
-              <Image source={{ uri: curso.imagem }} style={styles.image} />
+              <Image source={{ uri: getYoutubeThumbnail(curso.videoUrl) }} style={styles.image} />
               <View style={styles.content}>
                 <Text style={[styles.title, { color: colors.text }]}>{curso.nome}</Text>
                 <Text style={[styles.description, { color: colors.text }]} numberOfLines={2}>

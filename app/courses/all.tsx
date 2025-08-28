@@ -9,7 +9,7 @@ type Curso = {
   title: string;
   description: string;
   price: number;
-  image: any;
+  videoUrl: string;
 };
 
 const cursos: Curso[] = [
@@ -18,23 +18,30 @@ const cursos: Curso[] = [
     title: 'Curso de Marketing para Barbeiros',
     description: 'Aprenda a monetizar mais com seu salão.',
     price: 99.99,
-    image: require('../../assets/logo-t-black.png'),
+    videoUrl: 'https://youtu.be/YDfqXjAy5wM',
   },
   {
     id: 2,
-    title: 'Curso de Finalização de Cachos',
-    description: 'Domine a arte do cabelo definido e volumoso.',
+    title: 'Como Armar Cachos Afro',
+    description: 'Domine uma técnica de finalização em 5 passos simples.',
     price: 89.99,
-    image: require('../../assets/logo-t-black.png'),
+    videoUrl: 'https://youtu.be/dXrYYzSd2hQ',
   },
   {
     id: 3,
-    title: 'Curso de Corte Masculino Avançado',
-    description: 'Aperfeiçoe suas técnicas de corte masculino.',
+    title: 'Como cortar cabelo Afro',
+    description: 'Aprenda os fundamentos do corte de cabelo afro.',
     price: 79.99,
-    image: require('../../assets/logo-t-black.png'),
+    videoUrl: 'https://youtu.be/B5QOUVO9gQc',
   },
 ];
+
+function getYoutubeThumbnail(url: string): string {
+  const regex = /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/))([\w-]{11})/;
+  const match = url.match(regex);
+  const videoId = match ? match[1] : '';
+  return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+}
 
 export default function TodosCursosTab() {
   const { cart, addToCart, removeFromCart } = useCart();
@@ -60,7 +67,11 @@ export default function TodosCursosTab() {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {cursos.map((curso) => (
           <View key={curso.id} style={[styles.card, { backgroundColor: colors.card }]}>
-            <Image source={curso.image} style={styles.image} resizeMode="contain" />
+            <Image
+              source={{ uri: getYoutubeThumbnail(curso.videoUrl) }}
+              style={styles.image}
+              resizeMode="contain"
+            />
             <View style={styles.info}>
               <Text style={[styles.title, { color: colors.text }]}>{curso.title}</Text>
               <Text style={[styles.description, { color: colors.textSecondary }]}>
