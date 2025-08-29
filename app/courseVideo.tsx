@@ -1,7 +1,11 @@
 import { useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
+
+import AppHeader from 'src/components/AppHeader';
+import { useTheme } from 'src/contexts/ThemeContext';
 
 const cursos = [
   {
@@ -35,6 +39,7 @@ const cursos = [
 
 export default function CourseVideoScreen() {
   const { id } = useLocalSearchParams();
+  const { colors } = useTheme();
   const courseId = Array.isArray(id) ? id[0] : id;
 
   const curso = cursos.find((c) => c.id === courseId);
@@ -42,7 +47,7 @@ export default function CourseVideoScreen() {
   if (!curso) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <Text style={{ fontSize: 18, color: '#111' }}>Curso não encontrado</Text>
+        <Text style={{ fontSize: 18, color: colors.text }}>Curso não encontrado</Text>
       </View>
     );
   }
@@ -57,7 +62,8 @@ export default function CourseVideoScreen() {
   const embedUrl = `https://www.youtube.com/embed/${videoId}`;
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <AppHeader />
       <View style={styles.videoContainer}>
         <WebView
           source={{ uri: embedUrl }}
@@ -68,71 +74,108 @@ export default function CourseVideoScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.contentContainer}>
-        <View style={styles.courseInfo}>
-          <Text style={styles.courseTitle}>{curso.titulo}</Text>
-          <Text style={styles.courseInstructor}>Instrutor: {curso.instrutor}</Text>
-          <Text style={styles.courseDuration}>
+        <View style={[styles.courseInfo, { backgroundColor: colors.card }]}>
+          <Text style={[styles.courseTitle, { color: colors.text }]}>{curso.titulo}</Text>
+          <Text style={[styles.courseInstructor, { color: colors.textSecondary }]}>
+            Instrutor: {curso.instrutor}
+          </Text>
+          <Text style={[styles.courseDuration, { color: colors.textSecondary }]}>
             {curso.duracao} • {curso.aulas} aulas
           </Text>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Descrição</Text>
-          <Text style={styles.courseDescription}>{curso.descricao}</Text>
+        <View style={[styles.section, { backgroundColor: colors.card }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Descrição</Text>
+          <Text style={[styles.courseDescription, { color: colors.textSecondary }]}>
+            {curso.descricao}
+          </Text>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Conteúdo do Curso</Text>
+        <View style={[styles.section, { backgroundColor: colors.card }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Conteúdo do Curso</Text>
           <View style={styles.lessonList}>
             <View style={styles.lessonItem}>
-              <Text style={styles.lessonNumber}>1</Text>
-              <Text style={styles.lessonTitle}>Introdução ao Curso</Text>
-              <Text style={styles.lessonDuration}>15min</Text>
+              <Text
+                style={[
+                  styles.lessonNumber,
+                  { backgroundColor: colors.primary, color: colors.card },
+                ]}
+              >
+                1
+              </Text>
+              <Text style={[styles.lessonTitle, { color: colors.text }]}>Introdução ao Curso</Text>
+              <Text style={[styles.lessonDuration, { color: colors.textSecondary }]}>15min</Text>
             </View>
             <View style={styles.lessonItem}>
-              <Text style={styles.lessonNumber}>2</Text>
-              <Text style={styles.lessonTitle}>Ferramentas Necessárias</Text>
-              <Text style={styles.lessonDuration}>20min</Text>
+              <Text
+                style={[
+                  styles.lessonNumber,
+                  { backgroundColor: colors.primary, color: colors.card },
+                ]}
+              >
+                2
+              </Text>
+              <Text style={[styles.lessonTitle, { color: colors.text }]}>
+                Ferramentas Necessárias
+              </Text>
+              <Text style={[styles.lessonDuration, { color: colors.textSecondary }]}>20min</Text>
             </View>
             <View style={styles.lessonItem}>
-              <Text style={styles.lessonNumber}>3</Text>
-              <Text style={styles.lessonTitle}>Técnicas Básicas</Text>
-              <Text style={styles.lessonDuration}>45min</Text>
+              <Text
+                style={[
+                  styles.lessonNumber,
+                  { backgroundColor: colors.primary, color: colors.card },
+                ]}
+              >
+                3
+              </Text>
+              <Text style={[styles.lessonTitle, { color: colors.text }]}>Técnicas Básicas</Text>
+              <Text style={[styles.lessonDuration, { color: colors.textSecondary }]}>45min</Text>
             </View>
             <View style={styles.lessonItem}>
-              <Text style={styles.lessonNumber}>4</Text>
-              <Text style={styles.lessonTitle}>Prática Guiada</Text>
-              <Text style={styles.lessonDuration}>60min</Text>
+              <Text
+                style={[
+                  styles.lessonNumber,
+                  { backgroundColor: colors.primary, color: colors.card },
+                ]}
+              >
+                4
+              </Text>
+              <Text style={[styles.lessonTitle, { color: colors.text }]}>Prática Guiada</Text>
+              <Text style={[styles.lessonDuration, { color: colors.textSecondary }]}>60min</Text>
             </View>
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Recursos</Text>
+        <View style={[styles.section, { backgroundColor: colors.card }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Recursos</Text>
           <View style={styles.resourcesList}>
             <View style={styles.resourceItem}>
               <Text style={styles.resourceIcon}>📄</Text>
-              <Text style={styles.resourceText}>Material de Apoio (PDF)</Text>
+              <Text style={[styles.resourceText, { color: colors.text }]}>
+                Material de Apoio (PDF)
+              </Text>
             </View>
             <View style={styles.resourceItem}>
               <Text style={styles.resourceIcon}>📋</Text>
-              <Text style={styles.resourceText}>Lista de Ferramentas</Text>
+              <Text style={[styles.resourceText, { color: colors.text }]}>
+                Lista de Ferramentas
+              </Text>
             </View>
             <View style={styles.resourceItem}>
               <Text style={styles.resourceIcon}>🎯</Text>
-              <Text style={styles.resourceText}>Exercícios Práticos</Text>
+              <Text style={[styles.resourceText, { color: colors.text }]}>Exercícios Práticos</Text>
             </View>
           </View>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f7f7f7',
   },
   videoContainer: {
     width: '100%',
@@ -146,7 +189,6 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   courseInfo: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -159,20 +201,16 @@ const styles = StyleSheet.create({
   courseTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#111',
     marginBottom: 8,
   },
   courseInstructor: {
     fontSize: 16,
-    color: '#666',
     marginBottom: 4,
   },
   courseDuration: {
     fontSize: 14,
-    color: '#888',
   },
   section: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -185,12 +223,10 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#111',
     marginBottom: 12,
   },
   courseDescription: {
     fontSize: 16,
-    color: '#666',
     lineHeight: 24,
   },
   lessonList: {
@@ -207,8 +243,6 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#111',
-    color: '#fff',
     textAlign: 'center',
     lineHeight: 24,
     fontSize: 12,
@@ -218,11 +252,9 @@ const styles = StyleSheet.create({
   lessonTitle: {
     flex: 1,
     fontSize: 16,
-    color: '#111',
   },
   lessonDuration: {
     fontSize: 14,
-    color: '#666',
   },
   resourcesList: {
     gap: 12,
@@ -238,6 +270,5 @@ const styles = StyleSheet.create({
   },
   resourceText: {
     fontSize: 16,
-    color: '#111',
   },
 });

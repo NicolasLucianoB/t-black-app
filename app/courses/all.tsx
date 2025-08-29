@@ -77,10 +77,10 @@ export default function TodosCursosTab() {
               <Text style={[styles.description, { color: colors.textSecondary }]}>
                 {curso.description}
               </Text>
-              <Text
+              {/* <Text
                 style={[styles.price, { color: colors.primary }]}
-              >{`R$ ${curso.price.toFixed(2)}`}</Text>
-              {isInCart(curso) ? (
+              >{`R$ ${curso.price.toFixed(2)}`}</Text> */}
+              {/* {isInCart(curso) ? (
                 <TouchableOpacity
                   style={[styles.button, styles.removeButton]}
                   onPress={() => handleRemoveFromCart(curso)}
@@ -94,7 +94,13 @@ export default function TodosCursosTab() {
                 >
                   <Text style={styles.buttonText}>Adicionar ao Carrinho</Text>
                 </TouchableOpacity>
-              )}
+              )} */}
+              <TouchableOpacity
+                style={[styles.button, { backgroundColor: colors.primary }]}
+                // onPress={} // Adicione lógica se necessário
+              >
+                <Text style={styles.buttonText}>Resgatar Curso</Text>
+              </TouchableOpacity>
             </View>
           </View>
         ))}

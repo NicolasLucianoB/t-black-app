@@ -71,7 +71,7 @@ const getLevelInfo = (level: string) => {
 };
 
 export default function BenefitsClubScreen() {
-  const { colors } = useTheme();
+  const { colors, themeMode } = useTheme();
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -94,21 +94,27 @@ export default function BenefitsClubScreen() {
                 <Ionicons name="star" size={24} color="#fff" />
               </View>
               <Text style={[styles.levelTitle, { color: colors.text }]}>Ouro</Text>
-              <Text style={[styles.levelDescription, { color: colors.textSecondary }]}>Máxima divulgação e benefícios</Text>
+              <Text style={[styles.levelDescription, { color: colors.textSecondary }]}>
+                Máxima divulgação e benefícios
+              </Text>
             </View>
             <View style={styles.levelCard}>
               <View style={[styles.levelIcon, { backgroundColor: '#C0C0C0' }]}>
                 <Ionicons name="star" size={20} color="#fff" />
               </View>
               <Text style={[styles.levelTitle, { color: colors.text }]}>Prata</Text>
-              <Text style={[styles.levelDescription, { color: colors.textSecondary }]}>Divulgação média e benefícios</Text>
+              <Text style={[styles.levelDescription, { color: colors.textSecondary }]}>
+                Divulgação média e benefícios
+              </Text>
             </View>
             <View style={styles.levelCard}>
               <View style={[styles.levelIcon, { backgroundColor: '#CD7F32' }]}>
                 <Ionicons name="star" size={16} color="#fff" />
               </View>
               <Text style={[styles.levelTitle, { color: colors.text }]}>Bronze</Text>
-              <Text style={[styles.levelDescription, { color: colors.textSecondary }]}>Divulgação básica e benefícios</Text>
+              <Text style={[styles.levelDescription, { color: colors.textSecondary }]}>
+                Divulgação básica e benefícios
+              </Text>
             </View>
           </View>
         </View>
@@ -152,14 +158,32 @@ export default function BenefitsClubScreen() {
 
         {/* Botão de Parceria */}
         <View style={[styles.partnershipSection, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.partnershipTitle, { color: colors.text }]}>Quer ser nosso parceiro?</Text>
+          <Text style={[styles.partnershipTitle, { color: colors.text }]}>
+            Quer ser nosso parceiro?
+          </Text>
           <Text style={[styles.partnershipDescription, { color: colors.textSecondary }]}>
             Junte-se ao nosso clube de benefícios e ofereça vantagens exclusivas para nossos
             clientes
           </Text>
-          <TouchableOpacity style={[styles.partnershipButton, { backgroundColor: colors.primary }]}>
-            <Ionicons name="people-outline" size={20} color="#fff" />
-            <Text style={styles.partnershipButtonText}>Fazer parte</Text>
+          <TouchableOpacity
+            style={[
+              styles.partnershipButton,
+              { backgroundColor: themeMode === 'light' ? '#000' : '#fff' },
+            ]}
+          >
+            <Ionicons
+              name="people-outline"
+              size={20}
+              color={themeMode === 'light' ? '#fff' : '#000'}
+            />
+            <Text
+              style={[
+                styles.partnershipButtonText,
+                { color: themeMode === 'light' ? '#fff' : '#000' },
+              ]}
+            >
+              Fazer parte
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -197,7 +221,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#111',
     marginBottom: 16,
     textAlign: 'center',
   },
@@ -222,12 +245,10 @@ const styles = StyleSheet.create({
   levelTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#111',
     marginBottom: 4,
   },
   levelDescription: {
     fontSize: 12,
-    color: '#666',
     textAlign: 'center',
   },
   partnersSection: {
@@ -314,7 +335,6 @@ const styles = StyleSheet.create({
     borderRadius: 25,
   },
   partnershipButtonText: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
     marginLeft: 8,

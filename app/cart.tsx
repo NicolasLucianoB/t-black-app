@@ -9,9 +9,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import AppHeader from 'src/components/AppHeader';
 
 import { useRouter } from 'expo-router';
 import { useCart } from 'src/contexts/CartContext';
+import { useTheme } from 'src/contexts/ThemeContext';
 
 // Dados mock para produtos
 const produtosMock = [
@@ -72,6 +74,7 @@ const produtosMock = [
 
 export default function CartScreen() {
   const { cart, addToCart, removeFromCart, clearCart } = useCart();
+  const { colors } = useTheme();
   const router = useRouter();
 
   const produtosNoCarrinho = cart.filter((item) => item.type === 'product');
@@ -123,16 +126,20 @@ export default function CartScreen() {
 
   if (cart.length === 0) {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyTitle}>Carrinho Vazio</Text>
-          <Text style={styles.emptyText}>
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+        <AppHeader />
+        <View style={[styles.emptyContainer, { backgroundColor: colors.background }]}>
+          <Text style={[styles.emptyTitle, { color: colors.text }]}>Carrinho Vazio</Text>
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
             {/* Adicione produtos ou cursos ao carrinho para continuar */}
             Adicione produtos ao carrinho para continuar
           </Text>
           <View style={styles.emptyButtons}>
-            <TouchableOpacity style={styles.productsButton} onPress={() => router.push('/product')}>
-              <Text style={styles.productsButtonText}>Produtos</Text>
+            <TouchableOpacity
+              style={[styles.productsButton, { backgroundColor: colors.primary }]}
+              onPress={() => router.push('/product')}
+            >
+              <Text style={[styles.productsButtonText, { color: colors.card }]}>Produtos</Text>
             </TouchableOpacity>
             {/* <TouchableOpacity style={styles.coursesButton} onPress={() => router.push('/courses')}>
               <Text style={styles.coursesButtonText}>Cursos</Text>
@@ -144,29 +151,32 @@ export default function CartScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Carrinho</Text>
-          <Text style={styles.itemCount}>{cart.length} itens</Text>
-        </View>
-
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+      <AppHeader />
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           {/* Seção de Produtos */}
           {produtosUnicos.length > 0 && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Produtos</Text>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Produtos</Text>
               {produtosUnicos.map((produto) => {
                 const quantidade = quantidadeItem(produto.id, 'product');
                 const subtotal = produto.preco * quantidade;
 
                 return (
-                  <View key={`product-${produto.id}`} style={styles.cartItem}>
+                  <View
+                    key={`product-${produto.id}`}
+                    style={[styles.cartItem, { backgroundColor: colors.card }]}
+                  >
                     <Image source={{ uri: produto.imagem }} style={styles.itemImage} />
                     <View style={styles.itemInfo}>
-                      <Text style={styles.itemName}>{produto.nome}</Text>
-                      <Text style={styles.itemCategory}>{produto.categoria}</Text>
-                      <Text style={styles.itemPrice}>R$ {produto.preco.toFixed(2)}</Text>
+                      <Text style={[styles.itemName, { color: colors.text }]}>{produto.nome}</Text>
+                      <Text style={[styles.itemCategory, { color: colors.textSecondary }]}>
+                        {produto.categoria}
+                      </Text>
+                      <Text style={[styles.itemPrice, { color: colors.text }]}>
+                        R$ {produto.preco.toFixed(2)}
+                      </Text>
                     </View>
                     <View style={styles.itemActions}>
                       <View style={styles.quantityContainer}>
@@ -176,7 +186,9 @@ export default function CartScreen() {
                         >
                           <Text style={styles.quantityButtonText}>-</Text>
                         </TouchableOpacity>
-                        <Text style={styles.quantityText}>{quantidade}</Text>
+                        <Text style={[styles.quantityText, { color: colors.text }]}>
+                          {quantidade}
+                        </Text>
                         <TouchableOpacity
                           style={styles.quantityButton}
                           onPress={() => addToCart(produto.id, 'product')}
@@ -184,7 +196,9 @@ export default function CartScreen() {
                           <Text style={styles.quantityButtonText}>+</Text>
                         </TouchableOpacity>
                       </View>
-                      <Text style={styles.subtotalText}>R$ {subtotal.toFixed(2)}</Text>
+                      <Text style={[styles.subtotalText, { color: colors.text }]}>
+                        R$ {subtotal.toFixed(2)}
+                      </Text>
                       <TouchableOpacity
                         style={styles.removeButton}
                         onPress={() => {
@@ -234,13 +248,22 @@ export default function CartScreen() {
           )} */}
         </ScrollView>
 
-        <View style={styles.footer}>
+        <View
+          style={[styles.footer, { backgroundColor: colors.card, borderTopColor: colors.border }]}
+        >
           <View style={styles.totalContainer}>
-            <Text style={styles.totalLabel}>Total:</Text>
-            <Text style={styles.totalValue}>R$ {totalGeral.toFixed(2)}</Text>
+            <Text style={[styles.totalLabel, { color: colors.text }]}>Total:</Text>
+            <Text style={[styles.totalValue, { color: colors.text }]}>
+              R$ {totalGeral.toFixed(2)}
+            </Text>
           </View>
-          <TouchableOpacity style={styles.checkoutButton} onPress={finalizarCompra}>
-            <Text style={styles.checkoutButtonText}>Finalizar Compra</Text>
+          <TouchableOpacity
+            style={[styles.checkoutButton, { backgroundColor: colors.primary }]}
+            onPress={finalizarCompra}
+          >
+            <Text style={[styles.checkoutButtonText, { color: colors.card }]}>
+              Finalizar Compra
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -251,23 +274,19 @@ export default function CartScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f7f7f7',
   },
   container: {
     flex: 1,
-    backgroundColor: '#f7f7f7',
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f7f7f7',
     padding: 24,
   },
   emptyTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#111',
     marginBottom: 12,
   },
   emptyText: {
@@ -315,24 +334,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#111',
   },
   itemCount: {
     fontSize: 16,
-    color: '#666',
   },
   scrollContainer: {
     padding: 16,
   },
   cartItem: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -356,17 +370,14 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#111',
     marginBottom: 4,
   },
   itemCategory: {
     fontSize: 12,
-    color: '#666',
     marginBottom: 4,
   },
   itemPrice: {
     fontSize: 14,
-    color: '#111',
     fontWeight: '500',
   },
   itemActions: {
@@ -394,13 +405,11 @@ const styles = StyleSheet.create({
   quantityText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#111',
     marginHorizontal: 12,
   },
   subtotalText: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#111',
     marginBottom: 8,
   },
   removeButton: {
@@ -415,10 +424,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   footer: {
-    backgroundColor: '#fff',
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
   },
   totalContainer: {
     flexDirection: 'row',
@@ -428,21 +435,17 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 18,
-    color: '#111',
   },
   totalValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#111',
   },
   checkoutButton: {
-    backgroundColor: '#111',
     paddingVertical: 16,
     borderRadius: 8,
     alignItems: 'center',
   },
   checkoutButtonText: {
-    color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
   },
@@ -452,7 +455,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#111',
     marginBottom: 8,
   },
 });

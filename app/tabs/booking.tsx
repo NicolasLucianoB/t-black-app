@@ -49,22 +49,48 @@ const diasIndisponiveis = ['2024-06-28', '2024-06-29', '2024-07-01'];
 
 function getMarkedDates(selectedDate: string, colors: any) {
   const marked: any = {};
+
+  // Marcar domingos como indisponíveis
+  const currentDate = new Date();
+  const endDate = new Date();
+  endDate.setMonth(endDate.getMonth() + 2); // 2 meses à frente
+
+  for (let d = new Date(currentDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+    const dateString = d.toISOString().split('T')[0];
+    if (d.getDay() === 0) {
+      // Domingo
+      marked[dateString] = {
+        disabled: true,
+        disableTouchEvent: true,
+        marked: false,
+        dotColor: 'transparent',
+        opacity: 0.2,
+        textColor: '#ccc',
+      };
+    }
+  }
+
+  // Marcar datas específicas como indisponíveis
   diasIndisponiveis.forEach((date) => {
     marked[date] = {
       disabled: true,
       disableTouchEvent: true,
       marked: false,
       dotColor: 'transparent',
-      opacity: 0.4,
+      opacity: 0.2,
+      textColor: '#ccc',
     };
   });
+
+  // Marcar data selecionada
   if (selectedDate) {
     marked[selectedDate] = {
       selected: true,
-      selectedColor: colors.primary,
-      selectedTextColor: colors.card,
+      selectedColor: '#111',
+      selectedTextColor: '#fff',
     };
   }
+
   return marked;
 }
 
@@ -174,24 +200,29 @@ export default function BookingScreen() {
             minDate={new Date().toISOString().split('T')[0]}
             theme={{
               todayTextColor: colors.accent,
-              selectedDayBackgroundColor: colors.primary,
-              selectedDayTextColor: colors.card,
-              disabledArrowColor: colors.textSecondary,
-              textDisabledColor: theme === 'dark' ? '#333' : '#ccc',
+              selectedDayBackgroundColor: '#111',
+              selectedDayTextColor: '#fff',
+              disabledArrowColor: '#ccc',
+              textDisabledColor: '#ccc',
               textDayStyle: {
-                color: theme === 'dark' ? '#fff' : '#111',
+                color: '#111',
               },
-              backgroundColor: theme === 'dark' ? colors.surface : colors.card,
-              calendarBackground: theme === 'dark' ? colors.surface : colors.card,
-              monthTextColor: colors.text,
+              backgroundColor: '#fff',
+              calendarBackground: '#fff',
+              monthTextColor: '#111',
               textMonthFontWeight: 'bold',
               textMonthFontSize: 18,
               textDayFontSize: 16,
               textDayHeaderFontSize: 14,
+              dayTextColor: '#111',
+              arrowColor: '#111',
             }}
             style={[
               styles.calendar,
-              { backgroundColor: theme === 'dark' ? colors.surface : colors.card },
+              {
+                backgroundColor: '#fff',
+                borderColor: '#eee',
+              },
             ]}
           />
           <Text style={[styles.label, { color: colors.text }]}>Horário</Text>
@@ -351,6 +382,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     overflow: 'hidden',
     alignSelf: 'center',
+    borderWidth: 1,
   },
   horarioButton: {
     paddingVertical: 8,
