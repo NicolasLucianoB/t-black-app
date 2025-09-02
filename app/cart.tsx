@@ -134,9 +134,7 @@ export default function CartScreen() {
           text: 'Confirmar',
           onPress: () => {
             clearCart();
-            Alert.alert('Sucesso!', 'Compra realizada com sucesso!', [
-              { text: 'OK', onPress: () => router.push('/') },
-            ]);
+            Alert.alert('Sucesso!', 'Compra realizada com sucesso!');
           },
         },
       ],
