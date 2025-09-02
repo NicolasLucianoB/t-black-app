@@ -85,7 +85,7 @@ export default function MineCoursesTab() {
                   style={[styles.button, { backgroundColor: colors.primary }]}
                   onPress={() => handleAssistirCurso(curso)}
                 >
-                  <Text style={styles.buttonText}>Assistir</Text>
+                  <Text style={[styles.buttonText, { color: colors.background }]}>Assistir</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -133,7 +133,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   buttonText: {
-    color: '#fff',
     fontWeight: 'bold',
   },
   emptyContainer: {

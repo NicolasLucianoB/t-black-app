@@ -1,5 +1,14 @@
 import React from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import AppHeader from '../../src/components/AppHeader';
 import { useCart } from '../../src/contexts/CartContext';
 import { useTheme } from '../../src/contexts/ThemeContext';
@@ -62,7 +71,7 @@ export default function TodosCursosTab() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <AppHeader />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {cursos.map((curso) => (
@@ -99,13 +108,15 @@ export default function TodosCursosTab() {
                 style={[styles.button, { backgroundColor: colors.primary }]}
                 // onPress={} // Adicione lógica se necessário
               >
-                <Text style={styles.buttonText}>Resgatar Curso</Text>
+                <Text style={[styles.buttonText, { color: colors.background }]}>
+                  Resgatar Curso
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
         ))}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -157,7 +168,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F44336',
   },
   buttonText: {
-    color: '#fff',
     fontWeight: 'bold',
   },
 });

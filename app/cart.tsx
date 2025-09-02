@@ -139,7 +139,9 @@ export default function CartScreen() {
               style={[styles.productsButton, { backgroundColor: colors.primary }]}
               onPress={() => router.push('/product')}
             >
-              <Text style={[styles.productsButtonText, { color: colors.card }]}>Produtos</Text>
+              <Text style={[styles.productsButtonText, { color: colors.background }]}>
+                Produtos
+              </Text>
             </TouchableOpacity>
             {/* <TouchableOpacity style={styles.coursesButton} onPress={() => router.push('/courses')}>
               <Text style={styles.coursesButtonText}>Cursos</Text>
@@ -181,19 +183,23 @@ export default function CartScreen() {
                     <View style={styles.itemActions}>
                       <View style={styles.quantityContainer}>
                         <TouchableOpacity
-                          style={styles.quantityButton}
+                          style={[styles.quantityButton, { backgroundColor: colors.primary }]}
                           onPress={() => removeFromCart(produto.id, 'product')}
                         >
-                          <Text style={styles.quantityButtonText}>-</Text>
+                          <Text style={[styles.quantityButtonText, { color: colors.background }]}>
+                            -
+                          </Text>
                         </TouchableOpacity>
                         <Text style={[styles.quantityText, { color: colors.text }]}>
                           {quantidade}
                         </Text>
                         <TouchableOpacity
-                          style={styles.quantityButton}
+                          style={[styles.quantityButton, { backgroundColor: colors.primary }]}
                           onPress={() => addToCart(produto.id, 'product')}
                         >
-                          <Text style={styles.quantityButtonText}>+</Text>
+                          <Text style={[styles.quantityButtonText, { color: colors.background }]}>
+                            +
+                          </Text>
                         </TouchableOpacity>
                       </View>
                       <Text style={[styles.subtotalText, { color: colors.text }]}>
@@ -304,20 +310,17 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   productsButton: {
-    backgroundColor: '#111',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
     flex: 1,
   },
   productsButtonText: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
   },
   coursesButton: {
-    backgroundColor: '#111',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
@@ -390,7 +393,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   quantityButton: {
-    backgroundColor: '#111',
     width: 28,
     height: 28,
     borderRadius: 14,
@@ -398,7 +400,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   quantityButtonText: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
   },

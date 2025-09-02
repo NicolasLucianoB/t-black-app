@@ -98,7 +98,7 @@ export default function CourseVideoScreen() {
               <Text
                 style={[
                   styles.lessonNumber,
-                  { backgroundColor: colors.primary, color: colors.card },
+                  { backgroundColor: colors.primary, color: colors.background },
                 ]}
               >
                 1
@@ -110,7 +110,7 @@ export default function CourseVideoScreen() {
               <Text
                 style={[
                   styles.lessonNumber,
-                  { backgroundColor: colors.primary, color: colors.card },
+                  { backgroundColor: colors.primary, color: colors.background },
                 ]}
               >
                 2
@@ -124,7 +124,7 @@ export default function CourseVideoScreen() {
               <Text
                 style={[
                   styles.lessonNumber,
-                  { backgroundColor: colors.primary, color: colors.card },
+                  { backgroundColor: colors.primary, color: colors.background },
                 ]}
               >
                 3
@@ -136,7 +136,7 @@ export default function CourseVideoScreen() {
               <Text
                 style={[
                   styles.lessonNumber,
-                  { backgroundColor: colors.primary, color: colors.card },
+                  { backgroundColor: colors.primary, color: colors.background },
                 ]}
               >
                 4

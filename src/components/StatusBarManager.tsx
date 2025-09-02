@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { StatusBar } from 'react-native';
+import { Platform, StatusBar } from 'react-native';
 
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -11,10 +11,20 @@ export default function StatusBarManager() {
     console.log('StatusBarManager - Mudando para tema:', theme, 'BarStyle:', barStyle);
 
     // Força a mudança do status bar
-    StatusBar.setBarStyle(barStyle, true);
+    if (Platform.OS === 'ios') {
+      StatusBar.setBarStyle(barStyle, true);
+    }
   }, [theme]);
 
+  const barStyle = theme === 'dark' ? 'light-content' : 'dark-content';
+  const backgroundColor = theme === 'dark' ? '#18181b' : '#f7f7f7';
+
   return (
-    <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} animated={true} />
+    <StatusBar
+      barStyle={barStyle}
+      backgroundColor={backgroundColor}
+      animated={true}
+      translucent={false}
+    />
   );
 }
