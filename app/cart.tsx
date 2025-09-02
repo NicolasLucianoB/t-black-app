@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
   Alert,
@@ -9,7 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import AppHeader from 'src/components/AppHeader';
+import BackHeader from 'src/components/BackHeader';
 
 import { useRouter } from 'expo-router';
 import { useCart } from 'src/contexts/CartContext';
@@ -77,6 +78,24 @@ export default function CartScreen() {
   const { colors } = useTheme();
   const router = useRouter();
 
+  // Componente customizado para o lado direito do header (sem o ícone do carrinho)
+  const cartHeaderRight = (
+    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      <TouchableOpacity
+        style={{ marginLeft: 16, position: 'relative' }}
+        onPress={() => router.push('/notifications')}
+      >
+        <Ionicons name="notifications-outline" size={24} color={colors.text} />
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={{ marginLeft: 16, position: 'relative' }}
+        onPress={() => router.push('/studioInfo')}
+      >
+        <Ionicons name="information-circle-outline" size={24} color={colors.text} />
+      </TouchableOpacity>
+    </View>
+  );
+
   const produtosNoCarrinho = cart.filter((item) => item.type === 'product');
   const cursosNoCarrinho = cart.filter((item) => item.type === 'course');
 
@@ -127,7 +146,7 @@ export default function CartScreen() {
   if (cart.length === 0) {
     return (
       <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
-        <AppHeader />
+        <BackHeader rightComponent={cartHeaderRight} />
         <View style={[styles.emptyContainer, { backgroundColor: colors.background }]}>
           <Text style={[styles.emptyTitle, { color: colors.text }]}>Carrinho Vazio</Text>
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
@@ -154,7 +173,7 @@ export default function CartScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
-      <AppHeader />
+      <BackHeader rightComponent={cartHeaderRight} />
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           {/* Seção de Produtos */}

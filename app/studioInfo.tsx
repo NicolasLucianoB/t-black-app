@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import {
   Alert,
@@ -13,13 +12,35 @@ import {
   View,
 } from 'react-native';
 
+import BackHeader from 'src/components/BackHeader';
+import { useTheme } from 'src/contexts/ThemeContext';
+
 export default function StudioInfoScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
   const endereco =
     'Av. Nove de Julho, 95 - Sala 92 - Jardim Apolo, São José dos Campos - SP, 12243-000';
   const telefone = '(12) 99637-5825';
   const whatsapp = '(12) 99637-5825';
   const email = 'contato@studiotblack.com.br';
+
+  // Componente customizado para o lado direito do header (sem o ícone de informações)
+  const studioHeaderRight = (
+    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      <TouchableOpacity
+        style={{ marginLeft: 16, position: 'relative' }}
+        onPress={() => router.push('/notifications')}
+      >
+        <Ionicons name="notifications-outline" size={24} color={colors.text} />
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={{ marginLeft: 16, position: 'relative' }}
+        onPress={() => router.push('/cart')}
+      >
+        <Ionicons name="cart-outline" size={24} color={colors.text} />
+      </TouchableOpacity>
+    </View>
+  );
 
   const coordenadas = {
     latitude: -23.1980737,
@@ -54,8 +75,8 @@ export default function StudioInfoScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <BackHeader rightComponent={studioHeaderRight} />
       <ScrollView style={styles.scrollContainer}>
         <View style={styles.header}>
           <Text style={styles.title}>Studio T Black</Text>

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { useRouter } from 'expo-router';
-import AppHeader from 'src/components/AppHeader';
+import BackHeader from 'src/components/BackHeader';
 import { useTheme } from 'src/contexts/ThemeContext';
 
 interface FAQItem {
@@ -144,7 +144,7 @@ export default function FAQScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <AppHeader />
+      <BackHeader />
 
       {/* Categorias */}
       <ScrollView

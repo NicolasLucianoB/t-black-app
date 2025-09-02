@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 
 import { useRouter } from 'expo-router';
-import AppHeader from 'src/components/AppHeader';
+import BackHeader from 'src/components/BackHeader';
 import { useCart } from 'src/contexts/CartContext';
 import { useTheme } from 'src/contexts/ThemeContext';
 
@@ -101,7 +101,7 @@ export default function ProductsScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <AppHeader />
+      <BackHeader />
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.productsGrid}>

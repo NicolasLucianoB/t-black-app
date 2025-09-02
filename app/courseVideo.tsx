@@ -4,7 +4,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 
-import AppHeader from 'src/components/AppHeader';
+import BackHeader from 'src/components/BackHeader';
 import { useTheme } from 'src/contexts/ThemeContext';
 
 const cursos = [
@@ -63,7 +63,7 @@ export default function CourseVideoScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <AppHeader />
+      <BackHeader />
       <View style={styles.videoContainer}>
         <WebView
           source={{ uri: embedUrl }}

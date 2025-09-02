@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 
-import AppHeader from 'src/components/AppHeader';
+import BackHeader from 'src/components/BackHeader';
 import { useTheme } from 'src/contexts/ThemeContext';
 
 interface Partner {
@@ -75,7 +75,7 @@ export default function BenefitsClubScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <AppHeader />
+      <BackHeader />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
