@@ -1,237 +1,241 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import {
+  LayoutAnimation,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  UIManager,
+  View,
+} from 'react-native';
+import BackHeader from '../src/components/BackHeader';
+import { useTheme } from '../src/contexts/ThemeContext';
 
-import { useRouter } from 'expo-router';
-import BackHeader from 'src/components/BackHeader';
-import { useTheme } from 'src/contexts/ThemeContext';
-
-interface FAQItem {
-  id: string;
-  question: string;
-  answer: string;
-  category: string;
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const faqData: FAQItem[] = [
-  // Agendamentos
+const FAQ_DATA = [
   {
     id: '1',
     question: 'Como faço para agendar um horário?',
-    answer:
-      'É muito fácil! Basta acessar a aba "Agendar" no app, escolher o barbeiro, a data e o horário disponível. Você receberá uma confirmação por WhatsApp.',
+    answer: 'Acesse a aba "Agendar", escolha barbeiro, data e horário. Confirmação por WhatsApp.',
     category: 'Agendamentos',
   },
   {
     id: '2',
     question: 'Posso cancelar meu horário?',
-    answer:
-      'Sim! Você pode cancelar até 2 horas antes do horário agendado. Basta entrar em contato conosco pelo WhatsApp ou pelo app.',
+    answer: 'Sim! Até 2h antes, pelo WhatsApp ou app.',
     category: 'Agendamentos',
   },
   {
     id: '3',
     question: 'Quais documentos preciso levar?',
-    answer:
-      'Não é necessário levar documentos. Apenas venha com o cabelo limpo e seco para um melhor resultado.',
+    answer: 'Nenhum. Só venha com cabelo limpo e seco.',
     category: 'Agendamentos',
   },
-  // Serviços
   {
     id: '4',
     question: 'Quais tipos de corte vocês fazem?',
-    answer:
-      'Fazemos todos os tipos de corte masculino: degradê, undercut, pompadour, side part, buzz cut, e muito mais. Traga sua referência!',
+    answer: 'Todos os cortes masculinos. Traga sua referência!',
     category: 'Serviços',
   },
   {
     id: '5',
     question: 'Fazem barba e bigode?',
-    answer:
-      'Sim! Fazemos barba, bigode, acabamentos e tratamentos faciais. Temos especialistas em barbas de todos os estilos.',
+    answer: 'Sim! Barba, bigode, acabamentos e tratamentos.',
     category: 'Serviços',
   },
   {
     id: '6',
     question: 'Têm produtos para venda?',
-    answer:
-      'Sim! Temos uma linha completa de produtos profissionais: pomadas, shampoos, óleos capilares e muito mais. Veja na aba "Produtos".',
+    answer: 'Sim! Pomadas, shampoos, óleos e mais. Veja em "Produtos".',
     category: 'Serviços',
   },
-  // Pagamento
   {
     id: '7',
     question: 'Aceitam cartão?',
-    answer:
-      'Sim! Aceitamos cartão de crédito, débito, PIX e dinheiro. Você pode pagar online pelo app ou presencialmente.',
+    answer: 'Sim! Crédito, débito, PIX e dinheiro.',
     category: 'Pagamento',
   },
   {
     id: '8',
     question: 'Posso pagar online?',
-    answer: 'Sim! Você pode pagar online pelo app usando cartão ou PIX. É seguro e prático.',
+    answer: 'Sim! Pelo app, cartão ou PIX.',
     category: 'Pagamento',
   },
   {
     id: '9',
     question: 'Têm desconto para pacotes?',
-    answer:
-      'Sim! Temos pacotes mensais e trimestrais com desconto. Consulte nossos preços na aba "Agendar".',
+    answer: 'Sim! Pacotes mensais e trimestrais com desconto.',
     category: 'Pagamento',
   },
-  // Horários
   {
     id: '10',
     question: 'Qual o horário de funcionamento?',
-    answer: 'Segunda a Sexta: 09h às 20h\nSábado: 08h às 18h\nDomingo: Fechado',
+    answer: 'Seg a Sex: 09h-20h | Sáb: 08h-18h | Dom: Fechado',
     category: 'Horários',
   },
   {
     id: '11',
     question: 'Atendem aos domingos?',
-    answer: 'Não, não atendemos aos domingos. Nosso horário é de segunda a sábado.',
+    answer: 'Não. Só de segunda a sábado.',
     category: 'Horários',
   },
   {
     id: '12',
     question: 'Têm horário de almoço?',
-    answer:
-      'Não fechamos para almoço! Atendemos normalmente durante todo o horário de funcionamento.',
+    answer: 'Não fechamos para almoço.',
     category: 'Horários',
   },
-  // Cursos
   {
     id: '13',
     question: 'Vocês oferecem cursos?',
-    answer:
-      'Sim! Temos cursos online de barbearia para quem quer aprender. Veja na aba "Cursos" do app.',
+    answer: 'Sim! Cursos online de barbearia. Veja em "Cursos".',
     category: 'Cursos',
   },
   {
     id: '14',
     question: 'Os cursos são presenciais ou online?',
-    answer:
-      'Nossos cursos são 100% online, com vídeos em HD e suporte dos instrutores. Você pode assistir quando quiser.',
+    answer: '100% online, vídeos HD e suporte.',
     category: 'Cursos',
   },
   {
     id: '15',
     question: 'Posso acessar os cursos depois de comprar?',
-    answer:
-      'Sim! Você tem acesso vitalício aos cursos que comprar. Pode assistir quantas vezes quiser.',
+    answer: 'Sim! Acesso vitalício.',
     category: 'Cursos',
   },
 ];
 
-const categories = ['Agendamentos', 'Serviços', 'Pagamento', 'Horários', 'Cursos'];
+const CATEGORIES = [
+  { label: 'Agendamentos', icon: 'calendar-outline' },
+  { label: 'Serviços', icon: 'cut-outline' },
+  { label: 'Pagamento', icon: 'card-outline' },
+  { label: 'Horários', icon: 'time-outline' },
+  { label: 'Cursos', icon: 'school-outline' },
+  { label: 'Todos', icon: 'grid-outline' },
+];
 
 export default function FAQScreen() {
   const { colors } = useTheme();
-  const [expandedItems, setExpandedItems] = useState<string[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
-  const router = useRouter();
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [category, setCategory] = useState('Agendamentos');
+  const [search, setSearch] = useState('');
+  const username = 'Nícolas'; // mock, replace with value from backend later
 
-  const toggleItem = (itemId: string) => {
-    setExpandedItems((prev) =>
-      prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId],
-    );
+  const filtered = useMemo(() => {
+    let data = FAQ_DATA;
+    if (search.trim()) {
+      const s = search.trim().toLowerCase();
+      data = data.filter(
+        (q) => q.question.toLowerCase().includes(s) || q.answer.toLowerCase().includes(s),
+      );
+    }
+    if (category !== 'Todos') {
+      data = data.filter((q) => q.category === category);
+    }
+    return data;
+  }, [category, search]);
+
+  const handleExpand = (id: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpanded((prev) => (prev === id ? null : id));
   };
-
-  const filteredFAQ =
-    selectedCategory === 'Todos'
-      ? faqData
-      : faqData.filter((item) => item.category === selectedCategory);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <BackHeader />
-
-      {/* Categorias */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.categoriesContainer}
-        contentContainerStyle={styles.categoriesContent}
-      >
-        <TouchableOpacity
-          style={styles.categoryWrapper}
-          onPress={() => setSelectedCategory('Todos')}
+      <View style={styles.topWhiteBlock}>
+        <Text style={styles.title}>
+          Como podemos te {'\n'}ajudar hoje, {username}?
+        </Text>
+        <View style={styles.searchWrapper} accessible accessibilityLabel="Buscar perguntas">
+          <Ionicons
+            name="search-outline"
+            size={20}
+            color={colors.textSecondary}
+            style={{ marginRight: 8 }}
+          />
+          <TextInput
+            style={[styles.searchInput, { color: colors.text }]}
+            placeholder="Qual é sua dúvida?"
+            placeholderTextColor={colors.textSecondary}
+            value={search}
+            onChangeText={setSearch}
+            accessibilityLabel="Qual é sua dúvida?"
+            returnKeyType="search"
+          />
+        </View>
+        <Text style={styles.sectionLabel}>Atalhos para você</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.categoriesContainer}
+          contentContainerStyle={styles.categoriesContent}
+          accessibilityRole="tablist"
         >
-          <View
-            style={[
-              styles.categoryButton,
-              selectedCategory === 'Todos' && { backgroundColor: '#111' },
-            ]}
-          >
-            <Ionicons
-              name="grid-outline"
-              size={28}
-              color={selectedCategory === 'Todos' ? '#fff' : colors.textSecondary}
-            />
-          </View>
-          <Text
-            style={[
-              styles.categoryText,
-              { color: selectedCategory === 'Todos' ? '#111' : colors.textSecondary },
-            ]}
-          >
-            Todos
-          </Text>
-        </TouchableOpacity>
-
-        {categories.map((category) => {
-          const iconsMap: Record<string, keyof typeof Ionicons.glyphMap> = {
-            Agendamentos: 'calendar-outline',
-            Serviços: 'cut-outline',
-            Pagamento: 'card-outline',
-            Horários: 'time-outline',
-            Cursos: 'school-outline',
-          };
-
-          return (
+          {CATEGORIES.map((cat) => (
             <TouchableOpacity
-              key={category}
+              key={cat.label}
               style={styles.categoryWrapper}
-              onPress={() => setSelectedCategory(category)}
+              onPress={() => setCategory(cat.label)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: category === cat.label }}
+              accessibilityLabel={cat.label}
             >
               <View
                 style={[
                   styles.categoryButton,
-                  selectedCategory === category && { backgroundColor: '#111' },
+                  category === cat.label && styles.categoryButtonActive,
                 ]}
               >
                 <Ionicons
-                  name={iconsMap[category]}
+                  name={cat.icon as any}
                   size={28}
-                  color={selectedCategory === category ? '#fff' : colors.textSecondary}
+                  color={category === cat.label ? '#fff' : colors.textSecondary}
                 />
               </View>
               <Text
                 style={[
                   styles.categoryText,
-                  { color: selectedCategory === category ? '#111' : colors.textSecondary },
+                  { color: category === cat.label ? '#111' : colors.textSecondary },
                 ]}
               >
-                {category}
+                {cat.label}
               </Text>
             </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
-
+          ))}
+        </ScrollView>
+      </View>
       <ScrollView style={styles.faqContainer} showsVerticalScrollIndicator={false}>
-        {filteredFAQ.map((item) => (
+        {filtered.length === 0 && (
+          <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: 32 }}>
+            Nenhuma pergunta encontrada.
+          </Text>
+        )}
+        {filtered.map((item) => (
           <View key={item.id} style={styles.faqItem}>
-            <TouchableOpacity style={styles.questionContainer} onPress={() => toggleItem(item.id)}>
+            <TouchableOpacity
+              style={styles.questionContainer}
+              onPress={() => handleExpand(item.id)}
+              accessibilityRole="button"
+              accessibilityLabel={item.question}
+              accessibilityState={{ expanded: expanded === item.id }}
+              activeOpacity={1}
+            >
               <Text style={styles.question}>{item.question}</Text>
               <Ionicons
-                name={expandedItems.includes(item.id) ? 'chevron-up' : 'chevron-down'}
+                name={expanded === item.id ? 'chevron-up' : 'chevron-down'}
                 size={20}
-                color="#666"
+                color="#667"
               />
             </TouchableOpacity>
-
-            {expandedItems.includes(item.id) && (
+            {expanded === item.id && (
               <View style={styles.answerContainer}>
                 <Text style={styles.answer}>{item.answer}</Text>
               </View>
@@ -246,36 +250,67 @@ export default function FAQScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f7f7f7',
+  },
+  topWhiteBlock: {
+    backgroundColor: '#fff',
+    // borderBottomLeftRadius: 24,
+    // borderBottomRightRadius: 24,
+    paddingBottom: 8,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    zIndex: 2,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: 'semibold',
+    color: '#111',
+    margin: 16,
+  },
+  searchWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 12,
+    margin: 16,
+    marginBottom: 0,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    paddingVertical: 6,
+    backgroundColor: 'transparent',
   },
   categoriesContainer: {
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    backgroundColor: 'transparent',
+    marginTop: 8,
   },
   categoriesContent: {
     paddingHorizontal: 16,
-    paddingVertical: 15,
-    // alignItems: 'center',
+    paddingVertical: 12,
   },
   categoryWrapper: {
     alignItems: 'center',
     marginRight: 12,
   },
   categoryButton: {
-    width: 80,
-    height: 80,
+    width: 64,
+    height: 64,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 20,
+    borderRadius: 16,
     backgroundColor: '#f0f0f0',
   },
   categoryButtonActive: {
     backgroundColor: '#111',
   },
   categoryText: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 13,
+    color: '#667',
     fontWeight: '500',
     textAlign: 'center',
     marginTop: 4,
@@ -283,6 +318,7 @@ const styles = StyleSheet.create({
   faqContainer: {
     flex: 1,
     padding: 16,
+    marginTop: 8,
   },
   faqItem: {
     backgroundColor: '#fff',
@@ -290,9 +326,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 1,
   },
   questionContainer: {
     flexDirection: 'row',
@@ -315,7 +351,14 @@ const styles = StyleSheet.create({
   },
   answer: {
     fontSize: 14,
-    color: '#666',
+    color: '#667',
     lineHeight: 20,
+  },
+  sectionLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#667',
+    marginHorizontal: 16,
+    marginTop: 20,
   },
 });
