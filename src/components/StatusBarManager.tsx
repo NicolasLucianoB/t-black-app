@@ -8,7 +8,6 @@ export default function StatusBarManager() {
 
   useEffect(() => {
     const barStyle = theme === 'dark' ? 'light-content' : 'dark-content';
-    console.log('StatusBarManager - Mudando para tema:', theme, 'BarStyle:', barStyle);
 
     // Força a mudança do status bar
     if (Platform.OS === 'ios') {

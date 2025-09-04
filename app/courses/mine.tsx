@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import AppHeader from '../../src/components/AppHeader';
+import BackHeader from '../../src/components/BackHeader';
 import { useTheme } from '../../src/contexts/ThemeContext';
 
 const cursos = [
@@ -64,7 +64,7 @@ export default function MineCoursesTab() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <AppHeader />
+      <BackHeader title="Meus Cursos" />
       {cursosComprados.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={[styles.emptyText, { color: colors.text }]}>

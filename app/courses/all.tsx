@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import AppHeader from '../../src/components/AppHeader';
+import BackHeader from '../../src/components/BackHeader';
 import { useCart } from '../../src/contexts/CartContext';
 import { useTheme } from '../../src/contexts/ThemeContext';
 
@@ -72,7 +72,7 @@ export default function TodosCursosTab() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <AppHeader />
+      <BackHeader title="Todos os Cursos" />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {cursos.map((curso) => (
           <View key={curso.id} style={[styles.card, { backgroundColor: colors.card }]}>

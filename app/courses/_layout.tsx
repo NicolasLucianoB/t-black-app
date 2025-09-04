@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { useTheme } from '../../src/contexts/ThemeContext';
 
@@ -25,6 +26,9 @@ export default function CoursesLayout() {
         options={{
           tabBarLabel: 'Todos os Cursos',
           title: 'Todos os Cursos',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="book-outline" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
@@ -32,6 +36,9 @@ export default function CoursesLayout() {
         options={{
           tabBarLabel: 'Meus Cursos',
           title: 'Meus Cursos',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="school-outline" size={size} color={color} />
+          ),
         }}
       />
     </Tabs>
