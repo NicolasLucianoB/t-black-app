@@ -1,11 +1,22 @@
 import { Ionicons } from '@expo/vector-icons';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import React, { useMemo, useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { Calendar } from 'react-native-calendars';
 
 import { useRouter } from 'expo-router';
 import AppHeader from 'src/components/AppHeader';
 import { useTheme } from 'src/contexts/ThemeContext';
+
+const Tab = createMaterialTopTabNavigator();
 
 const barbeiros = [
   {
@@ -105,7 +116,7 @@ function getHorariosDisponiveis(barbeiroId: number, data: string) {
   return barbeiro.horarios.filter((horario) => !horariosOcupados.includes(horario));
 }
 
-export default function BookingScreen() {
+function AgendarTab() {
   const { colors, theme } = useTheme();
   const [barbeiro, setBarbeiro] = useState(barbeiros[0].id);
   const [data, setData] = useState('');
@@ -132,161 +143,252 @@ export default function BookingScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <AppHeader />
-      <ScrollView
-        style={{ flex: 1, backgroundColor: colors.background }}
-        keyboardShouldPersistTaps="handled"
+    <ScrollView
+      style={{ flex: 1, backgroundColor: colors.background }}
+      keyboardShouldPersistTaps="handled"
+    >
+      {/* Conteúdo da aba de Agendar */}
+      <View
+        style={[
+          styles.container,
+          { backgroundColor: colors.background, shadowColor: colors.shadow },
+        ]}
       >
-        {/* Remover o antigo header */}
-        <View
-          style={[
-            styles.container,
-            { backgroundColor: colors.background, shadowColor: colors.shadow },
-          ]}
-        >
-          {/* Seção de Agendamento Rápido */}
-          <View style={[styles.quickBookSection, { backgroundColor: colors.card }]}>
-            <View style={styles.quickBookHeader}>
-              <Ionicons name="flash" size={20} color="#25D366" />
-              <Text style={[styles.quickBookTitle, { color: colors.text }]}>
-                Agendamento Rápido
+        {/* Seção de Agendamento Rápido */}
+        <View style={[styles.quickBookSection, { backgroundColor: colors.card }]}>
+          <View style={styles.quickBookHeader}>
+            <Ionicons name="flash" size={20} color="#25D366" />
+            <Text style={[styles.quickBookTitle, { color: colors.text }]}>Agendamento Rápido</Text>
+          </View>
+          <TouchableOpacity style={styles.quickBookCard}>
+            <View style={styles.quickBookInfo}>
+              <Text style={[styles.quickBookService, { color: colors.text }]}>
+                Corte Degradê - Tiago
+              </Text>
+              <Text style={[styles.quickBookDate, { color: colors.textSecondary }]}>
+                Último: 15/01/2024 às 14:00
               </Text>
             </View>
-            <TouchableOpacity style={styles.quickBookCard}>
-              <View style={styles.quickBookInfo}>
-                <Text style={[styles.quickBookService, { color: colors.text }]}>
-                  Corte Degradê - Tiago
-                </Text>
-                <Text style={[styles.quickBookDate, { color: colors.textSecondary }]}>
-                  Último: 15/01/2024 às 14:00
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
-            </TouchableOpacity>
-          </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
 
-          <Text style={[styles.label, { color: colors.text }]}>Barbeiro</Text>
+        <Text style={[styles.label, { color: colors.text }]}>Barbeiro</Text>
+        <View style={styles.row}>
+          {barbeiros.map((b) => (
+            <TouchableOpacity
+              key={b.id}
+              style={[
+                styles.barbeiroButton,
+                { backgroundColor: colors.card, borderColor: colors.border },
+                barbeiro === b.id && {
+                  backgroundColor: colors.primary,
+                  borderColor: colors.primary,
+                },
+              ]}
+              onPress={() => handleBarbeiroChange(b.id)}
+            >
+              <Text
+                style={
+                  barbeiro === b.id
+                    ? [styles.barbeiroTextSelected, { color: colors.card }]
+                    : [styles.barbeiroText, { color: colors.text }]
+                }
+              >
+                {b.nome}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        <Text style={[styles.label, { color: colors.text }]}>Data</Text>
+        <Calendar
+          onDayPress={(day) => handleDataChange(day.dateString)}
+          markedDates={getMarkedDates(data, colors)}
+          minDate={new Date().toISOString().split('T')[0]}
+          theme={{
+            todayTextColor: colors.accent,
+            selectedDayBackgroundColor: '#111',
+            selectedDayTextColor: '#fff',
+          }}
+          style={styles.calendar}
+        />
+        <Text style={[styles.label, { color: colors.text }]}>Horário</Text>
+        {data && horariosDisponiveis.length > 0 ? (
           <View style={styles.row}>
-            {barbeiros.map((b) => (
+            {horariosDisponiveis.map((h) => (
               <TouchableOpacity
-                key={b.id}
+                key={h}
                 style={[
-                  styles.barbeiroButton,
+                  styles.horarioButton,
                   { backgroundColor: colors.card, borderColor: colors.border },
-                  barbeiro === b.id && {
+                  horario === h && {
                     backgroundColor: colors.primary,
                     borderColor: colors.primary,
                   },
                 ]}
-                onPress={() => handleBarbeiroChange(b.id)}
+                onPress={() => setHorario(h)}
+                disabled={diasIndisponiveis.includes(data)}
               >
                 <Text
                   style={
-                    barbeiro === b.id
-                      ? [styles.barbeiroTextSelected, { color: colors.card }]
-                      : [styles.barbeiroText, { color: colors.text }]
+                    horario === h
+                      ? [styles.horarioTextSelected, { color: colors.card }]
+                      : [styles.horarioText, { color: colors.text }]
                   }
                 >
-                  {b.nome}
+                  {h}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
-          <Text style={[styles.label, { color: colors.text }]}>Data</Text>
-          <Calendar
-            onDayPress={(day) => handleDataChange(day.dateString)}
-            markedDates={getMarkedDates(data, colors)}
-            minDate={new Date().toISOString().split('T')[0]}
-            theme={{
-              todayTextColor: colors.accent,
-              selectedDayBackgroundColor: '#111',
-              selectedDayTextColor: '#fff',
-              disabledArrowColor: '#ccc',
-              textDisabledColor: '#ccc',
-              textDayStyle: {
-                color: '#111',
-              },
-              backgroundColor: '#fff',
-              calendarBackground: '#fff',
-              monthTextColor: '#111',
-              textMonthFontWeight: 'bold',
-              textMonthFontSize: 18,
-              textDayFontSize: 16,
-              textDayHeaderFontSize: 14,
-              dayTextColor: '#111',
-              arrowColor: '#111',
-            }}
+        ) : data ? (
+          <Text style={[styles.noHorariosText, { color: colors.error }]}>
+            Nenhum horário disponível para esta data
+          </Text>
+        ) : (
+          <Text style={[styles.selectDataText, { color: colors.textSecondary }]}>
+            Selecione uma data para ver os horários
+          </Text>
+        )}
+        <View style={styles.footer}>
+          <TouchableOpacity
             style={[
-              styles.calendar,
-              {
-                backgroundColor: '#fff',
-                borderColor: '#eee',
-              },
+              styles.confirmButton,
+              { backgroundColor: colors.primary },
+              (!data || !horario || diasIndisponiveis.includes(data)) && { opacity: 0.5 },
             ]}
-          />
-          <Text style={[styles.label, { color: colors.text }]}>Horário</Text>
-          {data && horariosDisponiveis.length > 0 ? (
-            <View style={styles.row}>
-              {horariosDisponiveis.map((h) => (
-                <TouchableOpacity
-                  key={h}
-                  style={[
-                    styles.horarioButton,
-                    { backgroundColor: colors.card, borderColor: colors.border },
-                    horario === h && {
-                      backgroundColor: colors.primary,
-                      borderColor: colors.primary,
-                    },
-                  ]}
-                  onPress={() => setHorario(h)}
-                  disabled={diasIndisponiveis.includes(data)}
-                >
-                  <Text
-                    style={
-                      horario === h
-                        ? [styles.horarioTextSelected, { color: colors.card }]
-                        : [styles.horarioText, { color: colors.text }]
-                    }
-                  >
-                    {h}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          ) : data ? (
-            <Text style={[styles.noHorariosText, { color: colors.error }]}>
-              Nenhum horário disponível para esta data
+            onPress={handleConfirmar}
+            accessibilityRole="button"
+            disabled={!data || !horario || diasIndisponiveis.includes(data)}
+          >
+            <Text style={[styles.confirmButtonText, { color: colors.card }]}>
+              Confirmar Agendamento
             </Text>
-          ) : (
-            <Text style={[styles.selectDataText, { color: colors.textSecondary }]}>
-              Selecione uma data para ver os horários
-            </Text>
-          )}
-          <View style={styles.footer}>
-            <TouchableOpacity
-              style={[
-                styles.confirmButton,
-                { backgroundColor: colors.primary },
-                (!data || !horario || diasIndisponiveis.includes(data)) && { opacity: 0.5 },
-              ]}
-              onPress={handleConfirmar}
-              accessibilityRole="button"
-              disabled={!data || !horario || diasIndisponiveis.includes(data)}
-            >
-              <Text style={[styles.confirmButtonText, { color: colors.card }]}>
-                Confirmar Agendamento
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <View>
-            <Text style={[styles.declarationText, { color: colors.textSecondary }]}>
-              *Declaro estar ciente de que o não honrar o compromisso de comparecer à data agendada
-              por 3 vezes acarretará em um bloqueio temporário de novos agendamentos*
-            </Text>
-          </View>
+          </TouchableOpacity>
         </View>
-      </ScrollView>
+        <View>
+          <Text style={[styles.declarationText, { color: colors.textSecondary }]}>
+            *Declaro estar ciente de que o não honrar o compromisso de comparecer à data agendada
+            por 3 vezes acarretará em um bloqueio temporário de novos agendamentos*
+          </Text>
+        </View>
+      </View>
+    </ScrollView>
+  );
+}
+
+function ProfissionaisTab() {
+  const { colors } = useTheme();
+  const [expandedBarbeiro, setExpandedBarbeiro] = useState<number | null>(null);
+
+  const barbeirosDetalhes = [
+    {
+      id: 1,
+      nome: 'Tiago',
+      descricao:
+        'Tiago é um especialista em cachos e um verdadeiro apaixonado por atender as pessoas! Com um olhar atento e uma vasta experiência, ele transforma cada cabelo cacheado em uma obra de arte, ressaltando a beleza única de cada cliente. O que mais encanta no Tiago é seu amor pelo que faz. Ele acredita que cada atendimento é uma oportunidade de fazer alguém se sentir incrível e confiante. Sua dedicação e carinho são refletidos em cada sorriso de satisfação! @tiagoblackoficial',
+      avatar: require('assets/logo-t-black.png'),
+    },
+    {
+      id: 2,
+      nome: 'João',
+      descricao:
+        "João é um verdadeiro artista no que faz! Desde que se juntou ao Studio T'black, sua evolução tem sido impressionante. Ele não só domina as técnicas de corte, mas também traz um olhar único para cada atendimento, garantindo que cada cliente saia satisfeito e confiante. A paixão e o empenho do João são inspiradores, e ele continua se aprimorando a cada dia. Venha conhecer o trabalho dele e descubra por todos aqui no Studio! Estamos muito orgulhosos de ter o João em nossa equipe! @joaobarber0Z",
+      avatar: require('assets/logo-t-black.png'),
+    },
+    {
+      id: 3,
+      nome: 'Vanessa',
+      descricao:
+        "A Vanessa é uma verdadeira paixão pela beleza e pelo cuidado com os cabelos! Com um talento incrível, ela consegue transformar cada cabelo em uma obra-prima, sempre atenta às necessidades de cada cliente. Desde que chegou ao Studio T'black, a Vanessa tem se destacado pelo seu profissionalismo e dedicação. Ela não só entrega resultados maravilhosos, mas também faz com uma experiência única e acolhedora. Venha conhecer o trabalho da Vanessa e descubra como ela pode realçar ainda mais a sua beleza! Estamos ansiosos para que você se encante com o talento dela! @vanessaboasorte_cachos",
+      avatar: require('assets/logo-t-black.png'),
+    },
+    {
+      id: 4,
+      nome: 'Wallacy',
+      descricao:
+        "Com essa cara de novo, o Wallacy já se destaca como um verdadeiro talento no Studio T'black. Ele possui um olhar apurado e uma habilidade incrível para cortes de cabelo, além de um atendimento que faz cada cliente se sentir especial. Wallacy está conosco há um ano e meio e tem mostrado que a paixão pela beleza e o compromisso com a qualidade são muito mais importantes do que a experiência em anos. Não julgue pela aparência; venha conferir o trabalho excepcional dele! Estamos ansiosos para que você conheça o talento do Wallacy. @barber_wallacy",
+      avatar: require('assets/logo-t-black.png'),
+    },
+    {
+      id: 5,
+      nome: 'Wando',
+      descricao:
+        'Conheça o Wando! Um profissional talentoso e apaixonado pelo que faz. Com dedicação e foco, ele oferece um atendimento excelente, garantindo a satisfação de todos os clientes. Sempre pronto para realçar a sua beleza!',
+      avatar: require('assets/logo-t-black.png'),
+    },
+  ];
+
+  const toggleExpand = (id: number) => {
+    setExpandedBarbeiro((prev) => (prev === id ? null : id));
+  };
+
+  return (
+    <ScrollView style={{ flex: 1, backgroundColor: colors.background }}>
+      {barbeirosDetalhes.map((barbeiro) => {
+        const isExpanded = expandedBarbeiro === barbeiro.id;
+        const preview = barbeiro.descricao.split(' ').slice(0, 20).join(' ') + '...';
+
+        return (
+          <View
+            key={barbeiro.id}
+            style={[styles.quickBookSection, { backgroundColor: colors.card }]}
+          >
+            <TouchableOpacity
+              onPress={() => toggleExpand(barbeiro.id)}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Image
+                  source={barbeiro.avatar}
+                  style={{ width: 50, height: 50, borderRadius: 25, marginRight: 16 }}
+                />
+                <Text style={[styles.quickBookService, { color: colors.text }]}>
+                  {barbeiro.nome}
+                </Text>
+              </View>
+              <Ionicons
+                name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                size={20}
+                color={colors.textSecondary}
+              />
+            </TouchableOpacity>
+            <Text style={[styles.quickBookDate, { color: colors.textSecondary, marginTop: 8 }]}>
+              {isExpanded ? barbeiro.descricao : preview}
+            </Text>
+          </View>
+        );
+      })}
+    </ScrollView>
+  );
+}
+
+// Adicionando tipos para barbeiroId e corrigindo a função getLastAppointment
+function getLastAppointment(barbeiroId: number): string {
+  const lastAppointment = agendamentosExistentes
+    .filter((ag) => ag.barbeiroId === barbeiroId)
+    .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())[0];
+
+  return lastAppointment
+    ? `Data: ${lastAppointment.data}, Horário: ${lastAppointment.horario}`
+    : 'Nenhum agendamento recente';
+}
+
+// Garantindo que colors seja acessível no escopo
+export default function BookingScreen() {
+  const { colors } = useTheme();
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+      <AppHeader />
+      <Tab.Navigator>
+        <Tab.Screen name="Agendar" component={AgendarTab} />
+        <Tab.Screen name="Profissionais" component={ProfissionaisTab} />
+      </Tab.Navigator>
     </SafeAreaView>
   );
 }
