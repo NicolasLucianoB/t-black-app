@@ -324,7 +324,10 @@ function ProfissionaisTab() {
   };
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.background }}>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: colors.background }}
+      contentContainerStyle={{ paddingTop: 16 }}
+    >
       {barbeirosDetalhes.map((barbeiro) => {
         const isExpanded = expandedBarbeiro === barbeiro.id;
         const preview = barbeiro.descricao.split(' ').slice(0, 20).join(' ') + '...';
@@ -332,34 +335,47 @@ function ProfissionaisTab() {
         return (
           <View
             key={barbeiro.id}
-            style={[styles.quickBookSection, { backgroundColor: colors.card }]}
+            style={[styles.professionalCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
           >
             <TouchableOpacity
               onPress={() => toggleExpand(barbeiro.id)}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
+              style={styles.professionalHeader}
             >
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Image
-                  source={barbeiro.avatar}
-                  style={{ width: 50, height: 50, borderRadius: 25, marginRight: 16 }}
+              <View style={styles.professionalInfo}>
+                <View style={[styles.avatarContainer, { borderColor: colors.primary }]}>
+                  <Image
+                    source={barbeiro.avatar}
+                    style={styles.avatar}
+                  />
+                </View>
+                <View style={styles.professionalDetails}>
+                  <Text style={[styles.professionalName, { color: colors.text }]}>
+                    {barbeiro.nome}
+                  </Text>
+                  <Text style={[styles.professionalRole, { color: colors.textSecondary }]}>
+                    Profissional Especializado
+                  </Text>
+                </View>
+              </View>
+              <View style={[styles.expandIcon, { backgroundColor: colors.accent + '15' }]}>
+                <Ionicons
+                  name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                  size={18}
+                  color={colors.accent}
                 />
-                <Text style={[styles.quickBookService, { color: colors.text }]}>
-                  {barbeiro.nome}
+              </View>
+            </TouchableOpacity>
+
+            {isExpanded && (
+              <View style={[styles.professionalDescription, { borderTopColor: colors.border }]}>
+                <Text style={[styles.descriptionTitle, { color: colors.text }]}>
+                  Sobre o profissional
+                </Text>
+                <Text style={[styles.descriptionText, { color: colors.textSecondary }]}>
+                  {barbeiro.descricao}
                 </Text>
               </View>
-              <Ionicons
-                name={isExpanded ? 'chevron-up' : 'chevron-down'}
-                size={20}
-                color={colors.textSecondary}
-              />
-            </TouchableOpacity>
-            <Text style={[styles.quickBookDate, { color: colors.textSecondary, marginTop: 8 }]}>
-              {isExpanded ? barbeiro.descricao : preview}
-            </Text>
+            )}
           </View>
         );
       })}
@@ -564,5 +580,77 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     textTransform: 'none',
+  },
+  // Estilos dos cards de profissionais
+  professionalCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  professionalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 20,
+  },
+  professionalInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  avatarContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    borderWidth: 3,
+    padding: 2,
+    marginRight: 16,
+  },
+  avatar: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+  },
+  professionalDetails: {
+    flex: 1,
+  },
+  professionalName: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  professionalRole: {
+    fontSize: 14,
+    fontWeight: '500',
+    opacity: 0.8,
+  },
+  expandIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  professionalDescription: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    borderTopWidth: 1,
+    paddingTop: 16,
+  },
+  descriptionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  descriptionText: {
+    fontSize: 15,
+    lineHeight: 22,
+    textAlign: 'justify',
   },
 });
