@@ -335,7 +335,10 @@ function ProfissionaisTab() {
         return (
           <View
             key={barbeiro.id}
-            style={[styles.professionalCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            style={[
+              styles.professionalCard,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
           >
             <TouchableOpacity
               onPress={() => toggleExpand(barbeiro.id)}
@@ -343,10 +346,7 @@ function ProfissionaisTab() {
             >
               <View style={styles.professionalInfo}>
                 <View style={[styles.avatarContainer, { borderColor: colors.primary }]}>
-                  <Image
-                    source={barbeiro.avatar}
-                    style={styles.avatar}
-                  />
+                  <Image source={barbeiro.avatar} style={styles.avatar} />
                 </View>
                 <View style={styles.professionalDetails}>
                   <Text style={[styles.professionalName, { color: colors.text }]}>
@@ -406,10 +406,13 @@ export default function BookingScreen() {
           tabBarActiveTintColor: colors.primary,
           tabBarInactiveTintColor: colors.textSecondary,
           tabBarIndicatorStyle: [styles.tabBarIndicator, { backgroundColor: colors.primary }],
-          tabBarStyle: [styles.tabBarStyle, {
-            backgroundColor: colors.surface,
-            borderBottomColor: colors.border
-          }],
+          tabBarStyle: [
+            styles.tabBarStyle,
+            {
+              backgroundColor: colors.surface,
+              borderBottomColor: colors.border,
+            },
+          ],
           tabBarLabelStyle: styles.tabBarLabelStyle,
         }}
       >

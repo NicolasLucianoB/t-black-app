@@ -6,8 +6,16 @@ import { useTheme } from '../src/contexts/ThemeContext';
 
 const notifications = [
   { id: '1', title: 'Bem-vindo ao T-Black!', description: 'Estamos felizes em tê-lo conosco.' },
-  { id: '2', title: 'Nova aula disponível', description: 'Confira a nova aula no curso de React Native.' },
-  { id: '3', title: 'Atualização de perfil', description: 'Seu perfil foi atualizado com sucesso.' },
+  {
+    id: '2',
+    title: 'Nova aula disponível',
+    description: 'Confira a nova aula no curso de React Native.',
+  },
+  {
+    id: '3',
+    title: 'Atualização de perfil',
+    description: 'Seu perfil foi atualizado com sucesso.',
+  },
 ];
 
 export default function NotificationsScreen() {
@@ -15,10 +23,15 @@ export default function NotificationsScreen() {
 
   const renderItem = ({ item }: { item: { id: string; title: string; description: string } }) => (
     <TouchableOpacity
-      style={[styles.notificationCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+      style={[
+        styles.notificationCard,
+        { backgroundColor: colors.surface, borderColor: colors.border },
+      ]}
     >
       <Text style={[styles.notificationTitle, { color: colors.text }]}>{item.title}</Text>
-      <Text style={[styles.notificationDescription, { color: colors.textSecondary }]}>{item.description}</Text>
+      <Text style={[styles.notificationDescription, { color: colors.textSecondary }]}>
+        {item.description}
+      </Text>
     </TouchableOpacity>
   );
 
