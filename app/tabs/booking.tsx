@@ -383,9 +383,20 @@ export default function BookingScreen() {
   const { colors } = useTheme();
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <AppHeader />
-      <Tab.Navigator>
+      <Tab.Navigator
+        screenOptions={{
+          tabBarActiveTintColor: colors.primary,
+          tabBarInactiveTintColor: colors.textSecondary,
+          tabBarIndicatorStyle: [styles.tabBarIndicator, { backgroundColor: colors.primary }],
+          tabBarStyle: [styles.tabBarStyle, {
+            backgroundColor: colors.surface,
+            borderBottomColor: colors.border
+          }],
+          tabBarLabelStyle: styles.tabBarLabelStyle,
+        }}
+      >
         <Tab.Screen name="Agendar" component={AgendarTab} />
         <Tab.Screen name="Profissionais" component={ProfissionaisTab} />
       </Tab.Navigator>
@@ -536,5 +547,22 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginHorizontal: 16,
     lineHeight: 16,
+  },
+  // Estilos do TabNavigator
+  safeArea: {
+    flex: 1,
+  },
+  tabBarIndicator: {
+    height: 3,
+  },
+  tabBarStyle: {
+    elevation: 0,
+    shadowOpacity: 0,
+    borderBottomWidth: 1,
+  },
+  tabBarLabelStyle: {
+    fontSize: 16,
+    fontWeight: '600',
+    textTransform: 'none',
   },
 });
