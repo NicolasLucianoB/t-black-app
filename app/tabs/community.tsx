@@ -11,7 +11,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-
 import { useRouter } from 'expo-router';
 import { useTheme } from 'src/contexts/ThemeContext';
 

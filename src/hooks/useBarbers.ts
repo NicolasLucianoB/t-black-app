@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+
 import { databaseService } from '../services';
 import { Barber } from '../types';
 import { useApi } from './useApi';

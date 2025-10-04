@@ -12,6 +12,7 @@ import {
   UIManager,
   View,
 } from 'react-native';
+
 import BackHeader from '../src/components/BackHeader';
 import { useTheme } from '../src/contexts/ThemeContext';
 

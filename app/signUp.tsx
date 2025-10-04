@@ -11,10 +11,13 @@ import {
   View,
 } from 'react-native';
 
+import { useAuth } from '../src/contexts/AuthContext';
+
 interface SignUpScreenProps {}
 
 export default function SignUpScreen({}: SignUpScreenProps) {
   const router = useRouter();
+  const { signUp } = useAuth();
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -93,12 +96,24 @@ export default function SignUpScreen({}: SignUpScreenProps) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSignUp = () => {
+  const handleSignUp = async () => {
     if (validateForm()) {
+      const { error } = await signUp({
+        email: formData.email.trim(),
+        password: formData.password,
+        name: formData.fullName.trim(),
+        phone: formData.phone.trim() || undefined,
+      });
+
+      if (error) {
+        Alert.alert('Erro no Cadastro', error);
+        return;
+      }
+
       Alert.alert('Cadastro realizado!', 'Bem-vindo ao Studio T Black!', [
         {
           text: 'OK',
-          onPress: () => router.replace('/loggedTabs'),
+          onPress: () => router.replace('/tabs/home'),
         },
       ]);
     }

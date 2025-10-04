@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
+
 import { useTheme } from '../../src/contexts/ThemeContext';
 
 export default function CoursesLayout() {

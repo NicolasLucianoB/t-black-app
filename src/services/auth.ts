@@ -2,7 +2,7 @@
 // This will handle all auth-related operations
 
 import { User } from '../types';
-// import { supabase } from './supabase';
+import { supabase } from './supabase';
 
 export interface LoginCredentials {
   email: string;
@@ -25,102 +25,159 @@ export interface AuthResponse {
 export const authService = {
   // Sign in with email and password
   async signIn(credentials: LoginCredentials): Promise<AuthResponse> {
-    // TODO: Replace with Supabase auth
-    // const { data, error } = await supabase.auth.signInWithPassword(credentials);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: credentials.email,
+        password: credentials.password,
+      });
 
-    // Mock validation
-    if (!credentials.email.includes('@')) {
-      return { user: null, error: 'Email inválido' };
+      if (error) {
+        return { user: null, error: error.message };
+      }
+
+      if (data.user) {
+        const user: User = {
+          id: data.user.id,
+          email: data.user.email || '',
+          name: data.user.user_metadata?.name || data.user.email || '',
+          phone: data.user.user_metadata?.phone || null,
+          avatar: data.user.user_metadata?.avatar_url || null,
+          createdAt: data.user.created_at,
+        };
+        return { user, error: null };
+      }
+
+      return { user: null, error: 'Erro desconhecido' };
+    } catch (error) {
+      return { user: null, error: 'Erro de conexão' };
     }
-    if (credentials.password.length < 6) {
-      return { user: null, error: 'Senha deve ter pelo menos 6 caracteres' };
-    }
-
-    // Mock user
-    const mockUser: User = {
-      id: '1',
-      email: credentials.email,
-      name: 'João Doe',
-      phone: '(11) 99999-9999',
-      avatar: null,
-      createdAt: new Date().toISOString(),
-    };
-
-    return { user: mockUser, error: null };
   },
 
   // Sign up with email and password
   async signUp(data: RegisterData): Promise<AuthResponse> {
-    // TODO: Replace with Supabase auth
-    // const { data: authData, error } = await supabase.auth.signUp({
-    //   email: data.email,
-    //   password: data.password,
-    //   options: {
-    //     data: {
-    //       name: data.name,
-    //       phone: data.phone,
-    //     }
-    //   }
-    // });
+    try {
+      const { data: authData, error } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            name: data.name,
+            phone: data.phone,
+          },
+        },
+      });
 
-    // Mock validation
-    if (!data.email.includes('@')) {
-      return { user: null, error: 'Email inválido' };
-    }
-    if (data.password.length < 6) {
-      return { user: null, error: 'Senha deve ter pelo menos 6 caracteres' };
-    }
-    if (!data.name.trim()) {
-      return { user: null, error: 'Nome é obrigatório' };
-    }
+      if (error) {
+        return { user: null, error: error.message };
+      }
 
-    // Mock user creation
-    const mockUser: User = {
-      id: '2',
-      email: data.email,
-      name: data.name,
-      phone: data.phone || null,
-      avatar: null,
-      createdAt: new Date().toISOString(),
-    };
+      if (authData.user) {
+        const user: User = {
+          id: authData.user.id,
+          email: authData.user.email || '',
+          name: data.name,
+          phone: data.phone || null,
+          avatar: null,
+          createdAt: authData.user.created_at,
+        };
+        return { user, error: null };
+      }
 
-    return { user: mockUser, error: null };
+      return { user: null, error: 'Erro ao criar usuário' };
+    } catch (error) {
+      return { user: null, error: 'Erro de conexão' };
+    }
   },
 
   // Sign out
   async signOut(): Promise<{ error: string | null }> {
-    // TODO: Replace with Supabase auth
-    // const { error } = await supabase.auth.signOut();
-    // return { error: error?.message || null };
-
-    return { error: null };
+    try {
+      const { error } = await supabase.auth.signOut();
+      return { error: error?.message || null };
+    } catch (error) {
+      return { error: 'Erro de conexão' };
+    }
   },
 
   // Get current session
   async getCurrentUser(): Promise<User | null> {
-    // TODO: Replace with Supabase auth
-    // const { data: { session } } = await supabase.auth.getSession();
-    // return session?.user || null;
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-    return null;
+      if (session?.user) {
+        return {
+          id: session.user.id,
+          email: session.user.email || '',
+          name: session.user.user_metadata?.name || session.user.email || '',
+          phone: session.user.user_metadata?.phone || null,
+          avatar: session.user.user_metadata?.avatar_url || null,
+          createdAt: session.user.created_at,
+        };
+      }
+
+      return null;
+    } catch (error) {
+      return null;
+    }
   },
 
   // Update user profile
   async updateProfile(updates: Partial<User>): Promise<AuthResponse> {
-    // TODO: Replace with Supabase auth
-    // const { data, error } = await supabase.auth.updateUser({
-    //   data: updates
-    // });
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        data: {
+          name: updates.name,
+          phone: updates.phone,
+          avatar_url: updates.avatar,
+        },
+      });
 
-    return { user: null, error: null };
+      if (error) {
+        return { user: null, error: error.message };
+      }
+
+      if (data.user) {
+        const user: User = {
+          id: data.user.id,
+          email: data.user.email || '',
+          name: data.user.user_metadata?.name || data.user.email || '',
+          phone: data.user.user_metadata?.phone || null,
+          avatar: data.user.user_metadata?.avatar_url || null,
+          createdAt: data.user.created_at,
+        };
+        return { user, error: null };
+      }
+
+      return { user: null, error: 'Erro ao atualizar perfil' };
+    } catch (error) {
+      return { user: null, error: 'Erro de conexão' };
+    }
   },
 
   // Reset password
   async resetPassword(email: string): Promise<{ error: string | null }> {
-    // TODO: Replace with Supabase auth
-    // const { error } = await supabase.auth.resetPasswordForEmail(email);
-    // return { error: error?.message || null };
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      return { error: error?.message || null };
+    } catch (error) {
+      return { error: 'Erro de conexão' };
+    }
+  },
 
-    return { error: null };
+  // Sign in with Google
+  async signInWithGoogle(): Promise<{ error: string | null }> {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: 'exp://127.0.0.1:19000/--/auth/callback',
+        },
+      });
+      return { error: error?.message || null };
+    } catch (error) {
+      return { error: 'Erro de conexão' };
+    }
   },
 };

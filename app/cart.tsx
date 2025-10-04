@@ -11,70 +11,14 @@ import {
   View,
 } from 'react-native';
 import BackHeader from 'src/components/BackHeader';
-
 import { useRouter } from 'expo-router';
 import { useCart } from 'src/contexts/CartContext';
 import { useTheme } from 'src/contexts/ThemeContext';
 
-// Dados mock para produtos
-const produtosMock = [
-  {
-    id: 1,
-    nome: 'Pomada Modeladora',
-    categoria: 'Produtos para Cabelo',
-    preco: 25.9,
-    imagem: 'https://via.placeholder.com/80x80/111/fff?text=Pomada',
-  },
-  {
-    id: 2,
-    nome: 'Shampoo Profissional',
-    categoria: 'Produtos para Cabelo',
-    preco: 35.5,
-    imagem: 'https://via.placeholder.com/80x80/111/fff?text=Shampoo',
-  },
-  {
-    id: 3,
-    nome: 'Óleo Capilar',
-    categoria: 'Produtos para Cabelo',
-    preco: 28.0,
-    imagem: 'https://via.placeholder.com/80x80/111/fff?text=Oleo',
-  },
-];
-
-// Dados mock para cursos
-// const cursosMock = [
-//   {
-//     id: 1,
-//     titulo: 'Corte Masculino Moderno',
-//     instrutor: 'Tiago',
-//     preco: 89.9,
-//     imagem: 'https://via.placeholder.com/80x80/111/fff?text=Curso',
-//   },
-//   {
-//     id: 2,
-//     titulo: 'Barba e Acabamentos',
-//     instrutor: 'Lucas',
-//     preco: 69.9,
-//     imagem: 'https://via.placeholder.com/80x80/111/fff?text=Curso',
-//   },
-//   {
-//     id: 3,
-//     titulo: 'Colorimetria Avançada',
-//     instrutor: 'Rafael',
-//     preco: 129.9,
-//     imagem: 'https://via.placeholder.com/80x80/111/fff?text=Curso',
-//   },
-//   {
-//     id: 4,
-//     titulo: 'Atendimento ao Cliente',
-//     instrutor: 'Tiago',
-//     preco: 49.9,
-//     imagem: 'https://via.placeholder.com/80x80/111/fff?text=Curso',
-//   },
-// ];
+// Carrinho agora usa dados reais do Supabase via context
 
 export default function CartScreen() {
-  const { cart, addToCart, removeFromCart, clearCart } = useCart();
+  const { cart, removeFromCart, clearCart, updateQuantity, getTotalPrice } = useCart();
   const { colors } = useTheme();
   const router = useRouter();
 
@@ -99,30 +43,22 @@ export default function CartScreen() {
   const produtosNoCarrinho = cart.filter((item) => item.type === 'product');
   const cursosNoCarrinho = cart.filter((item) => item.type === 'course');
 
-  const quantidadeItem = (itemId: number, type: 'product' | 'course') => {
-    return cart.filter((item) => item.id === itemId && item.type === type).length;
+  // getTotalPrice já vem do contexto
+
+  const handleRemoveItem = async (itemId: string) => {
+    await removeFromCart(itemId);
+    Alert.alert('Removido', 'Item removido do carrinho');
   };
 
-  const produtosUnicos = produtosMock.filter((produto) =>
-    produtosNoCarrinho.some((item) => item.id === produto.id),
-  );
+  const handleUpdateQuantity = async (itemId: string, newQuantity: number) => {
+    if (newQuantity <= 0) {
+      await removeFromCart(itemId);
+    } else {
+      await updateQuantity(itemId, newQuantity);
+    }
+  };
 
-  // const cursosUnicos = cursosMock.filter((curso) =>
-  //   cursosNoCarrinho.some((item) => item.id === curso.id),
-  // );
-
-  const totalProdutos = produtosNoCarrinho.reduce((total, item) => {
-    const produto = produtosMock.find((p) => p.id === item.id);
-    return total + (produto?.preco || 0);
-  }, 0);
-
-  // const totalCursos = cursosNoCarrinho.reduce((total, item) => {
-  //   const curso = cursosMock.find((c) => c.id === item.id);
-  //   return total + (curso?.preco || 0);
-  // }, 0);
-
-  // const totalGeral = totalProdutos + totalCursos;
-  const totalGeral = totalProdutos;
+  const totalGeral = getTotalPrice();
 
   const finalizarCompra = () => {
     Alert.alert(
@@ -132,8 +68,8 @@ export default function CartScreen() {
         { text: 'Cancelar', style: 'cancel' },
         {
           text: 'Confirmar',
-          onPress: () => {
-            clearCart();
+          onPress: async () => {
+            await clearCart();
             Alert.alert('Sucesso!', 'Compra realizada com sucesso!');
           },
         },
@@ -160,9 +96,12 @@ export default function CartScreen() {
                 Produtos
               </Text>
             </TouchableOpacity>
-            {/* <TouchableOpacity style={styles.coursesButton} onPress={() => router.push('/courses')}>
-              <Text style={styles.coursesButtonText}>Cursos</Text>
-            </TouchableOpacity> */}
+            <TouchableOpacity
+              style={[styles.coursesButton, { backgroundColor: colors.accent }]}
+              onPress={() => router.push('/courses/all')}
+            >
+              <Text style={[styles.coursesButtonText, { color: colors.background }]}>Cursos</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </SafeAreaView>
@@ -175,100 +114,107 @@ export default function CartScreen() {
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           {/* Seção de Produtos */}
-          {produtosUnicos.length > 0 && (
+          {produtosNoCarrinho.length > 0 && (
             <View style={styles.section}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>Produtos</Text>
-              {produtosUnicos.map((produto) => {
-                const quantidade = quantidadeItem(produto.id, 'product');
-                const subtotal = produto.preco * quantidade;
-
-                return (
-                  <View
-                    key={`product-${produto.id}`}
-                    style={[styles.cartItem, { backgroundColor: colors.card }]}
-                  >
-                    <Image source={{ uri: produto.imagem }} style={styles.itemImage} />
-                    <View style={styles.itemInfo}>
-                      <Text style={[styles.itemName, { color: colors.text }]}>{produto.nome}</Text>
-                      <Text style={[styles.itemCategory, { color: colors.textSecondary }]}>
-                        {produto.categoria}
-                      </Text>
-                      <Text style={[styles.itemPrice, { color: colors.text }]}>
-                        R$ {produto.preco.toFixed(2)}
-                      </Text>
-                    </View>
-                    <View style={styles.itemActions}>
-                      <View style={styles.quantityContainer}>
-                        <TouchableOpacity
-                          style={[styles.quantityButton, { backgroundColor: colors.primary }]}
-                          onPress={() => removeFromCart(produto.id, 'product')}
-                        >
-                          <Text style={[styles.quantityButtonText, { color: colors.background }]}>
-                            -
-                          </Text>
-                        </TouchableOpacity>
-                        <Text style={[styles.quantityText, { color: colors.text }]}>
-                          {quantidade}
+              {produtosNoCarrinho.map((item) => (
+                <View key={item.id} style={[styles.cartItem, { backgroundColor: colors.card }]}>
+                  <Image
+                    source={{
+                      uri:
+                        item.product?.images?.[0] ||
+                        'https://via.placeholder.com/80x80/111/fff?text=Produto',
+                    }}
+                    style={styles.itemImage}
+                  />
+                  <View style={styles.itemInfo}>
+                    <Text style={[styles.itemName, { color: colors.text }]}>
+                      {item.product?.name || 'Produto'}
+                    </Text>
+                    <Text style={[styles.itemCategory, { color: colors.textSecondary }]}>
+                      {item.product?.category || 'Produtos para Cabelo'}
+                    </Text>
+                    <Text style={[styles.itemPrice, { color: colors.text }]}>
+                      R$ {item.price.toFixed(2)}
+                    </Text>
+                  </View>
+                  <View style={styles.itemActions}>
+                    <View style={styles.quantityContainer}>
+                      <TouchableOpacity
+                        style={[styles.quantityButton, { backgroundColor: colors.primary }]}
+                        onPress={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                      >
+                        <Text style={[styles.quantityButtonText, { color: colors.background }]}>
+                          -
                         </Text>
-                        <TouchableOpacity
-                          style={[styles.quantityButton, { backgroundColor: colors.primary }]}
-                          onPress={() => addToCart(produto.id, 'product')}
-                        >
-                          <Text style={[styles.quantityButtonText, { color: colors.background }]}>
-                            +
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                      <Text style={[styles.subtotalText, { color: colors.text }]}>
-                        R$ {subtotal.toFixed(2)}
+                      </TouchableOpacity>
+                      <Text style={[styles.quantityText, { color: colors.text }]}>
+                        {item.quantity}
                       </Text>
                       <TouchableOpacity
-                        style={styles.removeButton}
-                        onPress={() => {
-                          for (let i = 0; i < quantidade; i++) {
-                            removeFromCart(produto.id, 'product');
-                          }
-                        }}
+                        style={[styles.quantityButton, { backgroundColor: colors.primary }]}
+                        onPress={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                       >
-                        <Text style={styles.removeButtonText}>Remover</Text>
+                        <Text style={[styles.quantityButtonText, { color: colors.background }]}>
+                          +
+                        </Text>
                       </TouchableOpacity>
                     </View>
+                    <Text style={[styles.subtotalText, { color: colors.text }]}>
+                      R$ {(item.price * item.quantity).toFixed(2)}
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.removeButton}
+                      onPress={() => handleRemoveItem(item.id)}
+                    >
+                      <Text style={styles.removeButtonText}>Remover</Text>
+                    </TouchableOpacity>
                   </View>
-                );
-              })}
+                </View>
+              ))}
             </View>
           )}
 
           {/* Seção de Cursos */}
-          {/* {cursosUnicos.length > 0 && (
+          {cursosNoCarrinho.length > 0 && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Cursos</Text>
-              {cursosUnicos.map((curso) => {
-                const quantidade = quantidadeItem(curso.id, 'course');
-                const subtotal = curso.preco * quantidade;
-
-                return (
-                  <View key={`course-${curso.id}`} style={styles.cartItem}>
-                    <Image source={{ uri: curso.imagem }} style={styles.itemImage} />
-                    <View style={styles.itemInfo}>
-                      <Text style={styles.itemName}>{curso.titulo}</Text>
-                      <Text style={styles.itemCategory}>Instrutor: {curso.instrutor}</Text>
-                      <Text style={styles.itemPrice}>R$ {curso.preco.toFixed(2)}</Text>
-                    </View>
-                    <View style={styles.itemActions}>
-                      <Text style={styles.subtotalText}>R$ {subtotal.toFixed(2)}</Text>
-                      <TouchableOpacity
-                        style={styles.removeButton}
-                        onPress={() => removeFromCart(curso.id, 'course')}
-                      >
-                        <Text style={styles.removeButtonText}>Remover</Text>
-                      </TouchableOpacity>
-                    </View>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Cursos</Text>
+              {cursosNoCarrinho.map((item) => (
+                <View key={item.id} style={[styles.cartItem, { backgroundColor: colors.card }]}>
+                  <Image
+                    source={{
+                      uri:
+                        `https://img.youtube.com/vi/${item.course?.videoUrl?.split('/').pop()}/maxresdefault.jpg` ||
+                        'https://via.placeholder.com/80x80/111/fff?text=Curso',
+                    }}
+                    style={styles.itemImage}
+                  />
+                  <View style={styles.itemInfo}>
+                    <Text style={[styles.itemName, { color: colors.text }]}>
+                      {item.course?.title || 'Curso'}
+                    </Text>
+                    <Text style={[styles.itemCategory, { color: colors.textSecondary }]}>
+                      Instrutor: {item.course?.instructor || 'N/A'}
+                    </Text>
+                    <Text style={[styles.itemPrice, { color: colors.text }]}>
+                      R$ {item.price.toFixed(2)}
+                    </Text>
                   </View>
-                );
-              })}
+                  <View style={styles.itemActions}>
+                    <Text style={[styles.subtotalText, { color: colors.text }]}>
+                      R$ {(item.price * item.quantity).toFixed(2)}
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.removeButton}
+                      onPress={() => handleRemoveItem(item.id)}
+                    >
+                      <Text style={styles.removeButtonText}>Remover</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
             </View>
-          )} */}
+          )}
         </ScrollView>
 
         <View
@@ -343,12 +289,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     flex: 1,
   },
-  // coursesButtonText: {
-  //   color: '#fff',
-  //   fontSize: 16,
-  //   fontWeight: 'bold',
-  //   textAlign: 'center',
-  // },
+  coursesButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',

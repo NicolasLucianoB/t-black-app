@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Image,
   SafeAreaView,
@@ -9,41 +10,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+
 import BackHeader from '../../src/components/BackHeader';
 import { useCart } from '../../src/contexts/CartContext';
 import { useTheme } from '../../src/contexts/ThemeContext';
+import { databaseService } from '../../src/services';
+import { Course } from '../../src/types';
 
-type Curso = {
-  id: number;
-  title: string;
-  description: string;
-  price: number;
-  videoUrl: string;
-};
-
-const cursos: Curso[] = [
-  {
-    id: 1,
-    title: 'Curso de Marketing para Barbeiros',
-    description: 'Aprenda a monetizar mais com seu salão.',
-    price: 99.99,
-    videoUrl: 'https://youtu.be/YDfqXjAy5wM',
-  },
-  {
-    id: 2,
-    title: 'Como Armar Cachos Afro',
-    description: 'Domine uma técnica de finalização em 5 passos simples.',
-    price: 89.99,
-    videoUrl: 'https://youtu.be/dXrYYzSd2hQ',
-  },
-  {
-    id: 3,
-    title: 'Como cortar cabelo Afro',
-    description: 'Aprenda os fundamentos do corte de cabelo afro.',
-    price: 79.99,
-    videoUrl: 'https://youtu.be/B5QOUVO9gQc',
-  },
-];
+// Cursos agora vêm do Supabase
 
 function getYoutubeThumbnail(url: string): string {
   const regex = /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/))([\w-]{11})/;
@@ -53,22 +27,58 @@ function getYoutubeThumbnail(url: string): string {
 }
 
 export default function TodosCursosTab() {
-  const { cart, addToCart, removeFromCart } = useCart();
-  const { colors, themeMode } = useTheme();
+  // const { cart, addToCart, removeFromCart } = useCart(); // TODO: Implementar quando necessário
+  const { colors } = useTheme();
 
-  const handleAddToCart = (curso: Curso) => {
-    addToCart(curso.id, 'course');
-    Alert.alert('Sucesso', `${curso.title} adicionado ao carrinho.`);
-  };
+  const [cursos, setCursos] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleRemoveFromCart = (curso: Curso) => {
-    removeFromCart(curso.id, 'course');
-    Alert.alert('Sucesso', `${curso.title} removido do carrinho.`);
-  };
+  // Carregar cursos do Supabase
+  useEffect(() => {
+    const loadCursos = async () => {
+      try {
+        setLoading(true);
+        const data = await databaseService.courses.getAll();
+        setCursos(data);
+      } catch (error) {
+        console.error('Erro ao carregar cursos:', error);
+        setError('Não foi possível carregar os cursos');
+        Alert.alert('Erro', 'Não foi possível carregar os cursos');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const isInCart = (curso: Curso): boolean => {
-    return cart.some((item) => item.id === curso.id);
-  };
+    loadCursos();
+  }, []);
+
+  // TODO: Implementar funções de carrinho quando necessário
+
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <BackHeader title="Todos os Cursos" />
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={{ color: colors.text, marginTop: 16 }}>Carregando cursos...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error || cursos.length === 0) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <BackHeader title="Todos os Cursos" />
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+          <Text style={{ color: colors.text, fontSize: 18, textAlign: 'center' }}>
+            {error || 'Nenhum curso disponível no momento'}
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -77,7 +87,7 @@ export default function TodosCursosTab() {
         {cursos.map((curso) => (
           <View key={curso.id} style={[styles.card, { backgroundColor: colors.card }]}>
             <Image
-              source={{ uri: getYoutubeThumbnail(curso.videoUrl) }}
+              source={{ uri: getYoutubeThumbnail(curso.videoUrl || '') }}
               style={styles.image}
               resizeMode="contain"
             />

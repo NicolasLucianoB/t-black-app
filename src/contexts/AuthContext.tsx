@@ -1,6 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useEffect, useState } from 'react';
+
 import { authService } from '../services/auth';
+import { supabase } from '../services/supabase';
 import { User } from '../types';
 
 interface AuthContextType {
@@ -39,9 +41,41 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load user from storage on app start
+  // Load user from storage on app start and set up auth listener
   useEffect(() => {
     loadUserFromStorage();
+
+    // Listen for auth changes (important for OAuth)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
+      console.log('Auth state changed:', event, session?.user?.email);
+
+      if (session?.user && event === 'SIGNED_IN') {
+        // User signed in via OAuth or other method
+        const userData: User = {
+          id: session.user.id,
+          email: session.user.email || '',
+          name: session.user.user_metadata?.name || session.user.email || '',
+          phone: session.user.user_metadata?.phone || null,
+          avatar: session.user.user_metadata?.avatar_url || null,
+          createdAt: session.user.created_at,
+        };
+
+        setUser(userData);
+        await saveUserToStorage(userData);
+      } else if (event === 'SIGNED_OUT') {
+        // User signed out
+        setUser(null);
+        await saveUserToStorage(null);
+      }
+
+      setLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const loadUserFromStorage = async () => {

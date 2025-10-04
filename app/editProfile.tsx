@@ -9,40 +9,65 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useAuth } from 'src/contexts/AuthContext';
 
 export default function EditProfileScreen() {
   const router = useRouter();
+  const { user, updateProfile } = useAuth();
   const params = useLocalSearchParams();
+
   let userData: any = {};
   if (params.userData) {
     if (typeof params.userData === 'string') {
       try {
         userData = JSON.parse(params.userData);
       } catch {
-        userData = {};
+        userData = user || {};
       }
     } else {
       userData = params.userData;
     }
+  } else {
+    userData = user || {};
   }
-  const [nome, setNome] = useState(userData?.nome || '');
-  const [email, setEmail] = useState(userData?.email || '');
-  const [telefone, setTelefone] = useState(userData?.telefone || '');
 
-  const handleSalvar = () => {
-    if (!nome.trim() || !email.trim() || !telefone.trim()) {
-      Alert.alert('Erro', 'Todos os campos são obrigatórios');
+  const [nome, setNome] = useState(userData?.name || '');
+  const [email, setEmail] = useState(userData?.email || '');
+  const [telefone, setTelefone] = useState(userData?.phone || '');
+  const [loading, setLoading] = useState(false);
+
+  const handleSalvar = async () => {
+    if (!nome.trim()) {
+      Alert.alert('Erro', 'Nome é obrigatório');
       return;
     }
 
-    if (!email.includes('@')) {
+    if (!email.trim() || !email.includes('@')) {
       Alert.alert('Erro', 'E-mail inválido');
       return;
     }
 
-    Alert.alert('Sucesso', 'Perfil atualizado com sucesso!', [
-      { text: 'OK', onPress: () => router.back() },
-    ]);
+    setLoading(true);
+    try {
+      const { error } = await updateProfile({
+        name: nome.trim(),
+        email: email.trim(),
+        phone: telefone.trim() || null,
+      });
+
+      if (error) {
+        Alert.alert('Erro', error);
+      } else {
+        Alert.alert('Sucesso', 'Perfil atualizado com sucesso!', [
+          { text: 'OK', onPress: () => router.back() },
+        ]);
+      }
+    } catch (error) {
+      console.error('Erro ao salvar perfil:', error);
+      Alert.alert('Erro', 'Não foi possível atualizar o perfil');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancelar = () => {
@@ -98,8 +123,12 @@ export default function EditProfileScreen() {
           <TouchableOpacity style={styles.cancelButton} onPress={handleCancelar}>
             <Text style={styles.cancelButtonText}>Cancelar</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.saveButton} onPress={handleSalvar}>
-            <Text style={styles.saveButtonText}>Salvar</Text>
+          <TouchableOpacity
+            style={[styles.saveButton, loading && { opacity: 0.7 }]}
+            onPress={handleSalvar}
+            disabled={loading}
+          >
+            <Text style={styles.saveButtonText}>{loading ? 'Salvando...' : 'Salvar'}</Text>
           </TouchableOpacity>
         </View>
       </View>

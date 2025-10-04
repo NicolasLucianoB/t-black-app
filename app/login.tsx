@@ -3,7 +3,11 @@ import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
+import { useAuth } from '../src/contexts/AuthContext';
+import { authService } from '../src/services/auth';
+
 export default function LoginScreen() {
+  const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
@@ -27,14 +31,30 @@ export default function LoginScreen() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (validateForm()) {
+      const { error } = await signIn(email.trim(), password);
+
+      if (error) {
+        Alert.alert('Erro no Login', error);
+        return;
+      }
+
       router.replace('/tabs/home');
     }
   };
 
-  const handleGoogleLogin = () => {
-    Alert.alert('Login com Google', 'Funcionalidade em breve!');
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await authService.signInWithGoogle();
+
+      if (error) {
+        Alert.alert('Erro no Login Google', error);
+      }
+      // Note: The redirect to /auth/callback will be handled automatically by OAuth
+    } catch (error) {
+      Alert.alert('Erro', 'Erro de conexão. Tente novamente.');
+    }
   };
 
   const handleAppleLogin = () => {

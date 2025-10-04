@@ -1,29 +1,42 @@
 import React from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
+import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppHeader from 'src/components/AppHeader';
+import { useAuth } from 'src/contexts/AuthContext';
 import { useTheme } from 'src/contexts/ThemeContext';
 
 export default function ProfileScreen() {
   const { colors } = useTheme();
+  const { user, signOut } = useAuth();
   const router = useRouter();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     Alert.alert('Sair', 'Tem certeza que deseja sair?', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Sair',
         style: 'destructive',
-        onPress: () => {
-          // Limpar dados do usuário (futuramente com Supabase)
-          console.log('Logout realizado');
-          // Redirecionar para a tela de login
-          router.replace('/login');
+        onPress: async () => {
+          try {
+            await signOut();
+            router.replace('/login');
+          } catch (error) {
+            console.error('Erro ao fazer logout:', error);
+            Alert.alert('Erro', 'Não foi possível fazer logout');
+          }
         },
       },
     ]);
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   };
 
   return (
@@ -32,11 +45,17 @@ export default function ProfileScreen() {
       <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={[styles.header, { backgroundColor: colors.primary }]}>
           <View style={[styles.avatarContainer, { backgroundColor: colors.card }]}>
-            <Text style={[styles.avatarText, { color: colors.primary }]}>JD</Text>
+            {user?.avatar ? (
+              <Image source={{ uri: user.avatar }} style={styles.avatar} />
+            ) : (
+              <Text style={[styles.avatarText, { color: colors.primary }]}>
+                {user?.name ? getInitials(user.name) : 'U'}
+              </Text>
+            )}
           </View>
-          <Text style={[styles.userName, { color: colors.text }]}>João Silva</Text>
+          <Text style={[styles.userName, { color: colors.text }]}>{user?.name || 'Usuário'}</Text>
           <Text style={[styles.userEmail, { color: colors.textSecondary }]}>
-            joao.silva@email.com
+            {user?.email || 'usuario@email.com'}
           </Text>
         </View>
 
@@ -44,7 +63,15 @@ export default function ProfileScreen() {
           style={[styles.section, { backgroundColor: colors.card, shadowColor: colors.shadow }]}
         >
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Informações Pessoais</Text>
-          <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/edit-profile')}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() =>
+              router.push({
+                pathname: '/editProfile',
+                params: { userData: JSON.stringify(user) },
+              })
+            }
+          >
             <Text style={[styles.menuItemText, { color: colors.text }]}>Editar Perfil</Text>
             <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
           </TouchableOpacity>
@@ -134,6 +161,11 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 24,
     fontWeight: 'bold',
+  },
+  avatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
   },
   userName: {
     fontSize: 20,

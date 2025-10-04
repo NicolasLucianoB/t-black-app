@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  Alert,
   Image,
   SafeAreaView,
   ScrollView,
@@ -11,50 +12,18 @@ import {
   View,
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-
 import { useRouter } from 'expo-router';
 import AppHeader from 'src/components/AppHeader';
+import { useAuth } from 'src/contexts/AuthContext';
 import { useTheme } from 'src/contexts/ThemeContext';
+import { useCreateBooking } from 'src/hooks/useBookings';
+import { databaseService } from 'src/services';
+import { Barber } from 'src/types';
 
 const Tab = createMaterialTopTabNavigator();
 
-const barbeiros = [
-  {
-    id: 1,
-    nome: 'Tiago',
-    horarios: ['09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
-  },
-  {
-    id: 2,
-    nome: 'João',
-    horarios: ['10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00', '18:00'],
-  },
-  {
-    id: 3,
-    nome: 'Vanessa',
-    horarios: ['08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00'],
-  },
-  {
-    id: 4,
-    nome: 'Wallacy',
-    horarios: ['09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
-  },
-  {
-    id: 5,
-    nome: 'Wando',
-    horarios: ['10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00', '18:00'],
-  },
-];
-
-// Mock de agendamentos existentes (barbeiro_id, data, horario)
-const agendamentosExistentes = [
-  { barbeiroId: 1, data: '2024-06-27', horario: '14:00' },
-  { barbeiroId: 1, data: '2024-06-27', horario: '16:00' },
-  { barbeiroId: 2, data: '2024-06-27', horario: '11:00' },
-  { barbeiroId: 3, data: '2024-06-28', horario: '09:00' },
-  { barbeiroId: 4, data: '2024-06-28', horario: '15:00' },
-  { barbeiroId: 5, data: '2024-06-29', horario: '10:00' },
-];
+// Os dados dos barbeiros agora vêm do Supabase
+// Dados temporários para fallback (removidos depois de integração completa)
 
 const diasIndisponiveis = ['2024-06-28', '2024-06-29', '2024-07-01'];
 
@@ -105,34 +74,113 @@ function getMarkedDates(selectedDate: string, colors: any) {
   return marked;
 }
 
-function getHorariosDisponiveis(barbeiroId: number, data: string) {
-  const barbeiro = barbeiros.find((b) => b.id === barbeiroId);
-  if (!barbeiro || !data) return [];
-
-  const horariosOcupados = agendamentosExistentes
-    .filter((ag) => ag.barbeiroId === barbeiroId && ag.data === data)
-    .map((ag) => ag.horario);
-
-  return barbeiro.horarios.filter((horario) => !horariosOcupados.includes(horario));
-}
-
 function AgendarTab() {
   const { colors, theme } = useTheme();
-  const [barbeiro, setBarbeiro] = useState(barbeiros[0].id);
+  const { user } = useAuth();
+  const [barbeiros, setBarbeiros] = useState<Barber[]>([]);
+  const [barbeiro, setBarbeiro] = useState<string>('');
   const [data, setData] = useState('');
   const [horario, setHorario] = useState('');
+  const [horariosDisponiveis, setHorariosDisponiveis] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const horariosDisponiveis = useMemo(() => {
-    return getHorariosDisponiveis(barbeiro, data);
+  const {
+    createBooking,
+    loading: bookingLoading,
+    error: bookingError,
+  } = useCreateBooking(user?.id || '');
+
+  // Carregar barbeiros do Supabase
+  useEffect(() => {
+    const loadBarbeiros = async () => {
+      setLoading(true);
+      try {
+        const data = await databaseService.barbers.getAll();
+        setBarbeiros(data);
+        if (data.length > 0) {
+          setBarbeiro(data[0].id); // Selecionar primeiro barbeiro
+        }
+      } catch (error) {
+        console.error('Erro ao carregar barbeiros:', error);
+        Alert.alert('Erro', 'Não foi possível carregar os barbeiros');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadBarbeiros();
+  }, []);
+
+  // Carregar horários disponíveis quando barbeiro ou data mudarem
+  useEffect(() => {
+    const loadHorarios = async () => {
+      if (!barbeiro || !data) {
+        setHorariosDisponiveis([]);
+        return;
+      }
+
+      try {
+        const slots = await databaseService.bookings.getAvailableSlots(barbeiro, data);
+        setHorariosDisponiveis(slots);
+      } catch (error) {
+        console.error('Erro ao carregar horários:', error);
+        setHorariosDisponiveis([]);
+      }
+    };
+
+    loadHorarios();
   }, [barbeiro, data]);
 
-  const handleConfirmar = () => {
-    const barbeiroSelecionado = barbeiros.find((b) => b.id === barbeiro);
-    alert(`Agendamento realizado com ${barbeiroSelecionado?.nome} em ${data} às ${horario}`);
+  const handleConfirmar = async () => {
+    if (!user?.id || !barbeiro || !data || !horario) {
+      Alert.alert('Erro', 'Preencha todos os campos');
+      return;
+    }
+
+    try {
+      const barbeiroSelecionado = barbeiros.find((b) => b.id === barbeiro);
+
+      // Usando serviço básico por enquanto (preço fixo)
+      const bookingData = {
+        barberId: barbeiro,
+        serviceId: 'default', // Service ID temporário
+        date: data,
+        time: horario,
+        notes: `Agendamento com ${barbeiroSelecionado?.name}`,
+      };
+
+      const result = await createBooking(bookingData, 50.0); // Preço fixo temporário
+
+      if (result?.data) {
+        Alert.alert(
+          'Sucesso!',
+          `Agendamento realizado com ${barbeiroSelecionado?.name} em ${data} às ${horario}`,
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                // Reset form
+                setData('');
+                setHorario('');
+                // Recarregar horários disponíveis
+                databaseService.bookings
+                  .getAvailableSlots(barbeiro, data)
+                  .then(setHorariosDisponiveis);
+              },
+            },
+          ],
+        );
+      } else {
+        Alert.alert('Erro', bookingError || 'Não foi possível criar o agendamento');
+      }
+    } catch (error) {
+      console.error('Erro ao confirmar agendamento:', error);
+      Alert.alert('Erro', 'Ocorreu um erro ao confirmar o agendamento');
+    }
   };
 
-  const handleBarbeiroChange = (novoBarbeiro: number) => {
+  const handleBarbeiroChange = (novoBarbeiro: string) => {
     setBarbeiro(novoBarbeiro);
     setHorario(''); // Reset horário ao trocar barbeiro
   };
@@ -195,7 +243,7 @@ function AgendarTab() {
                     : [styles.barbeiroText, { color: colors.text }]
                 }
               >
-                {b.nome}
+                {b.name}
               </Text>
             </TouchableOpacity>
           ))}
@@ -255,14 +303,16 @@ function AgendarTab() {
             style={[
               styles.confirmButton,
               { backgroundColor: colors.primary },
-              (!data || !horario || diasIndisponiveis.includes(data)) && { opacity: 0.5 },
+              (!data || !horario || diasIndisponiveis.includes(data) || bookingLoading) && {
+                opacity: 0.5,
+              },
             ]}
             onPress={handleConfirmar}
             accessibilityRole="button"
-            disabled={!data || !horario || diasIndisponiveis.includes(data)}
+            disabled={!data || !horario || diasIndisponiveis.includes(data) || bookingLoading}
           >
             <Text style={[styles.confirmButtonText, { color: colors.card }]}>
-              Confirmar Agendamento
+              {bookingLoading ? 'Confirmando...' : 'Confirmar Agendamento'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -279,58 +329,53 @@ function AgendarTab() {
 
 function ProfissionaisTab() {
   const { colors } = useTheme();
-  const [expandedBarbeiro, setExpandedBarbeiro] = useState<number | null>(null);
+  const [expandedBarbeiro, setExpandedBarbeiro] = useState<string | null>(null);
+  const [barbeiros, setBarbeiros] = useState<Barber[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const barbeirosDetalhes = [
-    {
-      id: 1,
-      nome: 'Tiago',
-      descricao:
-        'Tiago é um especialista em cachos e um verdadeiro apaixonado por atender as pessoas! Com um olhar atento e uma vasta experiência, ele transforma cada cabelo cacheado em uma obra de arte, ressaltando a beleza única de cada cliente. O que mais encanta no Tiago é seu amor pelo que faz. Ele acredita que cada atendimento é uma oportunidade de fazer alguém se sentir incrível e confiante. Sua dedicação e carinho são refletidos em cada sorriso de satisfação! @tiagoblackoficial',
-      avatar: require('assets/logo-t-black.png'),
-    },
-    {
-      id: 2,
-      nome: 'João',
-      descricao:
-        "João é um verdadeiro artista no que faz! Desde que se juntou ao Studio T'black, sua evolução tem sido impressionante. Ele não só domina as técnicas de corte, mas também traz um olhar único para cada atendimento, garantindo que cada cliente saia satisfeito e confiante. A paixão e o empenho do João são inspiradores, e ele continua se aprimorando a cada dia. Venha conhecer o trabalho dele e descubra por todos aqui no Studio! Estamos muito orgulhosos de ter o João em nossa equipe! @joaobarber0Z",
-      avatar: require('assets/logo-t-black.png'),
-    },
-    {
-      id: 3,
-      nome: 'Vanessa',
-      descricao:
-        "A Vanessa é uma verdadeira paixão pela beleza e pelo cuidado com os cabelos! Com um talento incrível, ela consegue transformar cada cabelo em uma obra-prima, sempre atenta às necessidades de cada cliente. Desde que chegou ao Studio T'black, a Vanessa tem se destacado pelo seu profissionalismo e dedicação. Ela não só entrega resultados maravilhosos, mas também faz com uma experiência única e acolhedora. Venha conhecer o trabalho da Vanessa e descubra como ela pode realçar ainda mais a sua beleza! Estamos ansiosos para que você se encante com o talento dela! @vanessaboasorte_cachos",
-      avatar: require('assets/logo-t-black.png'),
-    },
-    {
-      id: 4,
-      nome: 'Wallacy',
-      descricao:
-        "Com essa cara de novo, o Wallacy já se destaca como um verdadeiro talento no Studio T'black. Ele possui um olhar apurado e uma habilidade incrível para cortes de cabelo, além de um atendimento que faz cada cliente se sentir especial. Wallacy está conosco há um ano e meio e tem mostrado que a paixão pela beleza e o compromisso com a qualidade são muito mais importantes do que a experiência em anos. Não julgue pela aparência; venha conferir o trabalho excepcional dele! Estamos ansiosos para que você conheça o talento do Wallacy. @barber_wallacy",
-      avatar: require('assets/logo-t-black.png'),
-    },
-    {
-      id: 5,
-      nome: 'Wando',
-      descricao:
-        'Conheça o Wando! Um profissional talentoso e apaixonado pelo que faz. Com dedicação e foco, ele oferece um atendimento excelente, garantindo a satisfação de todos os clientes. Sempre pronto para realçar a sua beleza!',
-      avatar: require('assets/logo-t-black.png'),
-    },
-  ];
+  // Carregar barbeiros do Supabase
+  useEffect(() => {
+    const loadBarbeiros = async () => {
+      try {
+        const data = await databaseService.barbers.getAll();
+        setBarbeiros(data);
+      } catch (error) {
+        console.error('Erro ao carregar barbeiros:', error);
+        Alert.alert('Erro', 'Não foi possível carregar os profissionais');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const toggleExpand = (id: number) => {
+    loadBarbeiros();
+  }, []);
+
+  const toggleExpand = (id: string) => {
     setExpandedBarbeiro((prev) => (prev === id ? null : id));
   };
+
+  if (loading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: colors.background,
+        }}
+      >
+        <Text style={{ color: colors.text }}>Carregando profissionais...</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
       contentContainerStyle={{ paddingTop: 16 }}
     >
-      {barbeirosDetalhes.map((barbeiro) => {
+      {barbeiros.map((barbeiro) => {
         const isExpanded = expandedBarbeiro === barbeiro.id;
-        const preview = barbeiro.descricao.split(' ').slice(0, 20).join(' ') + '...';
 
         return (
           <View
@@ -346,15 +391,31 @@ function ProfissionaisTab() {
             >
               <View style={styles.professionalInfo}>
                 <View style={[styles.avatarContainer, { borderColor: colors.primary }]}>
-                  <Image source={barbeiro.avatar} style={styles.avatar} />
+                  <Image
+                    source={
+                      barbeiro.avatar
+                        ? { uri: barbeiro.avatar }
+                        : require('assets/logo-t-black.png')
+                    }
+                    style={styles.avatar}
+                  />
                 </View>
                 <View style={styles.professionalDetails}>
                   <Text style={[styles.professionalName, { color: colors.text }]}>
-                    {barbeiro.nome}
+                    {barbeiro.name}
                   </Text>
                   <Text style={[styles.professionalRole, { color: colors.textSecondary }]}>
-                    Profissional Especializado
+                    {barbeiro.specialties &&
+                    Array.isArray(barbeiro.specialties) &&
+                    barbeiro.specialties.length > 0
+                      ? barbeiro.specialties.filter((s) => s).join(', ')
+                      : 'Profissional Especializado'}
                   </Text>
+                  {barbeiro.rating && (
+                    <Text style={[styles.professionalRating, { color: colors.accent }]}>
+                      ⭐ {barbeiro.rating.toFixed(1)}
+                    </Text>
+                  )}
                 </View>
               </View>
               <View style={[styles.expandIcon, { backgroundColor: colors.accent + '15' }]}>
@@ -372,8 +433,22 @@ function ProfissionaisTab() {
                   Sobre o profissional
                 </Text>
                 <Text style={[styles.descriptionText, { color: colors.textSecondary }]}>
-                  {barbeiro.descricao}
+                  {barbeiro.description || 'Profissional qualificado do Studio T Black.'}
                 </Text>
+                {barbeiro.workingHours &&
+                  Array.isArray(barbeiro.workingHours) &&
+                  barbeiro.workingHours.length > 0 && (
+                    <>
+                      <Text
+                        style={[styles.descriptionTitle, { color: colors.text, marginTop: 16 }]}
+                      >
+                        Horários de Trabalho
+                      </Text>
+                      <Text style={[styles.descriptionText, { color: colors.textSecondary }]}>
+                        {barbeiro.workingHours.filter((h) => h).join(', ')}
+                      </Text>
+                    </>
+                  )}
               </View>
             )}
           </View>
@@ -383,15 +458,10 @@ function ProfissionaisTab() {
   );
 }
 
-// Adicionando tipos para barbeiroId e corrigindo a função getLastAppointment
-function getLastAppointment(barbeiroId: number): string {
-  const lastAppointment = agendamentosExistentes
-    .filter((ag) => ag.barbeiroId === barbeiroId)
-    .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())[0];
-
-  return lastAppointment
-    ? `Data: ${lastAppointment.data}, Horário: ${lastAppointment.horario}`
-    : 'Nenhum agendamento recente';
+// TODO: Implementar busca de último agendamento no Supabase
+function getLastAppointment(barberId: string): string {
+  // Placeholder - será implementado com dados reais do Supabase
+  return 'Nenhum agendamento recente';
 }
 
 // Garantindo que colors seja acessível no escopo
@@ -632,6 +702,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     opacity: 0.8,
+  },
+  professionalRating: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 2,
   },
   expandIcon: {
     width: 36,

@@ -66,8 +66,7 @@ export const notificationService = {
     const trigger = triggerSeconds
       ? {
           seconds: triggerSeconds,
-          type: Notifications.SchedulableTriggerInputTypes
-            .TIME_INTERVAL as Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+          type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL as const, // Explicitly cast as const
         }
       : null;
 
@@ -113,7 +112,7 @@ export const notificationService = {
   },
 
   // Remove listeners
-  removeNotificationSubscription(subscription: Notifications.Subscription) {
-    Notifications.removeNotificationSubscription(subscription);
+  removeNotificationSubscription(subscription: { remove: () => void }) {
+    subscription.remove();
   },
 };

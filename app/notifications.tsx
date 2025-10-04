@@ -1,6 +1,7 @@
 import React from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
 import BackHeader from '../src/components/BackHeader';
 import { useTheme } from '../src/contexts/ThemeContext';
 

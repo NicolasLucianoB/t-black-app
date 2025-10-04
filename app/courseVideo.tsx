@@ -3,7 +3,6 @@ import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
-
 import BackHeader from 'src/components/BackHeader';
 import { useTheme } from 'src/contexts/ThemeContext';
 

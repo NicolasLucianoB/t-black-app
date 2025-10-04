@@ -1,6 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
+  Alert,
   Image,
   SafeAreaView,
   ScrollView,
@@ -9,95 +11,98 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-
 import { useRouter } from 'expo-router';
 import BackHeader from 'src/components/BackHeader';
 import { useCart } from 'src/contexts/CartContext';
 import { useTheme } from 'src/contexts/ThemeContext';
+import { databaseService } from 'src/services';
+import { Product } from 'src/types';
 
-// Mock de produtos
-const produtos = [
-  {
-    id: 1,
-    nome: 'Pomada Modeladora',
-    preco: 25.9,
-    descricao: 'Pomada para modelar cabelo com fixação forte',
-    imagem: 'https://via.placeholder.com/150x150/111/fff?text=Pomada',
-    categoria: 'Modelagem',
-  },
-  {
-    id: 2,
-    nome: 'Shampoo Profissional',
-    preco: 35.5,
-    descricao: 'Shampoo para todos os tipos de cabelo',
-    imagem: 'https://via.placeholder.com/150x150/111/fff?text=Shampoo',
-    categoria: 'Limpeza',
-  },
-  {
-    id: 3,
-    nome: 'Óleo Capilar',
-    preco: 42.0,
-    descricao: 'Óleo nutritivo para cabelos danificados',
-    imagem: 'https://via.placeholder.com/150x150/111/fff?text=Óleo',
-    categoria: 'Tratamento',
-  },
-  {
-    id: 4,
-    nome: 'Gel Fixador',
-    preco: 18.9,
-    descricao: 'Gel com fixação média e brilho natural',
-    imagem: 'https://via.placeholder.com/150x150/111/fff?text=Gel',
-    categoria: 'Modelagem',
-  },
-  {
-    id: 5,
-    nome: 'Máscara Hidratante',
-    preco: 55.0,
-    descricao: 'Máscara de hidratação profunda',
-    imagem: 'https://via.placeholder.com/150x150/111/fff?text=Máscara',
-    categoria: 'Tratamento',
-  },
-  {
-    id: 6,
-    nome: 'Condicionador',
-    preco: 28.9,
-    descricao: 'Condicionador para cabelos normais',
-    imagem: 'https://via.placeholder.com/150x150/111/fff?text=Condicionador',
-    categoria: 'Limpeza',
-  },
-];
+// Produtos agora vêm do Supabase
 
 export default function ProductsScreen() {
   const { cart, addToCart, removeFromCart } = useCart();
   const { colors } = useTheme();
   const router = useRouter();
 
-  console.log('ProductsScreen - Carrinho atual:', cart);
+  const [produtos, setProdutos] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const estaNoCarrinho = (produtoId: number) => {
-    const result = cart.some((item) => item.id === produtoId && item.type === 'product');
-    console.log(`Produto ${produtoId} está no carrinho:`, result);
-    return result;
+  // Carregar produtos do Supabase
+  useEffect(() => {
+    const loadProdutos = async () => {
+      try {
+        setLoading(true);
+        const data = await databaseService.products.getAll();
+        setProdutos(data);
+      } catch (error) {
+        console.error('Erro ao carregar produtos:', error);
+        setError('Não foi possível carregar os produtos');
+        Alert.alert('Erro', 'Não foi possível carregar os produtos');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProdutos();
+  }, []);
+
+  const estaNoCarrinho = (produtoId: string) => {
+    return cart.some((item) => item.productId === produtoId && item.type === 'product');
   };
 
-  const quantidadeNoCarrinho = (produtoId: number) => {
-    const quantidade = cart.filter(
-      (item) => item.id === produtoId && item.type === 'product',
-    ).length;
-    console.log(`Quantidade do produto ${produtoId} no carrinho:`, quantidade);
-    return quantidade;
+  const handleAddToCart = async (produto: Product) => {
+    await addToCart({
+      type: 'product',
+      productId: produto.id,
+      quantity: 1,
+      price: produto.price,
+      product: produto,
+    });
+    Alert.alert('Sucesso', `${produto.name} adicionado ao carrinho!`);
+  };
+
+  const handleRemoveFromCart = async (produto: Product) => {
+    const item = cart.find((item) => item.productId === produto.id && item.type === 'product');
+    if (item) {
+      await removeFromCart(item.id);
+      Alert.alert('Removido', `${produto.name} removido do carrinho!`);
+    }
   };
 
   const totalCarrinho = cart
     .filter((item) => item.type === 'product')
-    .reduce((total, item) => {
-      const produto = produtos.find((p) => p.id === item.id);
-      return total + (produto?.preco || 0);
-    }, 0);
+    .reduce((total, item) => total + item.price * item.quantity, 0);
 
   const irParaCarrinho = () => {
     router.push('/cart');
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <BackHeader />
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={{ color: colors.text, marginTop: 16 }}>Carregando produtos...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error || produtos.length === 0) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <BackHeader />
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+          <Text style={{ color: colors.text, fontSize: 18, textAlign: 'center' }}>
+            {error || 'Nenhum produto disponível no momento'}
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -107,18 +112,25 @@ export default function ProductsScreen() {
         <View style={styles.productsGrid}>
           {produtos.map((produto) => (
             <View key={produto.id} style={styles.productCard}>
-              <Image source={{ uri: produto.imagem }} style={styles.productImage} />
+              <Image
+                source={{
+                  uri:
+                    produto.images?.[0] ||
+                    'https://via.placeholder.com/150x150/111/fff?text=Produto',
+                }}
+                style={styles.productImage}
+              />
               <View style={styles.productInfo}>
-                <Text style={styles.productName}>{produto.nome}</Text>
-                <Text style={styles.productCategory}>{produto.categoria}</Text>
-                <Text style={styles.productPrice}>R$ {produto.preco.toFixed(2)}</Text>
+                <Text style={styles.productName}>{produto.name}</Text>
+                <Text style={styles.productCategory}>{produto.category}</Text>
+                <Text style={styles.productPrice}>R$ {produto.price.toFixed(2)}</Text>
 
                 {estaNoCarrinho(produto.id) ? (
                   <View style={styles.inCartContainer}>
                     <Text style={styles.inCartTextCentered}>No Carrinho</Text>
                     <TouchableOpacity
                       style={styles.removeButton}
-                      onPress={() => removeFromCart(produto.id, 'product')}
+                      onPress={() => handleRemoveFromCart(produto)}
                     >
                       <Ionicons name="remove-circle" size={24} color="#ff6b6b" />
                     </TouchableOpacity>
@@ -126,7 +138,7 @@ export default function ProductsScreen() {
                 ) : (
                   <TouchableOpacity
                     style={styles.addButton}
-                    onPress={() => addToCart(produto.id, 'product')}
+                    onPress={() => handleAddToCart(produto)}
                   >
                     <Ionicons name="add-circle" size={24} color="#111" style={{ marginRight: 4 }} />
                     <View style={styles.addButtonTextAbsoluteContainer} pointerEvents="none">
