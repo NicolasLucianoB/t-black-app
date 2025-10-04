@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 
 import BackHeader from '../../src/components/BackHeader';
-import { useCart } from '../../src/contexts/CartContext';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { databaseService } from '../../src/services';
 import { Course } from '../../src/types';
@@ -116,7 +115,7 @@ export default function TodosCursosTab() {
               )} */}
               <TouchableOpacity
                 style={[styles.button, { backgroundColor: colors.primary }]}
-                // onPress={} // Adicione lógica se necessário
+              // onPress={} // Adicione lógica se necessário
               >
                 <Text style={[styles.buttonText, { color: colors.background }]}>
                   Resgatar Curso

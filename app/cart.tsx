@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import {
   Alert,
@@ -11,7 +12,6 @@ import {
   View,
 } from 'react-native';
 import BackHeader from 'src/components/BackHeader';
-import { useRouter } from 'expo-router';
 import { useCart } from 'src/contexts/CartContext';
 import { useTheme } from 'src/contexts/ThemeContext';
 
