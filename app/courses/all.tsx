@@ -115,7 +115,7 @@ export default function TodosCursosTab() {
               )} */}
               <TouchableOpacity
                 style={[styles.button, { backgroundColor: colors.primary }]}
-              // onPress={} // Adicione lógica se necessário
+                // onPress={} // Adicione lógica se necessário
               >
                 <Text style={[styles.buttonText, { color: colors.background }]}>
                   Resgatar Curso

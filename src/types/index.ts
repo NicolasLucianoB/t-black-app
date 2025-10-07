@@ -3,6 +3,7 @@
 
 export * from './api';
 export * from './booking';
+export * from './chat';
 export * from './course';
 export * from './notification';
 export * from './product';

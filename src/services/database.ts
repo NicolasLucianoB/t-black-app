@@ -1,5 +1,14 @@
 // Database service using Supabase
-import { Barber, Booking, Course, CreateBookingRequest, Product, User } from '../types';
+import {
+  Barber,
+  Booking,
+  ChatMessage,
+  Course,
+  CreateBookingRequest,
+  CreateMessageRequest,
+  Product,
+  User,
+} from '../types';
 import { supabase } from './supabase';
 
 export const databaseService = {
@@ -269,17 +278,7 @@ export const databaseService = {
           return [];
         }
 
-        // Convert snake_case to camelCase and ensure arrays are properly handled
-        return (data || []).map((barber) => ({
-          id: barber.id,
-          name: barber.name,
-          avatar: barber.avatar,
-          specialties: Array.isArray(barber.specialties) ? barber.specialties : [],
-          workingHours: Array.isArray(barber.working_hours) ? barber.working_hours : [],
-          active: barber.active,
-          description: barber.description,
-          rating: barber.rating,
-        }));
+        return data || [];
       } catch (error) {
         console.error('Error:', error);
         return [];
@@ -295,22 +294,93 @@ export const databaseService = {
           return null;
         }
 
-        if (!data) return null;
+        return data;
+      } catch (error) {
+        console.error('Error:', error);
+        return null;
+      }
+    },
+  },
 
-        // Convert snake_case to camelCase
+  // Chat operations
+  chat: {
+    async getMessages(limit: number = 50): Promise<ChatMessage[]> {
+      try {
+        const { data, error } = await supabase
+          .from('messages')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(limit);
+
+        if (error) {
+          console.error('Error fetching messages:', error);
+          return [];
+        }
+
+        // Convert snake_case to camelCase and reverse to show oldest first
+        return (data || []).reverse().map((message) => ({
+          id: message.id,
+          content: message.content,
+          senderId: message.sender_id,
+          senderName: message.sender_name,
+          senderAvatar: message.sender_avatar,
+          timestamp: message.created_at, // Keep for compatibility
+          createdAt: message.created_at,
+          updatedAt: message.updated_at,
+        }));
+      } catch (error) {
+        console.error('Error:', error);
+        return [];
+      }
+    },
+
+    async sendMessage(messageData: CreateMessageRequest): Promise<ChatMessage | null> {
+      try {
+        // Convert camelCase to snake_case for database
+        const dbMessage = {
+          content: messageData.content,
+          sender_id: messageData.senderId,
+          sender_name: messageData.senderName,
+          sender_avatar: messageData.senderAvatar,
+        };
+
+        const { data, error } = await supabase.from('messages').insert(dbMessage).select().single();
+
+        if (error) {
+          console.error('Error sending message:', error);
+          return null;
+        }
+
+        // Convert back to camelCase
         return {
           id: data.id,
-          name: data.name,
-          avatar: data.avatar,
-          specialties: Array.isArray(data.specialties) ? data.specialties : [],
-          workingHours: Array.isArray(data.working_hours) ? data.working_hours : [],
-          active: data.active,
-          description: data.description,
-          rating: data.rating,
+          content: data.content,
+          senderId: data.sender_id,
+          senderName: data.sender_name,
+          senderAvatar: data.sender_avatar,
+          timestamp: data.created_at,
+          createdAt: data.created_at,
+          updatedAt: data.updated_at,
         };
       } catch (error) {
         console.error('Error:', error);
         return null;
+      }
+    },
+
+    async deleteMessage(messageId: string): Promise<boolean> {
+      try {
+        const { error } = await supabase.from('messages').delete().eq('id', messageId);
+
+        if (error) {
+          console.error('Error deleting message:', error);
+          return false;
+        }
+
+        return true;
+      } catch (error) {
+        console.error('Error:', error);
+        return false;
       }
     },
   },

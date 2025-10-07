@@ -3,7 +3,6 @@ import React, { useMemo, useState } from 'react';
 import {
   LayoutAnimation,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,6 +11,7 @@ import {
   UIManager,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackHeader from '../src/components/BackHeader';
 import { useTheme } from '../src/contexts/ThemeContext';

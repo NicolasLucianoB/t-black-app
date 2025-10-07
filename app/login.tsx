@@ -103,7 +103,7 @@ export default function LoginScreen() {
             onPress={handleAppleLogin}
             accessibilityRole="button"
           >
-            <AntDesign name="apple1" size={22} color="#111" style={{ marginRight: 8 }} />
+            <AntDesign name="apple" size={22} color="#111" style={{ marginRight: 8 }} />
             <Text style={styles.socialButtonText}>Entrar com Apple</Text>
           </TouchableOpacity>
         )}

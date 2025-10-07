@@ -1,6 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
+  Alert,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -11,137 +14,143 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useAuth } from 'src/contexts/AuthContext';
 import { useTheme } from 'src/contexts/ThemeContext';
-
-interface Message {
-  id: string;
-  text: string;
-  sender: 'user' | 'barber' | 'tiago' | 'joão' | 'rafael' | 'carlos' | 'marcos';
-  senderName: string;
-  timestamp: Date;
-}
+import { useChat } from 'src/hooks/useChat';
+import { ChatMessage } from 'src/types';
 
 export default function CommunityScreen() {
   const { colors } = useTheme();
+  const { user } = useAuth();
   const router = useRouter();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text: 'Fala rapaziada! quem aí já viu o vídeo sobre finalização que eu disponibilizei na aba de cursos?',
-      sender: 'barber',
-      senderName: 'Tiago',
-      timestamp: new Date(),
-    },
-    {
-      id: '2',
-      text: 'Pô! Não vi ainda não, vou correndo assistir, estava precisando mesmo!',
-      sender: 'marcos',
-      senderName: 'Marcos Silva',
-      timestamp: new Date(),
-    },
-    {
-      id: '3',
-      text: 'Eu já, ficou maneiraaaaço, já vou aplicar essa técnica depois que sair do banho.',
-      sender: 'user',
-      senderName: 'Nícolas Luciano',
-      timestamp: new Date(),
-    },
-    {
-      id: '4',
-      text: 'Tiagão, surgiu um evento de última hora! Tem vaga hoje?',
-      sender: 'user',
-      senderName: 'Nícolas Luciano',
-      timestamp: new Date(),
-    },
-    {
-      id: '5',
-      text: 'Temos sim! Pode vir às 15h',
-      sender: 'barber',
-      senderName: 'João',
-      timestamp: new Date(),
-    },
-  ]);
+  const flatListRef = useRef<FlatList>(null);
+
+  const { messages, loading, sendingMessage, error, sendMessage } = useChat();
   const [newMessage, setNewMessage] = useState('');
 
-  const sendMessage = () => {
-    if (newMessage.trim()) {
-      const message: Message = {
-        id: Date.now().toString(),
-        text: newMessage,
-        sender: 'user',
-        senderName: 'Você',
-        timestamp: new Date(),
-      };
-      setMessages([...messages, message]);
+  // Auto scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (messages.length > 0 && flatListRef.current) {
+      setTimeout(() => {
+        flatListRef?.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  }, [messages]);
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !user) return;
+
+    const result = await sendMessage(
+      newMessage.trim(),
+      user.id,
+      user.name,
+      user.avatar || undefined,
+    );
+
+    if (result) {
       setNewMessage('');
+    } else if (error) {
+      Alert.alert('Erro', 'Não foi possível enviar a mensagem. Tente novamente.');
     }
   };
 
-  const getSenderColor = (sender: string) => {
-    switch (sender) {
-      case 'barber':
-        return '#25D366'; // Verde WhatsApp
-      case 'joão':
-        return '#FF6B6B'; // Vermelho
-      case 'rafael':
-        return '#4ECDC4'; // Turquesa
-      case 'carlos':
-        return '#45B7D1'; // Azul
-      case 'marcos':
-        return '#96CEB4'; // Verde claro
-      case 'user':
-        return '#111'; // Preto para usuários
-      default:
-        return '#999';
-    }
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
-  const renderMessage = ({ item }: { item: Message }) => {
-    const isUser = item.sender === 'user';
-    const senderColor = getSenderColor(item.sender);
+  const getUserColor = (senderId: string) => {
+    // Generate consistent color based on user ID
+    const colorsArray = [
+      '#007AFF',
+      '#FF6B35',
+      '#34C759',
+      '#AF52DE',
+      '#FF9500',
+      '#5AC8FA',
+      '#FF3B30',
+    ];
+    const hash = senderId.split('').reduce((a, b) => {
+      a = (a << 5) - a + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    return colorsArray[Math.abs(hash) % colorsArray.length];
+  };
+
+  const isCurrentUser = (senderId: string) => {
+    return senderId === user?.id;
+  };
+
+  const renderMessage = ({ item }: { item: ChatMessage }) => {
+    const isMe = isCurrentUser(item.senderId);
+
     return (
       <View
         style={[
           styles.messageContainer,
-          isUser
-            ? { ...styles.userMessage, backgroundColor: colors.primary }
-            : { ...styles.barberMessage, backgroundColor: colors.card, shadowColor: colors.shadow },
+          isMe ? styles.currentUserMessage : styles.otherUserMessage,
         ]}
       >
-        {!isUser && (
-          <Text style={[styles.senderName, { color: senderColor }]}>{item.senderName}</Text>
-        )}
-        <Text
-          style={[styles.messageText, isUser ? { color: colors.card } : { color: colors.text }]}
-        >
-          {item.text}
-        </Text>
-        <Text style={[styles.timestamp, { color: colors.textSecondary }]}>
-          {item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-        </Text>
+        <View style={[styles.messageBubble, { backgroundColor: colors.card }]}>
+          <View style={styles.messageHeader}>
+            <Text style={[styles.senderName, { color: getUserColor(item.senderId) }]}>
+              {isMe ? 'Você' : item.senderName}
+            </Text>
+            <Text style={[styles.timestamp, { color: colors.textSecondary }]}>
+              {formatTime(item.createdAt)}
+            </Text>
+          </View>
+          <Text style={[styles.messageText, { color: colors.text }]}>{item.content}</Text>
+        </View>
       </View>
     );
   };
 
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.text }]}>Carregando mensagens...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <View style={styles.header}>
-        <Text style={[styles.headerText]}>T. Black Chat</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Header */}
+      <View
+        style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}
+      >
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Comunidade T-Black</Text>
+        <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+          {messages.length} mensagens
+        </Text>
       </View>
+
+      {/* Messages */}
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={styles.chatContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={100}
       >
         <FlatList
+          ref={flatListRef}
           data={messages}
-          renderItem={renderMessage}
           keyExtractor={(item) => item.id}
-          style={styles.messagesList}
-          contentContainerStyle={styles.messagesContainer}
+          renderItem={renderMessage}
+          contentContainerStyle={styles.messagesList}
           showsVerticalScrollIndicator={false}
+          onContentSizeChange={() => {
+            flatListRef?.current?.scrollToEnd({ animated: true });
+          }}
         />
 
+        {/* Input */}
         <View
           style={[
             styles.inputContainer,
@@ -149,22 +158,42 @@ export default function CommunityScreen() {
           ]}
         >
           <TextInput
-            style={[styles.textInput, { borderColor: colors.border, color: colors.text }]}
-            value={newMessage}
-            onChangeText={setNewMessage}
+            style={[
+              styles.textInput,
+              {
+                backgroundColor: colors.background,
+                color: colors.text,
+                borderColor: colors.border,
+              },
+            ]}
             placeholder="Digite sua mensagem..."
             placeholderTextColor={colors.textSecondary}
+            value={newMessage}
+            onChangeText={setNewMessage}
             multiline
+            maxLength={500}
+            editable={!sendingMessage}
           />
           <TouchableOpacity
             style={[
               styles.sendButton,
-              { backgroundColor: newMessage.trim() ? colors.primary : colors.textSecondary },
+              {
+                backgroundColor:
+                  newMessage.trim() && !sendingMessage ? colors.primary : colors.border,
+              },
             ]}
-            onPress={sendMessage}
-            disabled={!newMessage.trim()}
+            onPress={handleSendMessage}
+            disabled={!newMessage.trim() || sendingMessage}
           >
-            <Ionicons name="send" size={20} color={colors.card} />
+            {sendingMessage ? (
+              <ActivityIndicator size="small" color={colors.card} />
+            ) : (
+              <Ionicons
+                name="send"
+                size={20}
+                color={newMessage.trim() ? colors.card : colors.textSecondary}
+              />
+            )}
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -175,101 +204,95 @@ export default function CommunityScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f7f7f7',
   },
-  messagesList: {
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+  },
+  header: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    marginTop: 2,
+  },
+  chatContainer: {
     flex: 1,
   },
-  messagesContainer: {
-    padding: 16,
+  messagesList: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   messageContainer: {
+    marginVertical: 4,
+  },
+  currentUserMessage: {
+    alignItems: 'flex-end',
+  },
+  otherUserMessage: {
+    alignItems: 'flex-start',
+  },
+  messageBubble: {
     maxWidth: '80%',
-    marginBottom: 12,
-    padding: 12,
     borderRadius: 16,
-  },
-  userMessage: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#111',
-    borderBottomRightRadius: 4,
-  },
-  barberMessage: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#fff',
-    borderBottomLeftRadius: 4,
+    padding: 12,
+    elevation: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
-    elevation: 2,
   },
-  messageText: {
-    fontSize: 16,
-    lineHeight: 20,
-  },
-  userMessageText: {
-    color: '#fff',
-  },
-  barberMessageText: {
-    color: '#111',
-  },
-  timestamp: {
-    fontSize: 12,
-    color: '#999',
-    marginTop: 4,
-    alignSelf: 'flex-end',
-  },
-  inputContainer: {
+  messageHeader: {
     flexDirection: 'row',
-    padding: 16,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-  },
-  textInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginRight: 8,
-    fontSize: 16,
-    maxHeight: 100,
-  },
-  sendButton: {
-    backgroundColor: '#111',
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    borderRadius: 20,
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    width: 44,
-    height: 44,
-  },
-  sendButtonDisabled: {
-    backgroundColor: '#ccc',
-  },
-  sendButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
+    marginBottom: 4,
   },
   senderName: {
     fontSize: 12,
-    fontWeight: 'bold',
-    marginBottom: 4,
+    fontWeight: '600',
   },
-  header: {
+  timestamp: {
+    fontSize: 11,
+    marginLeft: 8,
+  },
+  messageText: {
+    fontSize: 15,
+    lineHeight: 20,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    paddingHorizontal: 16,
     paddingVertical: 12,
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#3b3b3bff',
+    borderTopWidth: 1,
   },
-  headerText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#c9b544ff',
+  textInput: {
+    flex: 1,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginRight: 12,
+    maxHeight: 100,
+    fontSize: 16,
+    borderWidth: 1,
+  },
+  sendButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
