@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { useCart } from 'src/contexts/CartContext';
 import { useTheme } from 'src/contexts/ThemeContext';
 
@@ -107,41 +107,43 @@ export default function MenuScreen() {
   ];
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View
-        style={[
-          styles.header,
-          { backgroundColor: colors.surface, borderBottomColor: colors.border },
-        ]}
-      >
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Menu</Text>
-        <TouchableOpacity style={styles.closeButton} onPress={() => router.back()}>
-          <Ionicons name="close" size={24} color={colors.text} />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.menuGrid}>
-          {menuItems.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              style={[styles.menuItem, { backgroundColor: colors.card }]}
-              onPress={item.onPress}
-            >
-              <View style={[styles.iconContainer, { backgroundColor: item.color + '20' }]}>
-                <Ionicons name={item.icon as any} size={24} color={item.color} />
-                {item.id === 'cart' && getCartCount() > 0 && (
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{getCartCount()}</Text>
-                  </View>
-                )}
-              </View>
-              <Text style={[styles.menuItemTitle, { color: colors.text }]}>{item.title}</Text>
-            </TouchableOpacity>
-          ))}
+    <SafeAreaProvider>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <View
+          style={[
+            styles.header,
+            { backgroundColor: colors.surface, borderBottomColor: colors.border },
+          ]}
+        >
+          <Text style={[styles.headerTitle, { color: colors.text }]}>Menu</Text>
+          <TouchableOpacity style={styles.closeButton} onPress={() => router.back()}>
+            <Ionicons name="close" size={24} color={colors.text} />
+          </TouchableOpacity>
         </View>
-      </ScrollView>
-    </SafeAreaView>
+
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <View style={styles.menuGrid}>
+            {menuItems.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={[styles.menuItem, { backgroundColor: colors.card }]}
+                onPress={item.onPress}
+              >
+                <View style={[styles.iconContainer, { backgroundColor: item.color + '20' }]}>
+                  <Ionicons name={item.icon as any} size={24} color={item.color} />
+                  {item.id === 'cart' && getCartCount() > 0 && (
+                    <View style={styles.badge}>
+                      <Text style={styles.badgeText}>{getCartCount()}</Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={[styles.menuItemTitle, { color: colors.text }]}>{item.title}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 

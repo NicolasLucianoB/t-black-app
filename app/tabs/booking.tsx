@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -12,7 +13,6 @@ import {
   View,
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-import { useRouter } from 'expo-router';
 import AppHeader from 'src/components/AppHeader';
 import { useAuth } from 'src/contexts/AuthContext';
 import { useTheme } from 'src/contexts/ThemeContext';
@@ -122,6 +122,7 @@ function AgendarTab() {
 
       try {
         const slots = await databaseService.bookings.getAvailableSlots(barbeiro, data);
+        console.log('Horários disponíveis:', slots); // Log para depuração
         setHorariosDisponiveis(slots);
       } catch (error) {
         console.error('Erro ao carregar horários:', error);
@@ -402,14 +403,16 @@ function ProfissionaisTab() {
                 </View>
                 <View style={styles.professionalDetails}>
                   <Text style={[styles.professionalName, { color: colors.text }]}>
-                    {barbeiro.name}
+                    {barbeiro.name || 'Nome não disponível'}
                   </Text>
                   <Text style={[styles.professionalRole, { color: colors.textSecondary }]}>
                     {barbeiro.specialties &&
                     Array.isArray(barbeiro.specialties) &&
-                    barbeiro.specialties.length > 0
-                      ? barbeiro.specialties.filter((s) => s).join(', ')
-                      : 'Profissional Especializado'}
+                    barbeiro.specialties.length > 0 ? (
+                      barbeiro.specialties.filter((s) => s).join(', ')
+                    ) : (
+                      <Text>Profissional Especializado</Text>
+                    )}
                   </Text>
                   {barbeiro.rating && (
                     <Text style={[styles.professionalRating, { color: colors.accent }]}>

@@ -38,8 +38,8 @@ export const databaseService = {
         // Convert camelCase to snake_case for database
         const dbBooking = {
           user_id: booking.userId,
-          barber_id: booking.barberId,
-          service_id: booking.serviceId,
+          barber_id: booking.barberId || null, // Ensure valid UUID or null
+          service_id: booking.serviceId === 'default' ? null : booking.serviceId, // Replace 'default' with null
           date: booking.date,
           time: booking.time,
           status: booking.status,
@@ -49,6 +49,28 @@ export const databaseService = {
           payment_status: booking.paymentStatus,
           updated_at: booking.updatedAt,
         };
+
+        console.log('Booking data before insert:', dbBooking);
+
+        if (!dbBooking.barber_id || (dbBooking.service_id !== null && !dbBooking.service_id)) {
+          console.error('Invalid UUID for barber_id or service_id:', dbBooking);
+          throw new Error('Invalid UUID for barber_id or service_id');
+        }
+
+        // Check if the time slot is already booked for the barber
+        const existingBooking = await supabase
+          .from('bookings')
+          .select('*')
+          .eq('barber_id', dbBooking.barber_id)
+          .eq('date', dbBooking.date)
+          .eq('time', dbBooking.time)
+          .eq('status', 'scheduled')
+          .single();
+
+        if (existingBooking.data) {
+          console.error('Time slot already booked for this barber:', dbBooking);
+          throw new Error('Time slot already booked for this barber.');
+        }
 
         const { data, error } = await supabase.from('bookings').insert(dbBooking).select().single();
 
@@ -122,14 +144,20 @@ export const databaseService = {
           .select('time')
           .eq('barber_id', barberId)
           .eq('date', date)
-          .eq('status', 'confirmed');
+          .eq('status', 'scheduled'); // Certifique-se de que o status é 'scheduled'
 
         if (error) {
-          console.error('Error fetching bookings:', error);
+          console.error('Erro ao buscar horários ocupados:', error);
           return [];
         }
 
-        // Define available time slots (9am to 6pm, 1-hour slots)
+        const bookedSlots =
+          existingBookings?.map((booking) => {
+            const [hour, minute] = booking.time.split(':');
+            return `${hour}:${minute}`; // Normalize to HH:mm format
+          }) || [];
+        console.log('Horários ocupados:', bookedSlots); // Log para depuração
+
         const allSlots = [
           '09:00',
           '10:00',
@@ -143,8 +171,8 @@ export const databaseService = {
           '18:00',
         ];
 
-        const bookedSlots = existingBookings?.map((booking) => booking.time) || [];
         const availableSlots = allSlots.filter((slot) => !bookedSlots.includes(slot));
+        console.log('Horários disponíveis após filtro:', availableSlots); // Log para depuração
 
         return availableSlots;
       } catch (error) {
