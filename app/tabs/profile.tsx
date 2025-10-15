@@ -1,6 +1,6 @@
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppHeader from 'src/components/AppHeader';
 import { useAuth } from 'src/contexts/AuthContext';
@@ -89,7 +89,7 @@ export default function ProfileScreen() {
           style={[styles.section, { backgroundColor: colors.card, shadowColor: colors.shadow }]}
         >
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Histórico</Text>
-          <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/my-bookings')}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/bookings')}>
             <Text style={[styles.menuItemText, { color: colors.text }]}>Meus Agendamentos</Text>
             <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
           </TouchableOpacity>
