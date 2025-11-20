@@ -1,7 +1,9 @@
 // Storage service for file uploads (images, documents, etc.)
 // Using Supabase Storage
 
-// import { supabase } from './supabase';
+import { supabase } from './supabase';
+
+const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL!;
 
 export interface UploadResult {
   url: string | null;
@@ -9,87 +11,77 @@ export interface UploadResult {
 }
 
 export const storageService = {
-  // Upload avatar/profile image
-  async uploadAvatar(userId: string, file: File | Blob): Promise<UploadResult> {
+  // Upload avatar/profile image - React Native optimized
+  async uploadAvatar(userId: string, imageUri: string, fileName?: string): Promise<UploadResult> {
     try {
-      // TODO: Replace with Supabase storage
-      // const fileExt = file.name.split('.').pop();
-      // const fileName = `${userId}.${fileExt}`;
-      // const filePath = `avatars/${fileName}`;
+      // Generate file extension and path with user folder
+      const fileExt = fileName ? fileName.split('.').pop() : 'jpg';
+      const finalFileName = `avatar.${fileExt}`;
+      const filePath = `${userId}/${finalFileName}`;
 
-      // const { error: uploadError } = await supabase.storage
-      //   .from('avatars')
-      //   .upload(filePath, file, { upsert: true });
+      // Use FormData for React Native
+      const formData = new FormData();
+      formData.append('file', {
+        uri: imageUri,
+        type: `image/${fileExt}`,
+        name: finalFileName,
+      } as any);
 
-      // if (uploadError) {
-      //   return { url: null, error: uploadError.message };
-      // }
+      // Get Supabase URL and headers
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-      // const { data } = supabase.storage
-      //   .from('avatars')
-      //   .getPublicUrl(filePath);
+      if (!session) {
+        return { url: null, error: 'Usuário não autenticado' };
+      }
 
-      // return { url: data.publicUrl, error: null };
+      // Upload using fetch directly (works better in React Native)
+      const response = await fetch(`${SUPABASE_URL}/storage/v1/object/avatars/${filePath}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: formData,
+      });
 
-      return { url: null, error: 'Upload não implementado ainda' };
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Upload failed:', errorText);
+        return { url: null, error: 'Falha no upload da imagem' };
+      }
+
+      // Get public URL
+      const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+
+      return { url: data.publicUrl, error: null };
     } catch (error) {
+      console.error('Storage error:', error);
       return { url: null, error: 'Erro no upload' };
     }
   },
 
-  // Upload product images
-  async uploadProductImage(productId: string, file: File | Blob): Promise<UploadResult> {
-    try {
-      // TODO: Replace with Supabase storage
-      // const fileExt = file.name.split('.').pop();
-      // const fileName = `${productId}_${Date.now()}.${fileExt}`;
-      // const filePath = `products/${fileName}`;
-
-      // const { error: uploadError } = await supabase.storage
-      //   .from('products')
-      //   .upload(filePath, file);
-
-      // if (uploadError) {
-      //   return { url: null, error: uploadError.message };
-      // }
-
-      // const { data } = supabase.storage
-      //   .from('products')
-      //   .getPublicUrl(filePath);
-
-      // return { url: data.publicUrl, error: null };
-
-      return { url: null, error: 'Upload não implementado ainda' };
-    } catch (error) {
-      return { url: null, error: 'Erro no upload' };
-    }
-  },
-
-  // Delete file
+  // Delete file (useful for cleaning up old avatars)
   async deleteFile(bucket: string, filePath: string): Promise<{ error: string | null }> {
     try {
-      // TODO: Replace with Supabase storage
-      // const { error } = await supabase.storage
-      //   .from(bucket)
-      //   .remove([filePath]);
+      const { error } = await supabase.storage.from(bucket).remove([filePath]);
 
-      // return { error: error?.message || null };
-
-      return { error: null };
+      return { error: error?.message || null };
     } catch (error) {
+      console.error('Delete error:', error);
       return { error: 'Erro ao deletar arquivo' };
     }
   },
 
-  // Get public URL for a file
+  // Get public URL for a file (useful for displaying images)
   getPublicUrl(bucket: string, filePath: string): string | null {
-    // TODO: Replace with Supabase storage
-    // const { data } = supabase.storage
-    //   .from(bucket)
-    //   .getPublicUrl(filePath);
+    try {
+      const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
 
-    // return data.publicUrl;
-
-    return null;
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Get URL error:', error);
+      return null;
+    }
   },
 };

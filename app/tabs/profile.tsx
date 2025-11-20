@@ -1,15 +1,28 @@
+import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import React from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppHeader from 'src/components/AppHeader';
 import { useAuth } from 'src/contexts/AuthContext';
 import { useTheme } from 'src/contexts/ThemeContext';
+import { authService } from 'src/services';
 
 export default function ProfileScreen() {
   const { colors } = useTheme();
   const { user, signOut } = useAuth();
   const router = useRouter();
+  const [updatingAvatar, setUpdatingAvatar] = useState(false);
 
   const handleLogout = async () => {
     Alert.alert('Sair', 'Tem certeza que deseja sair?', [
@@ -39,20 +52,140 @@ export default function ProfileScreen() {
       .slice(0, 2);
   };
 
+  const handleAvatarPress = () => {
+    const options = user?.avatar
+      ? ['Editar Foto', 'Remover Foto', 'Cancelar']
+      : ['Adicionar Foto', 'Cancelar'];
+
+    const cancelButtonIndex = options.length - 1;
+    const destructiveButtonIndex = user?.avatar ? 1 : undefined;
+
+    Alert.alert('Avatar', 'O que deseja fazer?', [
+      {
+        text: user?.avatar ? 'Editar Foto' : 'Adicionar Foto',
+        onPress: handleChangeAvatar,
+      },
+      ...(user?.avatar
+        ? [
+            {
+              text: 'Remover Foto',
+              style: 'destructive' as const,
+              onPress: handleRemoveAvatar,
+            },
+          ]
+        : []),
+      {
+        text: 'Cancelar',
+        style: 'cancel' as const,
+      },
+    ]);
+  };
+
+  const handleChangeAvatar = async () => {
+    if (!user?.id) return;
+
+    setUpdatingAvatar(true);
+    try {
+      // Pick image from gallery
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (!permissionResult.granted) {
+        Alert.alert('Erro', 'Permissão para acessar a galeria é necessária!');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (result.canceled) {
+        return;
+      }
+
+      const imageUri = result.assets[0].uri;
+      const fileName = result.assets[0].fileName || 'avatar.jpg';
+
+      // Import storage service
+      const { storageService } = await import('src/services/storage');
+
+      // Upload using the correct method with user folder structure
+      const uploadResult = await storageService.uploadAvatar(user.id, imageUri, fileName);
+      if (uploadResult.error) {
+        Alert.alert('Erro', uploadResult.error);
+        return;
+      }
+
+      if (uploadResult.url) {
+        // Update user profile with new avatar URL
+        const updateResult = await authService.updateProfile({ avatar: uploadResult.url });
+
+        if (updateResult.error) {
+          Alert.alert('Erro', updateResult.error);
+        } else {
+          Alert.alert('Sucesso', 'Avatar atualizado com sucesso!');
+          // The user context should be updated automatically via auth state changes
+        }
+      }
+    } catch (error) {
+      console.error('Error updating avatar:', error);
+      Alert.alert('Erro', 'Erro ao atualizar avatar');
+    } finally {
+      setUpdatingAvatar(false);
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    if (!user?.id || !user?.avatar) return;
+
+    setUpdatingAvatar(true);
+    try {
+      // Update user profile to remove avatar URL
+      const updateResult = await authService.updateProfile({ avatar: null });
+
+      if (updateResult.error) {
+        Alert.alert('Erro', updateResult.error);
+      } else {
+        Alert.alert('Sucesso', 'Avatar removido com sucesso!');
+
+        // Optional: Also delete the file from storage
+        const { storageService } = await import('src/services/storage');
+        await storageService.deleteFile('avatars', `${user.id}/avatar.jpg`);
+      }
+    } catch (error) {
+      console.error('Error removing avatar:', error);
+      Alert.alert('Erro', 'Erro ao remover avatar');
+    } finally {
+      setUpdatingAvatar(false);
+    }
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <AppHeader />
       <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={[styles.header, { backgroundColor: colors.primary }]}>
-          <View style={[styles.avatarContainer, { backgroundColor: colors.card }]}>
-            {user?.avatar ? (
+        <View style={[styles.header, { backgroundColor: colors.background }]}>
+          <TouchableOpacity
+            style={[styles.avatarContainer, { backgroundColor: colors.card }]}
+            onPress={handleAvatarPress}
+            disabled={updatingAvatar}
+          >
+            {updatingAvatar ? (
+              <ActivityIndicator size="large" color={colors.primary} />
+            ) : user?.avatar ? (
               <Image source={{ uri: user.avatar }} style={styles.avatar} />
             ) : (
               <Text style={[styles.avatarText, { color: colors.primary }]}>
                 {user?.name ? getInitials(user.name) : 'U'}
               </Text>
             )}
-          </View>
+            {/* Camera icon overlay */}
+            <View style={[styles.cameraIconContainer, { backgroundColor: colors.primary }]}>
+              <Ionicons name="camera" size={20} color={colors.card} />
+            </View>
+          </TouchableOpacity>
           <Text style={[styles.userName, { color: colors.text }]}>{user?.name || 'Usuário'}</Text>
           <Text style={[styles.userEmail, { color: colors.textSecondary }]}>
             {user?.email || 'usuario@email.com'}
@@ -148,24 +281,42 @@ const styles = StyleSheet.create({
   header: {
     padding: 24,
     alignItems: 'center',
-    paddingTop: 60,
+    paddingTop: 40,
   },
   avatarContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
+    position: 'relative',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  cameraIconContainer: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: '#fff',
   },
   avatarText: {
-    fontSize: 24,
+    fontSize: 36,
     fontWeight: 'bold',
   },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
   },
   userName: {
     fontSize: 20,
