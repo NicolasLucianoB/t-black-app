@@ -12,15 +12,18 @@ import {
   View,
 } from 'react-native';
 import BackHeader from 'src/components/BackHeader';
+import { useAuth } from 'src/contexts/AuthContext';
 import { useCart } from 'src/contexts/CartContext';
 import { useTheme } from 'src/contexts/ThemeContext';
 import { useCartNotifications } from 'src/hooks/useNotifications';
+import { databaseService } from 'src/services';
 
 // Carrinho agora usa dados reais do Supabase via context
 
 export default function CartScreen() {
   const { cart, removeFromCart, clearCart, updateQuantity, getTotalPrice } = useCart();
   const { colors } = useTheme();
+  const { user } = useAuth();
   const router = useRouter();
   const { notifyPurchaseCompleted } = useCartNotifications();
 
@@ -63,27 +66,67 @@ export default function CartScreen() {
   const totalGeral = getTotalPrice();
 
   const finalizarCompra = () => {
+    if (!user?.id) {
+      Alert.alert('Erro', 'Você precisa estar logado para finalizar a compra.');
+      return;
+    }
+
     Alert.alert(
-      'Finalizar Compra',
-      `Total: R$ ${totalGeral.toFixed(2)}\n\nProdutos serão retirados no estúdio no dia do seu agendamento.\nCursos estarão disponíveis imediatamente após a compra.`,
+      'Fazer Pedido',
+      `Total: R$ ${totalGeral.toFixed(2)}\n\n📦 Produtos: Retirada no estúdio\n📚 Cursos: Acesso imediato\n💰 Pagamento: No estúdio ou PIX`,
       [
         { text: 'Cancelar', style: 'cancel' },
         {
           text: 'Confirmar',
           onPress: async () => {
-            const itemCount = cart.length;
-            const totalValue = totalGeral;
+            try {
+              const itemCount = cart.length;
+              const totalValue = totalGeral;
 
-            // Clear cart first
-            await clearCart();
+              // Preparar dados da compra
+              const purchaseItems = cart.map((item) => ({
+                productId: item.productId,
+                courseId: item.courseId,
+                itemName: item.product?.name || item.course?.title || 'Item',
+                itemType: item.type,
+                quantity: item.quantity,
+                unitPrice: item.price,
+                totalPrice: item.price * item.quantity,
+              }));
 
-            // Send purchase completion notification
-            await notifyPurchaseCompleted(totalValue, itemCount);
+              // Criar pedido no Supabase (sem cobrança automática)
+              const purchase = await databaseService.purchases.create({
+                userId: user.id,
+                totalAmount: totalValue,
+                notes: `Pedido realizado pelo app - ${itemCount} ${itemCount === 1 ? 'item' : 'itens'}`,
+                items: purchaseItems,
+              });
 
-            Alert.alert(
-              'Sucesso!',
-              `Compra realizada com sucesso!\n\n🔔 Você receberá uma confirmação e detalhes dos seus produtos/cursos.`,
-            );
+              if (purchase) {
+                // Limpar carrinho após sucesso
+                await clearCart();
+
+                // Enviar notificação de compra
+                await notifyPurchaseCompleted(totalValue, itemCount);
+
+                Alert.alert(
+                  'Pedido Realizado!',
+                  `Pedido #${purchase.id.slice(-8)} criado com sucesso!\n\n� Produtos: Retirada no estúdio\n� Cursos: Disponíveis imediatamente\n\n💰 Pagamento: No estúdio ou via PIX`,
+                  [
+                    { text: 'OK' },
+                    {
+                      text: 'Ver Histórico',
+                      onPress: () => router.push('/purchase-history'),
+                    },
+                  ],
+                );
+              } else {
+                Alert.alert('Erro', 'Não foi possível processar a compra. Tente novamente.');
+              }
+            } catch (error) {
+              console.error('Erro ao finalizar compra:', error);
+              Alert.alert('Erro', 'Ocorreu um erro ao processar a compra. Tente novamente.');
+            }
           },
         },
       ],

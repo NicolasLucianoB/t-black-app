@@ -6,7 +6,10 @@ import {
   Course,
   CreateBookingRequest,
   CreateMessageRequest,
+  CreatePurchaseRequest,
   Product,
+  Purchase,
+  PurchaseItem,
   User,
 } from '../types';
 import { supabase } from './supabase';
@@ -327,6 +330,112 @@ export const databaseService = {
         console.error('Error:', error);
         return null;
       }
+    },
+  },
+
+  // Purchase operations
+  purchases: {
+    async create(purchaseData: CreatePurchaseRequest): Promise<Purchase | null> {
+      try {
+        // Preparar dados dos itens para a função SQL
+        const items = purchaseData.items.map((item) => ({
+          product_id: item.productId || null,
+          course_id: item.courseId || null,
+          item_name: item.itemName,
+          item_type: item.itemType,
+          quantity: item.quantity,
+          unit_price: item.unitPrice,
+          total_price: item.totalPrice,
+        }));
+
+        // Usar a função SQL helper para criar pedido + itens em transação (sem pagamento)
+        const { data, error } = await supabase.rpc('create_purchase_with_items', {
+          p_user_id: purchaseData.userId,
+          p_total_amount: purchaseData.totalAmount,
+          p_items: items,
+          p_notes: purchaseData.notes,
+        });
+
+        if (error) {
+          console.error('Error creating purchase:', error);
+          return null;
+        }
+
+        // Buscar a compra criada com todos os dados
+        return await this.getById(data);
+      } catch (error) {
+        console.error('Error:', error);
+        return null;
+      }
+    },
+
+    async getById(id: string): Promise<Purchase | null> {
+      try {
+        const { data, error } = await supabase
+          .from('purchase_history')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching purchase:', error);
+          return null;
+        }
+
+        return this.mapViewToPurchase(data);
+      } catch (error) {
+        console.error('Error:', error);
+        return null;
+      }
+    },
+
+    async getByUserId(userId: string): Promise<Purchase[]> {
+      try {
+        const { data, error } = await supabase
+          .from('purchase_history')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error fetching purchases:', error);
+          return [];
+        }
+
+        return (data || []).map(this.mapViewToPurchase);
+      } catch (error) {
+        console.error('Error:', error);
+        return [];
+      }
+    },
+
+    // Helper para converter dados da view para o tipo Purchase (sem pagamento)
+    mapViewToPurchase(viewData: any): Purchase {
+      return {
+        id: viewData.id,
+        userId: viewData.user_id,
+        totalAmount: parseFloat(viewData.total_amount),
+        // 💳 PAGAMENTO: Campos removidos para evitar taxas de gateway
+        // paymentMethod: viewData.payment_method,
+        // paymentStatus: viewData.payment_status,
+        status: viewData.status,
+        notes: viewData.notes,
+        items: (viewData.items || []).map(
+          (item: any): PurchaseItem => ({
+            id: item.id,
+            purchaseId: viewData.id,
+            productId: item.product_id,
+            courseId: item.course_id,
+            itemName: item.item_name,
+            itemType: item.item_type,
+            quantity: item.quantity,
+            unitPrice: parseFloat(item.unit_price),
+            totalPrice: parseFloat(item.total_price),
+          }),
+        ),
+        createdAt: viewData.created_at,
+        updatedAt: viewData.updated_at,
+      };
     },
   },
 

@@ -3,7 +3,6 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -14,62 +13,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import BackHeader from 'src/components/BackHeader';
 import { useAuth } from 'src/contexts/AuthContext';
 import { useTheme } from 'src/contexts/ThemeContext';
+import { databaseService } from 'src/services';
+import { Purchase } from 'src/types';
 
-// Por enquanto, dados mockados. Serão integrados com Supabase depois
-const mockPurchases: Purchase[] = [
-  {
-    id: '1',
-    date: '2024-10-01',
-    items: [
-      {
-        id: '1',
-        name: 'Pomada Modeladora',
-        type: 'product' as const,
-        price: 25.9,
-        quantity: 1,
-        image: 'https://via.placeholder.com/60x60/111/fff?text=Pomada',
-      },
-    ],
-    total: 25.9,
-    status: 'paid' as const,
-    paymentMethod: 'pix' as const,
-  },
-  {
-    id: '2',
-    date: '2024-09-15',
-    items: [
-      {
-        id: '2',
-        name: 'Curso de Marketing para Barbeiros',
-        type: 'course' as const,
-        price: 99.99,
-        quantity: 1,
-        image: 'https://via.placeholder.com/60x60/111/fff?text=Curso',
-      },
-    ],
-    total: 99.99,
-    status: 'paid' as const,
-    paymentMethod: 'card' as const,
-  },
-];
-
-interface PurchaseItem {
-  id: string;
-  name: string;
-  type: 'product' | 'course';
-  price: number;
-  quantity: number;
-  image: string;
-}
-
-interface Purchase {
-  id: string;
-  date: string;
-  items: PurchaseItem[];
-  total: number;
-  status: 'pending' | 'paid' | 'refunded';
-  paymentMethod: 'card' | 'pix' | 'cash';
-}
+// Histórico de compras real integrado com Supabase
 
 export default function PurchaseHistoryScreen() {
   const { colors } = useTheme();
@@ -80,22 +27,36 @@ export default function PurchaseHistoryScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simular carregamento de dados
-    setTimeout(() => {
-      if (user) {
-        setPurchases(mockPurchases);
+    const loadPurchases = async () => {
+      if (!user?.id) {
+        setLoading(false);
+        return;
       }
-      setLoading(false);
-    }, 1000);
+
+      try {
+        const userPurchases = await databaseService.purchases.getByUserId(user.id);
+        setPurchases(userPurchases);
+      } catch (error) {
+        console.error('Erro ao carregar histórico:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPurchases();
   }, [user]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending':
-        return '#FF9500';
-      case 'paid':
+      case 'completed':
         return '#34C759';
-      case 'refunded':
+      case 'requested':
+        return '#007AFF';
+      case 'confirmed':
+        return '#30D158';
+      case 'ready':
+        return '#FF9F0A';
+      case 'cancelled':
         return '#FF3B30';
       default:
         return colors.textSecondary;
@@ -104,27 +65,18 @@ export default function PurchaseHistoryScreen() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'pending':
-        return 'Pendente';
-      case 'paid':
-        return 'Pago';
-      case 'refunded':
-        return 'Reembolsado';
+      case 'requested':
+        return 'Solicitado';
+      case 'confirmed':
+        return 'Confirmado';
+      case 'ready':
+        return 'Pronto';
+      case 'completed':
+        return 'Entregue';
+      case 'cancelled':
+        return 'Cancelado';
       default:
         return status;
-    }
-  };
-
-  const getPaymentMethodText = (method: string) => {
-    switch (method) {
-      case 'card':
-        return 'Cartão';
-      case 'pix':
-        return 'PIX';
-      case 'cash':
-        return 'Dinheiro';
-      default:
-        return method;
     }
   };
 
@@ -192,7 +144,7 @@ export default function PurchaseHistoryScreen() {
             <View style={styles.purchaseHeader}>
               <View>
                 <Text style={[styles.purchaseDate, { color: colors.text }]}>
-                  {formatDate(purchase.date)}
+                  {formatDate(purchase.createdAt)}
                 </Text>
                 <Text style={[styles.purchaseId, { color: colors.textSecondary }]}>
                   Pedido #{purchase.id}
@@ -213,14 +165,21 @@ export default function PurchaseHistoryScreen() {
             <View style={styles.itemsContainer}>
               {purchase.items.map((item) => (
                 <View key={item.id} style={styles.itemRow}>
-                  <Image source={{ uri: item.image }} style={styles.itemImage} />
+                  <View style={[styles.itemImagePlaceholder, { backgroundColor: colors.border }]}>
+                    <Ionicons
+                      name={item.itemType === 'product' ? 'storefront-outline' : 'school-outline'}
+                      size={24}
+                      color={colors.textSecondary}
+                    />
+                  </View>
                   <View style={styles.itemInfo}>
-                    <Text style={[styles.itemName, { color: colors.text }]}>{item.name}</Text>
+                    <Text style={[styles.itemName, { color: colors.text }]}>{item.itemName}</Text>
                     <Text style={[styles.itemType, { color: colors.textSecondary }]}>
-                      {item.type === 'product' ? 'Produto' : 'Curso'}
+                      {item.itemType === 'product' ? 'Produto' : 'Curso'}
                     </Text>
                     <Text style={[styles.itemPrice, { color: colors.text }]}>
-                      {item.quantity}x R$ {item.price.toFixed(2)}
+                      {item.quantity}x R$ {item.unitPrice.toFixed(2)} = R${' '}
+                      {item.totalPrice.toFixed(2)}
                     </Text>
                   </View>
                 </View>
@@ -228,13 +187,8 @@ export default function PurchaseHistoryScreen() {
             </View>
 
             <View style={styles.purchaseFooter}>
-              <View style={styles.paymentInfo}>
-                <Text style={[styles.paymentMethod, { color: colors.textSecondary }]}>
-                  Pagamento: {getPaymentMethodText(purchase.paymentMethod)}
-                </Text>
-              </View>
               <Text style={[styles.totalPrice, { color: colors.text }]}>
-                Total: R$ {purchase.total.toFixed(2)}
+                Total: R$ {purchase.totalAmount.toFixed(2)}
               </Text>
             </View>
           </View>
@@ -298,6 +252,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginRight: 12,
   },
+  itemImagePlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    marginRight: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   itemInfo: {
     flex: 1,
   },
@@ -321,12 +283,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#E5E5E7',
     paddingTop: 12,
-  },
-  paymentInfo: {
-    flex: 1,
-  },
-  paymentMethod: {
-    fontSize: 12,
   },
   totalPrice: {
     fontSize: 16,
