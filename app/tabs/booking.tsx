@@ -17,6 +17,7 @@ import AppHeader from 'src/components/AppHeader';
 import { useAuth } from 'src/contexts/AuthContext';
 import { useTheme } from 'src/contexts/ThemeContext';
 import { useCreateBooking } from 'src/hooks/useBookings';
+import { useBookingNotifications } from 'src/hooks/useNotifications';
 import { databaseService } from 'src/services';
 import { Barber } from 'src/types';
 
@@ -91,6 +92,8 @@ function AgendarTab() {
     error: bookingError,
   } = useCreateBooking(user?.id || '');
 
+  const { scheduleBookingNotifications, isScheduling } = useBookingNotifications();
+
   // Carregar barbeiros do Supabase
   useEffect(() => {
     const loadBarbeiros = async () => {
@@ -154,9 +157,17 @@ function AgendarTab() {
       const result = await createBooking(bookingData, 50.0); // Preço fixo temporário
 
       if (result?.data) {
+        // Schedule smart notifications for this booking
+        await scheduleBookingNotifications(
+          result.data.id,
+          data,
+          horario,
+          barbeiroSelecionado?.name || 'Barbeiro',
+        );
+
         Alert.alert(
           'Sucesso!',
-          `Agendamento realizado com ${barbeiroSelecionado?.name} em ${data} às ${horario}`,
+          `Agendamento realizado com ${barbeiroSelecionado?.name} em ${data} às ${horario}\n\n🔔 Você receberá lembretes antes do horário!`,
           [
             {
               text: 'OK',

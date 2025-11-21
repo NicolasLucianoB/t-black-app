@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AppHeader from 'src/components/AppHeader';
 import { useAuth } from 'src/contexts/AuthContext';
 import { useTheme } from 'src/contexts/ThemeContext';
+import { useProfileNotifications } from 'src/hooks/useNotifications';
 import { authService } from 'src/services';
 
 export default function ProfileScreen() {
@@ -23,6 +24,7 @@ export default function ProfileScreen() {
   const { user, signOut } = useAuth();
   const router = useRouter();
   const [updatingAvatar, setUpdatingAvatar] = useState(false);
+  const { notifyAvatarUpdated } = useProfileNotifications();
 
   const handleLogout = async () => {
     Alert.alert('Sair', 'Tem certeza que deseja sair?', [
@@ -125,7 +127,9 @@ export default function ProfileScreen() {
         if (updateResult.error) {
           Alert.alert('Erro', updateResult.error);
         } else {
-          Alert.alert('Sucesso', 'Avatar atualizado com sucesso!');
+          // Send notification about avatar update
+          await notifyAvatarUpdated();
+          Alert.alert('Sucesso', 'Avatar atualizado com sucesso! 📸');
           // The user context should be updated automatically via auth state changes
         }
       }

@@ -27,6 +27,13 @@ export default function MenuScreen() {
       onPress: () => router.push('/notifications'),
     },
     {
+      id: 'notification-settings',
+      title: 'Configurar Notificações',
+      icon: 'settings-outline',
+      color: '#6B73FF',
+      onPress: () => router.push('/notificationSettings'),
+    },
+    {
       id: 'cart',
       title: 'Carrinho',
       icon: 'cart-outline',

@@ -4,4 +4,5 @@ export * from './useBarbers';
 export * from './useBookings';
 export * from './useChat';
 export * from './useCourses';
+export * from './useNotifications';
 export * from './useProducts';

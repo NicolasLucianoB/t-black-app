@@ -5,12 +5,19 @@ import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } fr
 import AppHeader from 'src/components/AppHeader';
 import { useCart } from 'src/contexts/CartContext';
 import { useTheme } from 'src/contexts/ThemeContext';
+import { useMarketingNotifications } from 'src/hooks/useNotifications';
 
 export default function HomeScreen() {
   const router = useRouter();
   const { getCartCount } = useCart();
   const { colors, theme } = useTheme();
+  const { initializeWelcomeFlow } = useMarketingNotifications();
   const iconColor = '#111';
+
+  // Initialize welcome notifications for new users
+  React.useEffect(() => {
+    initializeWelcomeFlow();
+  }, []);
 
   const handleNavigate = (screenName: string) => {
     try {

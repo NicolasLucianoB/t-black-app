@@ -14,6 +14,7 @@ import {
 import BackHeader from 'src/components/BackHeader';
 import { useCart } from 'src/contexts/CartContext';
 import { useTheme } from 'src/contexts/ThemeContext';
+import { useCartNotifications } from 'src/hooks/useNotifications';
 
 // Carrinho agora usa dados reais do Supabase via context
 
@@ -21,6 +22,7 @@ export default function CartScreen() {
   const { cart, removeFromCart, clearCart, updateQuantity, getTotalPrice } = useCart();
   const { colors } = useTheme();
   const router = useRouter();
+  const { notifyPurchaseCompleted } = useCartNotifications();
 
   // Componente customizado para o lado direito do header (sem o ícone do carrinho)
   const cartHeaderRight = (
@@ -69,8 +71,19 @@ export default function CartScreen() {
         {
           text: 'Confirmar',
           onPress: async () => {
+            const itemCount = cart.length;
+            const totalValue = totalGeral;
+
+            // Clear cart first
             await clearCart();
-            Alert.alert('Sucesso!', 'Compra realizada com sucesso!');
+
+            // Send purchase completion notification
+            await notifyPurchaseCompleted(totalValue, itemCount);
+
+            Alert.alert(
+              'Sucesso!',
+              `Compra realizada com sucesso!\n\n🔔 Você receberá uma confirmação e detalhes dos seus produtos/cursos.`,
+            );
           },
         },
       ],

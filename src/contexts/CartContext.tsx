@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 
+import { notificationManager } from '../services/notificationManager';
 import { CartItem } from '../types';
 
 interface CartContextType {
@@ -94,6 +95,23 @@ export function CartProvider({ children }: CartProviderProps) {
     updatedCart.push(newItem);
     setCart(updatedCart);
     await saveCartToStorage(updatedCart);
+
+    // Send notification for new item added
+    try {
+      const itemName =
+        item.product?.name || item.course?.title || (item.type === 'product' ? 'Produto' : 'Curso');
+      await notificationManager.notifyItemAddedToCart(itemName, item.type);
+
+      // Schedule cart abandonment notification (will be cancelled if purchase is completed)
+      setTimeout(async () => {
+        if (updatedCart.length > 0) {
+          // Check if cart still has items
+          await notificationManager.notifyCartAbandonment();
+        }
+      }, 3600000); // 1 hour
+    } catch (error) {
+      console.log('Error sending cart notification:', error);
+    }
   };
 
   const removeFromCart = async (id: string) => {

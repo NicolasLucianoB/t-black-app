@@ -4,6 +4,7 @@
 export { authService } from './auth';
 export { databaseService } from './database';
 export { analytics, messaging, onMessageListener, requestPermissionAndGetToken } from './firebase';
+export { notificationManager } from './notificationManager';
 export { notificationService } from './notifications';
 export { storageService } from './storage';
 
