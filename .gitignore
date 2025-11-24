@@ -67,6 +67,7 @@ logs/
 # Temporary files
 tmp/
 temp/
+PROJECT_ANALYSIS.md
 
 # Não ignore a pasta src/
 !src/
