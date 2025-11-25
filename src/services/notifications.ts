@@ -51,18 +51,18 @@ export const notificationService = {
       try {
         // Get Expo token (compatible with Firebase)
         token = (await Notifications.getExpoPushTokenAsync()).data;
-        console.log('✅ Push notification token obtained:', token);
+
 
         // Also get Firebase token for advanced features
         const firebaseToken = await firebaseNotificationService.getExpoToken();
         if (firebaseToken) {
-          console.log('✅ Firebase token ready for advanced notifications');
+
         }
       } catch (error) {
         console.log('❌ Error getting push token:', error);
       }
     } else {
-      console.log('⚠️ Must use physical device for Push Notifications');
+      console.warn('⚠️ Must use physical device for Push Notifications');
       // For simulator, return mock token for testing
       token = 'simulator-mock-token';
     }

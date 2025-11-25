@@ -61,7 +61,7 @@ export function useCourseProgress(userId?: string, courseId?: string) {
     completed: boolean;
   } | null>(null);
 
-  // TODO: Implement with real API when backend is ready
+
   const updateProgress = async (watchedMinutes: number) => {
     // This will save progress to the backend
     setProgress((prev) =>

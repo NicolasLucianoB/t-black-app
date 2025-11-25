@@ -20,7 +20,7 @@ export const firebaseNotificationService = {
     try {
       // Get Expo push token (works with Firebase)
       const token = (await Notifications.getExpoPushTokenAsync()).data;
-      console.log('Expo Push Token (Firebase compatible):', token);
+
       return token;
     } catch (error) {
       console.log('Error getting Expo token:', error);
@@ -32,7 +32,7 @@ export const firebaseNotificationService = {
   async storeToken(userId: string, token: string) {
     try {
       // This will be integrated with Supabase later
-      console.log('Storing token for user:', userId, 'Token:', token);
+
       return true;
     } catch (error) {
       console.log('Error storing token:', error);
@@ -42,12 +42,12 @@ export const firebaseNotificationService = {
 
   // Handle notification received
   handleNotificationReceived: (notification: any) => {
-    console.log('Notification received:', notification);
+
   },
 
   // Handle notification response (user tapped)
   handleNotificationResponse: (response: any) => {
-    console.log('Notification tapped:', response);
+
     // Navigate to specific screen based on notification data
   },
 };

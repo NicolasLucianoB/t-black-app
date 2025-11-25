@@ -53,7 +53,7 @@ export const databaseService = {
           updated_at: booking.updatedAt,
         };
 
-        console.log('Booking data before insert:', dbBooking);
+
 
         if (!dbBooking.barber_id || (dbBooking.service_id !== null && !dbBooking.service_id)) {
           console.error('Invalid UUID for barber_id or service_id:', dbBooking);
@@ -175,13 +175,12 @@ export const databaseService = {
 
         // Parse real working hours from database
         const workingHours = barber.working_hours || [];
-        console.log('Working hours from DB:', workingHours);
 
         const dayOfWeek = new Date(date + 'T00:00:00').getDay(); // 0=Sunday, 1=Monday, etc.
         const dayNames = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
         const currentDay = dayNames[dayOfWeek];
 
-        console.log(`Buscando horários para ${currentDay} (dia ${dayOfWeek})`);
+
 
         // Find working hours for current day
         const todaySchedule = workingHours.find((schedule: string) =>
@@ -189,47 +188,37 @@ export const databaseService = {
         );
 
         if (!todaySchedule) {
-          console.log(`Barbeiro não trabalha em ${currentDay}`);
           return [];
         }
 
-        console.log(`Horário encontrado para ${currentDay}:`, todaySchedule);
+
 
         // Extract time ranges from schedule (e.g., "segunda:09:00-12:00,13:00-19:00")
         // Split by first colon to separate day from times
         const colonIndex = todaySchedule.indexOf(':');
         const timeRanges = todaySchedule.substring(colonIndex + 1);
-        console.log('Time ranges string:', timeRanges);
-
         const ranges = timeRanges.split(',');
-        console.log('Ranges split:', ranges);
 
         const allSlots: string[] = [];
 
         ranges.forEach((range, index) => {
-          console.log(`Processing range ${index}:`, range);
           const [start, end] = range.split('-');
-          console.log('Start:', start, 'End:', end);
 
           if (start && end) {
             const [startHour] = start.split(':').map(Number);
             const [endHour] = end.split(':').map(Number);
-            console.log('Start hour:', startHour, 'End hour:', endHour);
 
             // Generate hourly slots
             for (let hour = startHour; hour < endHour; hour++) {
               const timeSlot = `${hour.toString().padStart(2, '0')}:00`;
-              console.log('Generated slot:', timeSlot);
               if (!allSlots.includes(timeSlot)) {
                 allSlots.push(timeSlot);
               }
             }
-          } else {
-            console.log('Invalid range format:', range);
           }
         });
 
-        console.log(`Horários gerados para ${currentDay}:`, allSlots);
+
 
         // Filter out past times if it's today
         const today = new Date().toISOString().split('T')[0];
@@ -251,8 +240,7 @@ export const databaseService = {
           return true;
         });
 
-        console.log('Horários ocupados:', bookedSlots);
-        console.log('Horários disponíveis finais:', availableSlots);
+
 
         return availableSlots.sort();
       } catch (error) {

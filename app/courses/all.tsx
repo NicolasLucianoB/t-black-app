@@ -26,7 +26,7 @@ function getYoutubeThumbnail(url: string): string {
 }
 
 export default function TodosCursosTab() {
-  // const { cart, addToCart, removeFromCart } = useCart(); // TODO: Implementar quando necessário
+
   const { colors } = useTheme();
 
   const [cursos, setCursos] = useState<Course[]>([]);
@@ -52,7 +52,7 @@ export default function TodosCursosTab() {
     loadCursos();
   }, []);
 
-  // TODO: Implementar funções de carrinho quando necessário
+
 
   if (loading) {
     return (

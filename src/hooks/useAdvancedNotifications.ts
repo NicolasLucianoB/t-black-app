@@ -28,7 +28,7 @@ export function useAdvancedNotifications() {
     // Initialize notifications
     const initializeNotifications = async () => {
       try {
-        console.log('🚀 Initializing Advanced Notifications...');
+
 
         // 1. Register for basic notifications
         const token = await notificationService.registerForPushNotifications();
@@ -46,9 +46,7 @@ export function useAdvancedNotifications() {
           }));
 
           if (token) {
-            console.log('✅ Advanced Notifications Ready!');
-            console.log('📱 Expo Token:', token);
-            console.log('🔥 Firebase Token:', firebaseToken);
+
           }
         }
       } catch (error) {
@@ -64,14 +62,14 @@ export function useAdvancedNotifications() {
 
     // Listen for incoming notifications
     const notificationListener = Notifications.addNotificationReceivedListener((notification) => {
-      console.log('📨 Notification received:', notification);
+
       setState((prev) => ({ ...prev, lastNotification: notification }));
       firebaseNotificationService.handleNotificationReceived(notification);
     });
 
     // Listen for notification interactions
     const responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
-      console.log('👆 Notification tapped:', response);
+
       firebaseNotificationService.handleNotificationResponse(response);
     });
 

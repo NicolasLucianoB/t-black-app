@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import { useRouter } from 'expo-router';
+
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -96,7 +96,7 @@ function AgendarTab() {
   const [noConversation, setNoConversation] = useState(false);
   const [observacoes, setObservacoes] = useState('');
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+
 
   const {
     createBooking,
@@ -112,7 +112,6 @@ function AgendarTab() {
       setLoading(true);
       try {
         const services = await databaseService.services.getAll();
-        console.log('Todos os serviços:', services);
         setAllServices(services);
       } catch (error) {
         console.error('Erro ao carregar serviços:', error);
@@ -129,15 +128,11 @@ function AgendarTab() {
   useEffect(() => {
     const loadHorarios = async () => {
       if (!barbeiro || !data) {
-        console.log('Sem barbeiro ou data selecionados');
         setHorariosDisponiveis([]);
         return;
       }
-
-      console.log('Carregando horários para barbeiro:', barbeiro, 'data:', data);
       try {
         const slots = await databaseService.bookings.getAvailableSlots(barbeiro, data);
-        console.log('Horários retornados:', slots);
         setHorariosDisponiveis(slots);
       } catch (error) {
         console.error('Erro ao carregar horários:', error);
@@ -871,13 +866,7 @@ function ProfissionaisTab() {
   );
 }
 
-// TODO: Implementar busca de último agendamento no Supabase
-function getLastAppointment(barberId: string): string {
-  // Placeholder - será implementado com dados reais do Supabase
-  return 'Nenhum agendamento recente';
-}
 
-// Garantindo que colors seja acessível no escopo
 export default function BookingScreen() {
   const { colors } = useTheme();
 
