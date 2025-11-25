@@ -56,7 +56,7 @@ export const firebaseNotificationService = {
 export const messaging = null;
 export const analytics = null;
 export const requestPermissionAndGetToken = firebaseNotificationService.getExpoToken;
-export const onMessageListener = () => new Promise(() => {});
+export const onMessageListener = () => new Promise(() => { });
 
 // Mock app export (no Firebase SDK needed)
 export default { name: 'expo-notifications-only' };

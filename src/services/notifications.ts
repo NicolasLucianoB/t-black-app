@@ -74,9 +74,9 @@ export const notificationService = {
   async scheduleLocalNotification(notification: NotificationData, triggerSeconds?: number) {
     const trigger = triggerSeconds
       ? {
-          seconds: triggerSeconds,
-          type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL as const, // Explicitly cast as const
-        }
+        seconds: triggerSeconds,
+        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL as const, // Explicitly cast as const
+      }
       : null;
 
     await Notifications.scheduleNotificationAsync({

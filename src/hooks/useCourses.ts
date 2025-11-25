@@ -67,10 +67,10 @@ export function useCourseProgress(userId?: string, courseId?: string) {
     setProgress((prev) =>
       prev
         ? {
-            ...prev,
-            watchedMinutes,
-            completed: watchedMinutes >= prev.totalMinutes * 0.95, // 95% watched = completed
-          }
+          ...prev,
+          watchedMinutes,
+          completed: watchedMinutes >= prev.totalMinutes * 0.95, // 95% watched = completed
+        }
         : null,
     );
   };
