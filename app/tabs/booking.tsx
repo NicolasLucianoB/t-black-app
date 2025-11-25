@@ -444,17 +444,14 @@ function AgendarTab() {
                     </Text>
                   </View>
 
-                  <View style={styles.professionalsContainer}>
+                  <View style={styles.professionalsGrid}>
                     {barbeiros.map((barber) => (
                       <TouchableOpacity
                         key={barber.id}
-                        style={[
-                          styles.professionalCard,
-                          { backgroundColor: colors.card, borderColor: colors.border },
-                        ]}
+                        style={styles.professionalItem}
                         onPress={() => handleProfessionalSelect(barber.id)}
                       >
-                        <View style={styles.professionalAvatar}>
+                        <View style={styles.professionalAvatarSimple}>
                           <View
                             style={[styles.avatarPlaceholder, { backgroundColor: colors.primary }]}
                           >
@@ -463,21 +460,9 @@ function AgendarTab() {
                             </Text>
                           </View>
                         </View>
-                        <View style={styles.professionalInfoModal}>
-                          <Text style={[styles.professionalName, { color: colors.text }]}>
-                            {barber.name}
-                          </Text>
-                          <Text style={[styles.professionalRole, { color: colors.textSecondary }]}>
-                            Especialista
-                          </Text>
-                          <Text
-                            style={[styles.specialties, { color: colors.textSecondary }]}
-                            numberOfLines={1}
-                          >
-                            {barber.specialties?.join(', ')}
-                          </Text>
-                        </View>
-                        <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+                        <Text style={[styles.professionalNameSimple, { color: colors.text }]}>
+                          {barber.name.split(' ')[0]}
+                        </Text>
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -561,68 +546,51 @@ function AgendarTab() {
                     </Text>
                   </View>
 
-                  {/* Resumo do Agendamento */}
+                  {/* Resumo do Agendamento - Design Minimalista */}
                   <View
                     style={[
-                      styles.summaryCard,
+                      styles.compactSummaryCard,
                       { backgroundColor: colors.card, borderColor: colors.border },
                     ]}
                   >
-                    <View style={styles.summaryRow}>
-                      <Ionicons name="cut" size={20} color={colors.primary} />
-                      <View style={styles.summaryInfo}>
-                        <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                          Serviço
-                        </Text>
-                        <Text style={[styles.summaryValue, { color: colors.text }]}>
-                          {servicoSelecionado?.name}
-                        </Text>
-                      </View>
-                      <Text style={[styles.summaryPrice, { color: colors.primary }]}>
-                        R$ {servicoSelecionado?.price.toFixed(2)}
-                      </Text>
-                    </View>
+                    {/* Nome do Serviço */}
+                    <Text style={[styles.serviceTitle, { color: colors.text }]}>
+                      {servicoSelecionado?.name}
+                    </Text>
 
-                    <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
-
-                    <View style={styles.summaryRow}>
-                      <Ionicons name="person" size={20} color={colors.primary} />
-                      <View style={styles.summaryInfo}>
-                        <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                          Profissional
-                        </Text>
-                        <Text style={[styles.summaryValue, { color: colors.text }]}>
+                    {/* Linha principal com profissional e data */}
+                    <View style={styles.mainSummaryRow}>
+                      {/* Profissional (esquerda) */}
+                      <View style={styles.professionalSummary}>
+                        <View style={styles.professionalAvatarSmall}>
+                          <Text style={styles.avatarInitials}>
+                            {barbeiros.find((b) => b.id === barbeiro)?.name?.charAt(0) || 'T'}
+                          </Text>
+                        </View>
+                        <Text style={[styles.professionalNameSmall, { color: colors.text }]}>
                           {barbeiros.find((b) => b.id === barbeiro)?.name}
                         </Text>
                       </View>
-                    </View>
 
-                    <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
-
-                    <View style={styles.summaryRow}>
-                      <Ionicons name="calendar" size={20} color={colors.primary} />
-                      <View style={styles.summaryInfo}>
-                        <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                          Data e horário
+                      {/* Data (direita) */}
+                      <View style={styles.dateSummary}>
+                        <Text style={[styles.dayNumber, { color: colors.text }]}>
+                          {new Date(data + 'T00:00:00').getDate()}
                         </Text>
-                        <Text style={[styles.summaryValue, { color: colors.text }]}>
-                          {new Date(data + 'T00:00:00').toLocaleDateString('pt-BR')} às {horario}
+                        <Text style={[styles.monthAbbr, { color: colors.textSecondary }]}>
+                          {new Date(data + 'T00:00:00').toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase()}
                         </Text>
                       </View>
                     </View>
 
-                    <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
-
-                    <View style={styles.summaryRow}>
-                      <Ionicons name="time" size={20} color={colors.primary} />
-                      <View style={styles.summaryInfo}>
-                        <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                          Duração
-                        </Text>
-                        <Text style={[styles.summaryValue, { color: colors.text }]}>
-                          {servicoSelecionado?.duration} minutos
-                        </Text>
-                      </View>
+                    {/* Linha inferior com preço e horário */}
+                    <View style={styles.bottomSummaryRow}>
+                      <Text style={[styles.priceCompact, { color: '#25D366' }]}>
+                        R$ {servicoSelecionado?.price.toFixed(2)}
+                      </Text>
+                      <Text style={[styles.timeCompact, { color: colors.textSecondary }]}>
+                        {horario} • {servicoSelecionado?.duration}min
+                      </Text>
                     </View>
                   </View>
 
@@ -1446,5 +1414,97 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'right',
     marginTop: 4,
+  },
+  // Estilos para o resumo compacto
+  compactSummaryCard: {
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 24,
+    borderWidth: 1,
+  },
+  serviceTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 16,
+    textAlign: 'left',
+  },
+  mainSummaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  professionalSummary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  professionalAvatarSmall: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#007AFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  avatarInitials: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  professionalNameSmall: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  dateSummary: {
+    alignItems: 'center',
+  },
+  dayNumber: {
+    fontSize: 24,
+    fontWeight: '700',
+    lineHeight: 28,
+  },
+  monthAbbr: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  bottomSummaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  priceCompact: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  timeCompact: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+
+  // Estilos para grid de profissionais sem cards
+  professionalsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  professionalItem: {
+    alignItems: 'center',
+    marginBottom: 24,
+    width: '30%',
+    minWidth: 80,
+  },
+  professionalAvatarSimple: {
+    marginBottom: 8,
+  },
+  professionalNameSimple: {
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'center',
+    lineHeight: 18,
   },
 });
