@@ -141,43 +141,120 @@ export const databaseService = {
 
     async getAvailableSlots(barberId: string, date: string): Promise<string[]> {
       try {
+        // Get barber info to get working hours
+        const { data: barber, error: barberError } = await supabase
+          .from('barbers')
+          .select('working_hours')
+          .eq('id', barberId)
+          .single();
+
+        if (barberError || !barber) {
+          console.error('Erro ao buscar barbeiro:', barberError);
+          return [];
+        }
+
         // Get existing bookings for the barber on the specified date
         const { data: existingBookings, error } = await supabase
           .from('bookings')
           .select('time')
           .eq('barber_id', barberId)
           .eq('date', date)
-          .eq('status', 'scheduled'); // Certifique-se de que o status é 'scheduled'
+          .in('status', ['scheduled', 'confirmed', 'in_progress']); // Múltiplos status que bloqueiam horário
 
         if (error) {
           console.error('Erro ao buscar horários ocupados:', error);
           return [];
         }
 
+        // Get booked slots
         const bookedSlots =
           existingBookings?.map((booking) => {
             const [hour, minute] = booking.time.split(':');
             return `${hour}:${minute}`; // Normalize to HH:mm format
           }) || [];
-        console.log('Horários ocupados:', bookedSlots); // Log para depuração
 
-        const allSlots = [
-          '09:00',
-          '10:00',
-          '11:00',
-          '12:00',
-          '13:00',
-          '14:00',
-          '15:00',
-          '16:00',
-          '17:00',
-          '18:00',
-        ];
+        // Parse real working hours from database
+        const workingHours = barber.working_hours || [];
+        console.log('Working hours from DB:', workingHours);
 
-        const availableSlots = allSlots.filter((slot) => !bookedSlots.includes(slot));
-        console.log('Horários disponíveis após filtro:', availableSlots); // Log para depuração
+        const dayOfWeek = new Date(date + 'T00:00:00').getDay(); // 0=Sunday, 1=Monday, etc.
+        const dayNames = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
+        const currentDay = dayNames[dayOfWeek];
 
-        return availableSlots;
+        console.log(`Buscando horários para ${currentDay} (dia ${dayOfWeek})`);
+
+        // Find working hours for current day
+        const todaySchedule = workingHours.find((schedule: string) =>
+          schedule.toLowerCase().includes(currentDay.toLowerCase()),
+        );
+
+        if (!todaySchedule) {
+          console.log(`Barbeiro não trabalha em ${currentDay}`);
+          return [];
+        }
+
+        console.log(`Horário encontrado para ${currentDay}:`, todaySchedule);
+
+        // Extract time ranges from schedule (e.g., "segunda:09:00-12:00,13:00-19:00")
+        // Split by first colon to separate day from times
+        const colonIndex = todaySchedule.indexOf(':');
+        const timeRanges = todaySchedule.substring(colonIndex + 1);
+        console.log('Time ranges string:', timeRanges);
+
+        const ranges = timeRanges.split(',');
+        console.log('Ranges split:', ranges);
+
+        const allSlots: string[] = [];
+
+        ranges.forEach((range, index) => {
+          console.log(`Processing range ${index}:`, range);
+          const [start, end] = range.split('-');
+          console.log('Start:', start, 'End:', end);
+
+          if (start && end) {
+            const [startHour] = start.split(':').map(Number);
+            const [endHour] = end.split(':').map(Number);
+            console.log('Start hour:', startHour, 'End hour:', endHour);
+
+            // Generate hourly slots
+            for (let hour = startHour; hour < endHour; hour++) {
+              const timeSlot = `${hour.toString().padStart(2, '0')}:00`;
+              console.log('Generated slot:', timeSlot);
+              if (!allSlots.includes(timeSlot)) {
+                allSlots.push(timeSlot);
+              }
+            }
+          } else {
+            console.log('Invalid range format:', range);
+          }
+        });
+
+        console.log(`Horários gerados para ${currentDay}:`, allSlots);
+
+        // Filter out past times if it's today
+        const today = new Date().toISOString().split('T')[0];
+        const currentTime = new Date();
+        const currentHour = currentTime.getHours();
+
+        let availableSlots = allSlots.filter((slot) => {
+          // Remove booked slots
+          if (bookedSlots.includes(slot)) {
+            return false;
+          }
+
+          // If it's today, remove past times (add 1 hour buffer)
+          if (date === today) {
+            const [slotHour] = slot.split(':').map(Number);
+            return slotHour > currentHour;
+          }
+
+          return true;
+        });
+
+        console.log('Horários ocupados:', bookedSlots);
+        console.log('Horários disponíveis finais:', availableSlots);
+
+        return availableSlots.sort();
       } catch (error) {
         console.error('Error:', error);
         return [];
@@ -309,7 +386,17 @@ export const databaseService = {
           return [];
         }
 
-        return data || [];
+        // Map database fields to interface fields
+        return (data || []).map((barber) => ({
+          id: barber.id,
+          name: barber.name,
+          avatar: barber.profile_image,
+          specialties: barber.specialty ? [barber.specialty] : [],
+          workingHours: barber.available_times || [],
+          active: barber.active,
+          description: barber.bio, // Map bio to description
+          rating: barber.rating,
+        }));
       } catch (error) {
         console.error('Error:', error);
         return [];
@@ -325,7 +412,19 @@ export const databaseService = {
           return null;
         }
 
-        return data;
+        if (!data) return null;
+
+        // Map database fields to interface fields
+        return {
+          id: data.id,
+          name: data.name,
+          avatar: data.profile_image,
+          specialties: data.specialty ? [data.specialty] : [],
+          workingHours: data.available_times || [],
+          active: data.active,
+          description: data.bio, // Map bio to description
+          rating: data.rating,
+        };
       } catch (error) {
         console.error('Error:', error);
         return null;
@@ -518,6 +617,50 @@ export const databaseService = {
       } catch (error) {
         console.error('Error:', error);
         return false;
+      }
+    },
+  },
+
+  // Services operations
+  services: {
+    async getByBarberId(barberId: string) {
+      try {
+        const { data, error } = await supabase
+          .from('services')
+          .select('*')
+          .eq('barber_id', barberId)
+          .eq('active', true)
+          .order('name');
+
+        if (error) {
+          console.error('Error fetching services:', error);
+          return [];
+        }
+
+        return data || [];
+      } catch (error) {
+        console.error('Error:', error);
+        return [];
+      }
+    },
+
+    async getAll() {
+      try {
+        const { data, error } = await supabase
+          .from('services')
+          .select('*')
+          .eq('active', true)
+          .order('name');
+
+        if (error) {
+          console.error('Error fetching all services:', error);
+          return [];
+        }
+
+        return data || [];
+      } catch (error) {
+        console.error('Error:', error);
+        return [];
       }
     },
   },

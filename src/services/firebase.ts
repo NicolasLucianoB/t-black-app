@@ -1,13 +1,8 @@
-// Firebase configuration and initialization
-// TODO: Install Firebase dependencies and add your config
+// Simplified Firebase service for Expo/React Native notifications
+// Using only Expo Notifications (no Firebase SDK needed for basic functionality)
+import * as Notifications from 'expo-notifications';
 
-/*
-// After creating Firebase project, uncomment and configure:
-
-import { initializeApp } from 'firebase/app';
-import { getMessaging, getToken, onMessage } from 'firebase/messaging';
-import { getAnalytics } from 'firebase/analytics';
-
+// Firebase configuration (for future use if needed)
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -15,49 +10,53 @@ const firebaseConfig = {
   storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID
+  measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-export const messaging = getMessaging(app);
-export const analytics = getAnalytics(app);
-
-// Push notification functions
-export async function requestPermissionAndGetToken() {
-  try {
-    const registration = await navigator.serviceWorker.ready;
-    const token = await getToken(messaging, {
-      vapidKey: process.env.EXPO_PUBLIC_FIREBASE_VAPID_KEY,
-      serviceWorkerRegistration: registration,
-    });
-    
-    if (token) {
-      console.log('FCM Token:', token);
+// Firebase Cloud Messaging for React Native/Expo
+export const firebaseNotificationService = {
+  // Get FCM registration token for Expo
+  async getExpoToken(): Promise<string | null> {
+    try {
+      // Get Expo push token (works with Firebase)
+      const token = (await Notifications.getExpoPushTokenAsync()).data;
+      console.log('Expo Push Token (Firebase compatible):', token);
       return token;
-    } else {
-      console.log('No registration token available.');
+    } catch (error) {
+      console.log('Error getting Expo token:', error);
       return null;
     }
-  } catch (err) {
-    console.log('An error occurred while retrieving token. ', err);
-    return null;
-  }
-}
+  },
 
-export function onMessageListener() {
-  return new Promise((resolve) => {
-    onMessage(messaging, (payload) => {
-      resolve(payload);
-    });
-  });
-}
+  // Store token in Supabase for sending notifications
+  async storeToken(userId: string, token: string) {
+    try {
+      // This will be integrated with Supabase later
+      console.log('Storing token for user:', userId, 'Token:', token);
+      return true;
+    } catch (error) {
+      console.log('Error storing token:', error);
+      return false;
+    }
+  },
 
-export default app;
-*/
+  // Handle notification received
+  handleNotificationReceived: (notification: any) => {
+    console.log('Notification received:', notification);
+  },
 
-// Placeholder exports for now
+  // Handle notification response (user tapped)
+  handleNotificationResponse: (response: any) => {
+    console.log('Notification tapped:', response);
+    // Navigate to specific screen based on notification data
+  },
+};
+
+// Legacy exports for compatibility
 export const messaging = null;
 export const analytics = null;
-export const requestPermissionAndGetToken = async () => null;
+export const requestPermissionAndGetToken = firebaseNotificationService.getExpoToken;
 export const onMessageListener = () => new Promise(() => {});
+
+// Mock app export (no Firebase SDK needed)
+export default { name: 'expo-notifications-only' };

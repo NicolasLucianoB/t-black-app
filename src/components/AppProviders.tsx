@@ -3,6 +3,7 @@ import React from 'react';
 import { AuthProvider } from '../contexts/AuthContext';
 import { CartProvider } from '../contexts/CartContext';
 import { ThemeProvider } from '../contexts/ThemeContext';
+import { NotificationProvider } from './NotificationProvider';
 import StatusBarManager from './StatusBarManager';
 
 type AppProvidersProps = {
@@ -14,7 +15,9 @@ export function AppProviders({ children }: AppProvidersProps) {
     <ThemeProvider>
       <AuthProvider>
         <StatusBarManager />
-        <CartProvider>{children}</CartProvider>
+        <NotificationProvider>
+          <CartProvider>{children}</CartProvider>
+        </NotificationProvider>
       </AuthProvider>
     </ThemeProvider>
   );

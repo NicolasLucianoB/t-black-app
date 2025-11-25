@@ -4,11 +4,16 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
+  Animated,
+  Dimensions,
   Image,
+  Modal,
   SafeAreaView,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -78,11 +83,18 @@ function getMarkedDates(selectedDate: string, colors: any) {
 function AgendarTab() {
   const { colors, theme } = useTheme();
   const { user } = useAuth();
+  const [allServices, setAllServices] = useState<any[]>([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [modalAnimation] = useState(new Animated.Value(0));
+  const [step, setStep] = useState<'professional' | 'datetime' | 'summary'>('professional');
+  const [servicoSelecionado, setServicoSelecionado] = useState<any>(null);
   const [barbeiros, setBarbeiros] = useState<Barber[]>([]);
   const [barbeiro, setBarbeiro] = useState<string>('');
   const [data, setData] = useState('');
   const [horario, setHorario] = useState('');
   const [horariosDisponiveis, setHorariosDisponiveis] = useState<string[]>([]);
+  const [noConversation, setNoConversation] = useState(false);
+  const [observacoes, setObservacoes] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -94,38 +106,38 @@ function AgendarTab() {
 
   const { scheduleBookingNotifications, isScheduling } = useBookingNotifications();
 
-  // Carregar barbeiros do Supabase
+  // Carregar todos os serviços disponíveis
   useEffect(() => {
-    const loadBarbeiros = async () => {
+    const loadServices = async () => {
       setLoading(true);
       try {
-        const data = await databaseService.barbers.getAll();
-        setBarbeiros(data);
-        if (data.length > 0) {
-          setBarbeiro(data[0].id); // Selecionar primeiro barbeiro
-        }
+        const services = await databaseService.services.getAll();
+        console.log('Todos os serviços:', services);
+        setAllServices(services);
       } catch (error) {
-        console.error('Erro ao carregar barbeiros:', error);
-        Alert.alert('Erro', 'Não foi possível carregar os barbeiros');
+        console.error('Erro ao carregar serviços:', error);
+        Alert.alert('Erro', 'Não foi possível carregar os serviços');
       } finally {
         setLoading(false);
       }
     };
 
-    loadBarbeiros();
+    loadServices();
   }, []);
 
   // Carregar horários disponíveis quando barbeiro ou data mudarem
   useEffect(() => {
     const loadHorarios = async () => {
       if (!barbeiro || !data) {
+        console.log('Sem barbeiro ou data selecionados');
         setHorariosDisponiveis([]);
         return;
       }
 
+      console.log('Carregando horários para barbeiro:', barbeiro, 'data:', data);
       try {
         const slots = await databaseService.bookings.getAvailableSlots(barbeiro, data);
-        console.log('Horários disponíveis:', slots); // Log para depuração
+        console.log('Horários retornados:', slots);
         setHorariosDisponiveis(slots);
       } catch (error) {
         console.error('Erro ao carregar horários:', error);
@@ -136,8 +148,37 @@ function AgendarTab() {
     loadHorarios();
   }, [barbeiro, data]);
 
+  // Funções para controlar o modal
+  const openModal = () => {
+    setIsModalVisible(true);
+    Animated.timing(modalAnimation, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const closeModal = () => {
+    Animated.timing(modalAnimation, {
+      toValue: 0,
+      duration: 250,
+      useNativeDriver: true,
+    }).start(() => {
+      setIsModalVisible(false);
+      // Reset do modal
+      setStep('professional');
+      setServicoSelecionado(null);
+      setBarbeiro('');
+      setData('');
+      setHorario('');
+      setHorariosDisponiveis([]);
+      setNoConversation(false);
+      setObservacoes('');
+    });
+  };
+
   const handleConfirmar = async () => {
-    if (!user?.id || !barbeiro || !data || !horario) {
+    if (!user?.id || !barbeiro || !servicoSelecionado || !data || !horario) {
       Alert.alert('Erro', 'Preencha todos os campos');
       return;
     }
@@ -145,16 +186,15 @@ function AgendarTab() {
     try {
       const barbeiroSelecionado = barbeiros.find((b) => b.id === barbeiro);
 
-      // Usando serviço básico por enquanto (preço fixo)
       const bookingData = {
         barberId: barbeiro,
-        serviceId: 'default', // Service ID temporário
+        serviceId: servicoSelecionado.id,
         date: data,
         time: horario,
-        notes: `Agendamento com ${barbeiroSelecionado?.name}`,
+        notes: `${servicoSelecionado.name} com ${barbeiroSelecionado?.name}`,
       };
 
-      const result = await createBooking(bookingData, 50.0); // Preço fixo temporário
+      const result = await createBooking(bookingData, servicoSelecionado.price || 0);
 
       if (result?.data) {
         // Schedule smart notifications for this booking
@@ -172,13 +212,8 @@ function AgendarTab() {
             {
               text: 'OK',
               onPress: () => {
-                // Reset form
-                setData('');
-                setHorario('');
-                // Recarregar horários disponíveis
-                databaseService.bookings
-                  .getAvailableSlots(barbeiro, data)
-                  .then(setHorariosDisponiveis);
+                // Fechar modal e resetar
+                closeModal();
               },
             },
           ],
@@ -192,9 +227,49 @@ function AgendarTab() {
     }
   };
 
-  const handleBarbeiroChange = (novoBarbeiro: string) => {
-    setBarbeiro(novoBarbeiro);
-    setHorario(''); // Reset horário ao trocar barbeiro
+  // Função para selecionar serviço e avançar para profissionais
+  const handleServiceSelect = async (servico: any) => {
+    setServicoSelecionado(servico);
+
+    // Carregar barbeiros que oferecem este serviço
+    try {
+      const allBarbers = await databaseService.barbers.getAll();
+      setBarbeiros(allBarbers);
+
+      // Abrir modal e ir para seleção de profissional
+      setStep('professional');
+      openModal();
+    } catch (error) {
+      console.error('Erro ao carregar profissionais:', error);
+      Alert.alert('Erro', 'Não foi possível carregar os profissionais');
+    }
+  };
+
+  // Função para selecionar profissional e avançar para data/horário
+  const handleProfessionalSelect = (barbeiroId: string) => {
+    setBarbeiro(barbeiroId);
+    setStep('datetime');
+  };
+
+  // Função para avançar para resumo após selecionar horário
+  const handleTimeSelect = (time: string) => {
+    setHorario(time);
+    setStep('summary');
+  };
+
+  // Função para voltar ao passo anterior
+  const handleBack = () => {
+    if (step === 'professional') {
+      closeModal();
+    } else if (step === 'datetime') {
+      setStep('professional');
+      setBarbeiro('');
+      setData('');
+      setHorario('');
+    } else if (step === 'summary') {
+      setStep('datetime');
+      setHorario('');
+    }
   };
 
   const handleDataChange = (novaData: string) => {
@@ -207,134 +282,441 @@ function AgendarTab() {
       style={{ flex: 1, backgroundColor: colors.background }}
       keyboardShouldPersistTaps="handled"
     >
-      {/* Conteúdo da aba de Agendar */}
+      {/* Conteúdo Principal - Grid de Serviços */}
       <View
         style={[
           styles.container,
           { backgroundColor: colors.background, shadowColor: colors.shadow },
         ]}
       >
-        {/* Seção de Agendamento Rápido */}
-        <View style={[styles.quickBookSection, { backgroundColor: colors.card }]}>
-          <View style={styles.quickBookHeader}>
-            <Ionicons name="flash" size={20} color="#25D366" />
-            <Text style={[styles.quickBookTitle, { color: colors.text }]}>Agendamento Rápido</Text>
-          </View>
-          <TouchableOpacity style={styles.quickBookCard}>
-            <View style={styles.quickBookInfo}>
-              <Text style={[styles.quickBookService, { color: colors.text }]}>
-                Corte Degradê - Tiago
-              </Text>
-              <Text style={[styles.quickBookDate, { color: colors.textSecondary }]}>
-                Último: 15/01/2024 às 14:00
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
-          </TouchableOpacity>
-        </View>
+        <View style={styles.mainContent}>
+          <Text style={[styles.mainTitle, { color: colors.text }]}>Nossos Serviços</Text>
+          <Text style={[styles.mainSubtitle, { color: colors.textSecondary }]}>
+            Escolha o serviço que deseja agendar
+          </Text>
 
-        <Text style={[styles.label, { color: colors.text }]}>Barbeiro</Text>
-        <View style={styles.row}>
-          {barbeiros.map((b) => (
-            <TouchableOpacity
-              key={b.id}
-              style={[
-                styles.barbeiroButton,
-                { backgroundColor: colors.card, borderColor: colors.border },
-                barbeiro === b.id && {
-                  backgroundColor: colors.primary,
-                  borderColor: colors.primary,
-                },
-              ]}
-              onPress={() => handleBarbeiroChange(b.id)}
-            >
-              <Text
-                style={
-                  barbeiro === b.id
-                    ? [styles.barbeiroTextSelected, { color: colors.card }]
-                    : [styles.barbeiroText, { color: colors.text }]
-                }
-              >
-                {b.name}
+          <View style={styles.servicesGrid}>
+            {loading ? (
+              <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+                Carregando serviços...
               </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        <Text style={[styles.label, { color: colors.text }]}>Data</Text>
-        <Calendar
-          onDayPress={(day) => handleDataChange(day.dateString)}
-          markedDates={getMarkedDates(data, colors)}
-          minDate={new Date().toISOString().split('T')[0]}
-          theme={{
-            todayTextColor: colors.accent,
-            selectedDayBackgroundColor: '#111',
-            selectedDayTextColor: '#fff',
-          }}
-          style={styles.calendar}
-        />
-        <Text style={[styles.label, { color: colors.text }]}>Horário</Text>
-        {data && horariosDisponiveis.length > 0 ? (
-          <View style={styles.row}>
-            {horariosDisponiveis.map((h) => (
-              <TouchableOpacity
-                key={h}
-                style={[
-                  styles.horarioButton,
-                  { backgroundColor: colors.card, borderColor: colors.border },
-                  horario === h && {
-                    backgroundColor: colors.primary,
-                    borderColor: colors.primary,
-                  },
-                ]}
-                onPress={() => setHorario(h)}
-                disabled={diasIndisponiveis.includes(data)}
-              >
-                <Text
-                  style={
-                    horario === h
-                      ? [styles.horarioTextSelected, { color: colors.card }]
-                      : [styles.horarioText, { color: colors.text }]
-                  }
+            ) : (
+              allServices.map((servico) => (
+                <TouchableOpacity
+                  key={servico.id}
+                  style={[
+                    styles.serviceCard,
+                    { backgroundColor: colors.card, borderColor: colors.border },
+                  ]}
+                  onPress={() => handleServiceSelect(servico)}
                 >
-                  {h}
-                </Text>
-              </TouchableOpacity>
-            ))}
+                  <View style={styles.serviceHeader}>
+                    <Text style={[styles.serviceName, { color: colors.text }]}>{servico.name}</Text>
+                    <Text style={[styles.servicePrice, { color: colors.primary }]}>
+                      R$ {servico.price.toFixed(2)}
+                    </Text>
+                  </View>
+                  <Text
+                    style={[styles.serviceDescription, { color: colors.textSecondary }]}
+                    numberOfLines={2}
+                  >
+                    {servico.description}
+                  </Text>
+                  <View style={styles.serviceFooter}>
+                    <View style={styles.serviceDurationContainer}>
+                      <Ionicons name="time" size={14} color={colors.textSecondary} />
+                      <Text style={[styles.serviceDuration, { color: colors.textSecondary }]}>
+                        {servico.duration} min
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+                  </View>
+                </TouchableOpacity>
+              ))
+            )}
           </View>
-        ) : data ? (
-          <Text style={[styles.noHorariosText, { color: colors.error }]}>
-            Nenhum horário disponível para esta data
-          </Text>
-        ) : (
-          <Text style={[styles.selectDataText, { color: colors.textSecondary }]}>
-            Selecione uma data para ver os horários
-          </Text>
-        )}
-        <View style={styles.footer}>
-          <TouchableOpacity
-            style={[
-              styles.confirmButton,
-              { backgroundColor: colors.primary },
-              (!data || !horario || diasIndisponiveis.includes(data) || bookingLoading) && {
-                opacity: 0.5,
-              },
-            ]}
-            onPress={handleConfirmar}
-            accessibilityRole="button"
-            disabled={!data || !horario || diasIndisponiveis.includes(data) || bookingLoading}
-          >
-            <Text style={[styles.confirmButtonText, { color: colors.card }]}>
-              {bookingLoading ? 'Confirmando...' : 'Confirmar Agendamento'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <View>
-          <Text style={[styles.declarationText, { color: colors.textSecondary }]}>
-            *Declaro estar ciente de que o não honrar o compromisso de comparecer à data agendada
-            por 3 vezes acarretará em um bloqueio temporário de novos agendamentos*
-          </Text>
         </View>
       </View>
+
+      {/* Modal Bottom Sheet para Agendamento */}
+      <Modal
+        visible={isModalVisible}
+        transparent={true}
+        animationType="none"
+        onRequestClose={closeModal}
+      >
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={closeModal} />
+          <Animated.View
+            style={[
+              styles.modalContainer,
+              { backgroundColor: colors.background },
+              {
+                transform: [
+                  {
+                    translateY: modalAnimation.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [Dimensions.get('window').height, 0],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            {/* Header do Modal - Minimalista */}
+            <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
+              <TouchableOpacity onPress={handleBack} style={styles.modalBackButton}>
+                <Ionicons name="chevron-back" size={24} color={colors.text} />
+              </TouchableOpacity>
+
+              <View style={styles.modalHeaderContent}>
+                <Text style={[styles.modalTitle, { color: colors.text }]}>Agendamento</Text>
+              </View>
+
+              <TouchableOpacity onPress={closeModal} style={styles.modalCloseButton}>
+                <Ionicons name="close" size={24} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Indicador de Progresso Moderno */}
+            <View style={styles.progressContainer}>
+              <View style={[styles.progressBar, { backgroundColor: colors.border }]}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    {
+                      backgroundColor: colors.primary,
+                      width:
+                        step === 'professional'
+                          ? '33%'
+                          : step === 'datetime'
+                            ? '66%'
+                            : step === 'summary'
+                              ? '100%'
+                              : '0%',
+                    },
+                  ]}
+                />
+              </View>
+              <View style={styles.progressLabels}>
+                <Text
+                  style={[
+                    styles.progressLabel,
+                    {
+                      color: step === 'professional' ? colors.primary : colors.textSecondary,
+                      fontWeight: step === 'professional' ? '600' : '400',
+                    },
+                  ]}
+                >
+                  Profissional
+                </Text>
+                <Text
+                  style={[
+                    styles.progressLabel,
+                    {
+                      color: step === 'datetime' ? colors.primary : colors.textSecondary,
+                      fontWeight: step === 'datetime' ? '600' : '400',
+                    },
+                  ]}
+                >
+                  Data/Hora
+                </Text>
+                <Text
+                  style={[
+                    styles.progressLabel,
+                    {
+                      color: step === 'summary' ? colors.primary : colors.textSecondary,
+                      fontWeight: step === 'summary' ? '600' : '400',
+                    },
+                  ]}
+                >
+                  Confirmar
+                </Text>
+              </View>
+            </View>
+
+            {/* Conteúdo do Modal */}
+            <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+              {/* Step 1: Seleção de Profissional */}
+              {step === 'professional' && (
+                <View style={styles.modalStep}>
+                  <View style={styles.stepHeader}>
+                    <Text style={[styles.modalStepTitle, { color: colors.text }]}>
+                      Profissional
+                    </Text>
+                    <Text style={[styles.modalStepSubtitle, { color: colors.textSecondary }]}>
+                      Quem vai te atender?
+                    </Text>
+                  </View>
+
+                  <View style={styles.professionalsContainer}>
+                    {barbeiros.map((barber) => (
+                      <TouchableOpacity
+                        key={barber.id}
+                        style={[
+                          styles.professionalCard,
+                          { backgroundColor: colors.card, borderColor: colors.border },
+                        ]}
+                        onPress={() => handleProfessionalSelect(barber.id)}
+                      >
+                        <View style={styles.professionalAvatar}>
+                          <View
+                            style={[styles.avatarPlaceholder, { backgroundColor: colors.primary }]}
+                          >
+                            <Text style={[styles.avatarText, { color: colors.card }]}>
+                              {barber.name.charAt(0).toUpperCase()}
+                            </Text>
+                          </View>
+                        </View>
+                        <View style={styles.professionalInfoModal}>
+                          <Text style={[styles.professionalName, { color: colors.text }]}>
+                            {barber.name}
+                          </Text>
+                          <Text style={[styles.professionalRole, { color: colors.textSecondary }]}>
+                            Especialista
+                          </Text>
+                          <Text
+                            style={[styles.specialties, { color: colors.textSecondary }]}
+                            numberOfLines={1}
+                          >
+                            {barber.specialties?.join(', ')}
+                          </Text>
+                        </View>
+                        <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              )}
+
+              {/* Step 2: Seleção de Data e Horário */}
+              {step === 'datetime' && (
+                <View style={styles.modalStep}>
+                  <View style={styles.stepHeader}>
+                    <Text style={[styles.modalStepTitle, { color: colors.text }]}>Quando?</Text>
+                    <Text style={[styles.modalStepSubtitle, { color: colors.textSecondary }]}>
+                      Escolha o melhor dia e horário
+                    </Text>
+                  </View>
+
+                  <View style={styles.calendarSection}>
+                    <Calendar
+                      onDayPress={(day) => handleDataChange(day.dateString)}
+                      markedDates={getMarkedDates(data, colors)}
+                      minDate={new Date().toISOString().split('T')[0]}
+                      theme={{
+                        todayTextColor: colors.accent,
+                        selectedDayBackgroundColor: '#111',
+                        selectedDayTextColor: '#fff',
+                      }}
+                      style={styles.calendar}
+                    />
+                  </View>
+
+                  {data && (
+                    <View style={styles.timeSection}>
+                      <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                        Horários disponíveis
+                      </Text>
+                      {horariosDisponiveis.length > 0 ? (
+                        <View style={styles.timeGrid}>
+                          {horariosDisponiveis.map((h) => (
+                            <TouchableOpacity
+                              key={h}
+                              style={[
+                                styles.timeButton,
+                                { backgroundColor: colors.card, borderColor: colors.border },
+                                horario === h && {
+                                  backgroundColor: colors.primary,
+                                  borderColor: colors.primary,
+                                },
+                              ]}
+                              onPress={() => handleTimeSelect(h)}
+                            >
+                              <Text
+                                style={[
+                                  styles.timeButtonText,
+                                  { color: horario === h ? colors.card : colors.text },
+                                ]}
+                              >
+                                {h}
+                              </Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      ) : (
+                        <Text style={[styles.noHorariosText, { color: colors.textSecondary }]}>
+                          Nenhum horário disponível para esta data
+                        </Text>
+                      )}
+                    </View>
+                  )}
+                </View>
+              )}
+
+              {/* Step 3: Resumo e Finalização */}
+              {step === 'summary' && (
+                <View style={styles.modalStep}>
+                  <View style={styles.stepHeader}>
+                    <Text style={[styles.modalStepTitle, { color: colors.text }]}>
+                      Confirmar agendamento
+                    </Text>
+                    <Text style={[styles.modalStepSubtitle, { color: colors.textSecondary }]}>
+                      Revise os detalhes antes de finalizar
+                    </Text>
+                  </View>
+
+                  {/* Resumo do Agendamento */}
+                  <View
+                    style={[
+                      styles.summaryCard,
+                      { backgroundColor: colors.card, borderColor: colors.border },
+                    ]}
+                  >
+                    <View style={styles.summaryRow}>
+                      <Ionicons name="cut" size={20} color={colors.primary} />
+                      <View style={styles.summaryInfo}>
+                        <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                          Serviço
+                        </Text>
+                        <Text style={[styles.summaryValue, { color: colors.text }]}>
+                          {servicoSelecionado?.name}
+                        </Text>
+                      </View>
+                      <Text style={[styles.summaryPrice, { color: colors.primary }]}>
+                        R$ {servicoSelecionado?.price.toFixed(2)}
+                      </Text>
+                    </View>
+
+                    <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
+
+                    <View style={styles.summaryRow}>
+                      <Ionicons name="person" size={20} color={colors.primary} />
+                      <View style={styles.summaryInfo}>
+                        <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                          Profissional
+                        </Text>
+                        <Text style={[styles.summaryValue, { color: colors.text }]}>
+                          {barbeiros.find((b) => b.id === barbeiro)?.name}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
+
+                    <View style={styles.summaryRow}>
+                      <Ionicons name="calendar" size={20} color={colors.primary} />
+                      <View style={styles.summaryInfo}>
+                        <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                          Data e horário
+                        </Text>
+                        <Text style={[styles.summaryValue, { color: colors.text }]}>
+                          {new Date(data + 'T00:00:00').toLocaleDateString('pt-BR')} às {horario}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
+
+                    <View style={styles.summaryRow}>
+                      <Ionicons name="time" size={20} color={colors.primary} />
+                      <View style={styles.summaryInfo}>
+                        <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                          Duração
+                        </Text>
+                        <Text style={[styles.summaryValue, { color: colors.text }]}>
+                          {servicoSelecionado?.duration} minutos
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Preferências */}
+                  <View style={styles.preferencesSection}>
+                    <Text style={[styles.sectionTitle, { color: colors.text }]}>Preferências</Text>
+
+                    <View
+                      style={[
+                        styles.preferenceCard,
+                        { backgroundColor: colors.card, borderColor: colors.border },
+                      ]}
+                    >
+                      <View style={styles.preferenceRow}>
+                        <View style={styles.preferenceInfo}>
+                          <Text style={[styles.preferenceTitle, { color: colors.text }]}>
+                            Atendimento silencioso
+                          </Text>
+                          <Text
+                            style={[styles.preferenceSubtitle, { color: colors.textSecondary }]}
+                          >
+                            Não quero conversar durante o atendimento
+                          </Text>
+                        </View>
+                        <Switch
+                          value={noConversation}
+                          onValueChange={setNoConversation}
+                          trackColor={{ false: colors.border, true: colors.primary }}
+                          thumbColor={noConversation ? '#fff' : '#f4f3f4'}
+                        />
+                      </View>
+                    </View>
+
+                    <View style={styles.observationsSection}>
+                      <Text style={[styles.sectionTitle, { color: colors.text }]}>Observações</Text>
+                      <TextInput
+                        style={[
+                          styles.observationsInput,
+                          {
+                            backgroundColor: colors.card,
+                            borderColor: colors.border,
+                            color: colors.text,
+                          },
+                        ]}
+                        placeholder="Alguma observação especial? (opcional)"
+                        placeholderTextColor={colors.textSecondary}
+                        value={observacoes}
+                        onChangeText={setObservacoes}
+                        multiline
+                        numberOfLines={3}
+                        maxLength={200}
+                      />
+                      <Text style={[styles.charCount, { color: colors.textSecondary }]}>
+                        {observacoes.length}/200 caracteres
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              )}
+            </ScrollView>
+
+            {/* Botão de confirmar fixo no bottom */}
+            {step === 'summary' && (
+              <View
+                style={[
+                  styles.modalFooter,
+                  { backgroundColor: colors.background, borderTopColor: colors.border },
+                ]}
+              >
+                <TouchableOpacity
+                  style={[
+                    styles.confirmButton,
+                    { backgroundColor: colors.primary },
+                    bookingLoading && { opacity: 0.7 },
+                  ]}
+                  onPress={handleConfirmar}
+                  disabled={bookingLoading}
+                >
+                  <Text style={[styles.confirmButtonText, { color: colors.card }]}>
+                    {bookingLoading
+                      ? 'Confirmando...'
+                      : `Confirmar Agendamento - R$ ${servicoSelecionado?.price.toFixed(2)}`}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </Animated.View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -392,16 +774,27 @@ function ProfissionaisTab() {
         return (
           <View
             key={barbeiro.id}
-            style={[
-              styles.professionalCard,
-              { backgroundColor: colors.surface, borderColor: colors.border },
-            ]}
+            style={{
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+              borderWidth: 1,
+              borderRadius: 16,
+              marginHorizontal: 16,
+              marginBottom: 16,
+              overflow: 'hidden',
+            }}
           >
+            {/* Header do Profissional */}
             <TouchableOpacity
               onPress={() => toggleExpand(barbeiro.id)}
-              style={styles.professionalHeader}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: 20,
+              }}
             >
-              <View style={styles.professionalInfo}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
                 <View style={[styles.avatarContainer, { borderColor: colors.primary }]}>
                   <Image
                     source={
@@ -412,24 +805,10 @@ function ProfissionaisTab() {
                     style={styles.avatar}
                   />
                 </View>
-                <View style={styles.professionalDetails}>
+                <View style={{ flex: 1, marginLeft: 16 }}>
                   <Text style={[styles.professionalName, { color: colors.text }]}>
                     {barbeiro.name || 'Nome não disponível'}
                   </Text>
-                  <Text style={[styles.professionalRole, { color: colors.textSecondary }]}>
-                    {barbeiro.specialties &&
-                    Array.isArray(barbeiro.specialties) &&
-                    barbeiro.specialties.length > 0 ? (
-                      barbeiro.specialties.filter((s) => s).join(', ')
-                    ) : (
-                      <Text>Profissional Especializado</Text>
-                    )}
-                  </Text>
-                  {barbeiro.rating && (
-                    <Text style={[styles.professionalRating, { color: colors.accent }]}>
-                      ⭐ {barbeiro.rating.toFixed(1)}
-                    </Text>
-                  )}
                 </View>
               </View>
               <View style={[styles.expandIcon, { backgroundColor: colors.accent + '15' }]}>
@@ -441,28 +820,48 @@ function ProfissionaisTab() {
               </View>
             </TouchableOpacity>
 
-            {isExpanded && (
-              <View style={[styles.professionalDescription, { borderTopColor: colors.border }]}>
-                <Text style={[styles.descriptionTitle, { color: colors.text }]}>
-                  Sobre o profissional
-                </Text>
-                <Text style={[styles.descriptionText, { color: colors.textSecondary }]}>
+            {/* Conteúdo Expandido */}
+            {expandedBarbeiro === barbeiro.id && (
+              <View
+                style={{
+                  backgroundColor: colors.card,
+                  padding: 20,
+                  borderTopWidth: 1,
+                  borderTopColor: colors.border,
+                }}
+              >
+                <Text
+                  style={{
+                    color: colors.textSecondary,
+                    fontSize: 15,
+                    lineHeight: 22,
+                    textAlign: 'justify',
+                  }}
+                >
                   {barbeiro.description || 'Profissional qualificado do Studio T Black.'}
                 </Text>
-                {barbeiro.workingHours &&
-                  Array.isArray(barbeiro.workingHours) &&
-                  barbeiro.workingHours.length > 0 && (
-                    <>
-                      <Text
-                        style={[styles.descriptionTitle, { color: colors.text, marginTop: 16 }]}
-                      >
-                        Horários de Trabalho
-                      </Text>
-                      <Text style={[styles.descriptionText, { color: colors.textSecondary }]}>
-                        {barbeiro.workingHours.filter((h) => h).join(', ')}
-                      </Text>
-                    </>
-                  )}
+                {barbeiro.specialties && barbeiro.specialties.length > 0 && (
+                  <View style={{ marginTop: 16 }}>
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        fontWeight: '600',
+                        color: colors.text,
+                        marginBottom: 8,
+                      }}
+                    >
+                      Especialidades
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        color: colors.textSecondary,
+                      }}
+                    >
+                      {barbeiro.specialties.join(' • ')}
+                    </Text>
+                  </View>
+                )}
               </View>
             )}
           </View>
@@ -717,11 +1116,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     opacity: 0.8,
   },
-  professionalRating: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginTop: 2,
-  },
+
   expandIcon: {
     width: 36,
     height: 36,
@@ -729,6 +1124,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+
   professionalDescription: {
     paddingHorizontal: 20,
     paddingBottom: 20,
@@ -744,5 +1140,335 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     textAlign: 'justify',
+  },
+  // Novos estilos para o fluxo step-by-step
+  stepIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  stepDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  backButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepContainer: {
+    flex: 1,
+  },
+  stepTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  stepSubtitle: {
+    fontSize: 16,
+    marginBottom: 24,
+  },
+  // Estilos para serviços
+  servicesGrid: {
+    gap: 12,
+  },
+  serviceCard: {
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  serviceHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  serviceName: {
+    fontSize: 18,
+    fontWeight: '600',
+    flex: 1,
+    marginRight: 12,
+  },
+  servicePrice: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  serviceDescription: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 12,
+  },
+  serviceFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  serviceDurationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  serviceDuration: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  // Estilos para profissionais
+  professionalsContainer: {
+    gap: 12,
+  },
+  professionalCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  professionalInfoModal: {
+    flex: 1,
+  },
+  professionalName: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+
+  specialties: {
+    fontSize: 13,
+    fontStyle: 'italic',
+  },
+  // Estilos para tela principal
+  mainContent: {
+    flex: 1,
+  },
+  mainTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  mainSubtitle: {
+    fontSize: 16,
+    marginBottom: 24,
+  },
+  loadingText: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 40,
+  },
+  // Estilos para o Modal Bottom Sheet
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalBackdrop: {
+    flex: 1,
+  },
+  modalContainer: {
+    minHeight: '90%',
+    maxHeight: '95%',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 16,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  modalBackButton: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalHeaderContent: {
+    flex: 1,
+    marginHorizontal: 16,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalCloseButton: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  progressContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.05)',
+  },
+  progressBar: {
+    height: 4,
+    borderRadius: 2,
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 2,
+  },
+  progressLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  progressLabel: {
+    fontSize: 12,
+    textAlign: 'center',
+    flex: 1,
+  },
+  modalContent: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  modalStep: {
+    paddingVertical: 16,
+  },
+  modalStepTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  modalStepSubtitle: {
+    fontSize: 15,
+    marginBottom: 20,
+  },
+  modalFooter: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+  },
+  // Novos estilos para o modal aprimorado
+  stepHeader: {
+    marginBottom: 24,
+  },
+  professionalAvatar: {
+    marginRight: 16,
+  },
+  avatarPlaceholder: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: {
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  calendarSection: {
+    marginBottom: 24,
+  },
+  timeSection: {
+    marginTop: 16,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  timeGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  timeButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  timeButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  summaryCard: {
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 24,
+    borderWidth: 1,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  summaryInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  summaryLabel: {
+    fontSize: 14,
+    marginBottom: 2,
+  },
+  summaryValue: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  summaryPrice: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  summaryDivider: {
+    height: 1,
+    marginVertical: 12,
+    marginLeft: 32,
+  },
+  preferencesSection: {
+    marginBottom: 24,
+  },
+  preferenceCard: {
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+  },
+  preferenceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  preferenceInfo: {
+    flex: 1,
+    marginRight: 12,
+  },
+  preferenceTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  preferenceSubtitle: {
+    fontSize: 14,
+  },
+  observationsSection: {
+    marginTop: 8,
+  },
+  observationsInput: {
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    fontSize: 16,
+    minHeight: 80,
+    textAlignVertical: 'top',
+  },
+  charCount: {
+    fontSize: 12,
+    textAlign: 'right',
+    marginTop: 4,
   },
 });

@@ -1,4 +1,5 @@
 // Main hooks export file
+export * from './useAdvancedNotifications';
 export * from './useApi';
 export * from './useBarbers';
 export * from './useBookings';
