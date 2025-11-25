@@ -1209,22 +1209,9 @@ const styles = StyleSheet.create({
   professionalsContainer: {
     gap: 12,
   },
-  professionalCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 20,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
   professionalInfoModal: {
     flex: 1,
   },
-  professionalName: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-
   specialties: {
     fontSize: 13,
     fontStyle: 'italic',
