@@ -96,6 +96,7 @@ function AgendarTab() {
   const [noConversation, setNoConversation] = useState(false);
   const [observacoes, setObservacoes] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isCalendarExpanded, setIsCalendarExpanded] = useState(false);
 
 
   const {
@@ -499,7 +500,7 @@ function AgendarTab() {
                         Horários disponíveis
                       </Text>
                       {horariosDisponiveis.length > 0 ? (
-                        <View style={styles.timeGrid}>
+                        <View style={styles.timeGridCentered}>
                           {horariosDisponiveis.map((h) => (
                             <TouchableOpacity
                               key={h}
@@ -534,7 +535,7 @@ function AgendarTab() {
                 </View>
               )}
 
-              {/* Step 3: Resumo e Finalização */}
+              {/* Step 2: Resumo e Finalização */}
               {step === 'summary' && (
                 <View style={styles.modalStep}>
                   <View style={styles.stepHeader}>
@@ -1506,5 +1507,13 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'center',
     lineHeight: 18,
+  },
+  // Estilo para horários centralizados
+  timeGridCentered: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 12,
+    paddingHorizontal: 16,
   },
 });

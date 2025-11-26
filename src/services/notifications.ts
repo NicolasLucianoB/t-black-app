@@ -50,6 +50,10 @@ export const notificationService = {
 
       try {
         // Get Expo token (compatible with Firebase)
+        // Skip in development to avoid projectId errors
+        if (__DEV__) {
+          return 'dev-token-placeholder';
+        }
         token = (await Notifications.getExpoPushTokenAsync()).data;
 
 
@@ -59,7 +63,7 @@ export const notificationService = {
 
         }
       } catch (error) {
-        console.log('❌ Error getting push token:', error);
+        console.log('Error getting push token:', error);
       }
     } else {
       console.warn('⚠️ Must use physical device for Push Notifications');

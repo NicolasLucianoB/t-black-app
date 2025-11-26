@@ -11,8 +11,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
 
   useEffect(() => {
     if (isReady && token) {
-      console.log('🔔 Notification system is ready!');
-      console.log('📱 Token:', token.substring(0, 20) + '...');
+      console.log('Notification system initialized');
     }
   }, [isReady, token]);
 

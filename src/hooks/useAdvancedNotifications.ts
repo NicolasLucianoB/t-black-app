@@ -50,7 +50,7 @@ export function useAdvancedNotifications() {
           }
         }
       } catch (error) {
-        console.log('❌ Error initializing notifications:', error);
+        console.log('Error initializing notifications:', error);
         if (isMounted) {
           setState((prev) => ({ ...prev, permission: 'denied' }));
         }

@@ -19,6 +19,10 @@ export const firebaseNotificationService = {
   async getExpoToken(): Promise<string | null> {
     try {
       // Get Expo push token (works with Firebase)
+      // Skip in development to avoid projectId errors
+      if (__DEV__) {
+        return 'dev-firebase-token-placeholder';
+      }
       const token = (await Notifications.getExpoPushTokenAsync()).data;
 
       return token;
