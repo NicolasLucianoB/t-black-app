@@ -1,3 +1,4 @@
+export { AdminModeToggle } from './AdminModeToggle';
 export { default as AppHeader } from './AppHeader';
 export { AppProviders } from './AppProviders';
 export { default as BackHeader } from './BackHeader';
@@ -6,4 +7,5 @@ export { default as Card } from './Card';
 export { default as Input } from './Input';
 export { default as LoadingSpinner } from './LoadingSpinner';
 export { NotificationProvider } from './NotificationProvider';
+export { AdminRoute, ProtectedRoute, SuperAdminRoute, usePermissionCheck } from './ProtectedRoute';
 export { default as StatusBarManager } from './StatusBarManager';

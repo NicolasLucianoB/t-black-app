@@ -28,8 +28,6 @@ export function useAdvancedNotifications() {
     // Initialize notifications
     const initializeNotifications = async () => {
       try {
-
-
         // 1. Register for basic notifications
         const token = await notificationService.registerForPushNotifications();
 
@@ -46,7 +44,6 @@ export function useAdvancedNotifications() {
           }));
 
           if (token) {
-
           }
         }
       } catch (error) {
@@ -62,14 +59,12 @@ export function useAdvancedNotifications() {
 
     // Listen for incoming notifications
     const notificationListener = Notifications.addNotificationReceivedListener((notification) => {
-
       setState((prev) => ({ ...prev, lastNotification: notification }));
       firebaseNotificationService.handleNotificationReceived(notification);
     });
 
     // Listen for notification interactions
     const responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
-
       firebaseNotificationService.handleNotificationResponse(response);
     });
 

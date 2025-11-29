@@ -8,9 +8,10 @@ import { useTheme } from '../contexts/ThemeContext';
 
 interface AppHeaderProps {
   title?: string;
+  rightElement?: React.ReactNode;
 }
 
-export default function AppHeader({ title }: AppHeaderProps) {
+export default function AppHeader({ title, rightElement }: AppHeaderProps) {
   const { getCartCount } = useCart();
   const { colors } = useTheme();
   const router = useRouter();
@@ -30,6 +31,7 @@ export default function AppHeader({ title }: AppHeaderProps) {
         </Text>
       )}
       <View style={styles.headerRight}>
+        {rightElement}
         <TouchableOpacity style={styles.iconButton} onPress={() => router.push('notifications')}>
           <Ionicons name="notifications-outline" size={24} color={colors.text} />
         </TouchableOpacity>

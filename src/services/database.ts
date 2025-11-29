@@ -53,8 +53,6 @@ export const databaseService = {
           updated_at: booking.updatedAt,
         };
 
-
-
         if (!dbBooking.barber_id || (dbBooking.service_id !== null && !dbBooking.service_id)) {
           console.error('Invalid UUID for barber_id or service_id:', dbBooking);
           throw new Error('Invalid UUID for barber_id or service_id');
@@ -180,8 +178,6 @@ export const databaseService = {
         const dayNames = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
         const currentDay = dayNames[dayOfWeek];
 
-
-
         // Find working hours for current day
         const todaySchedule = workingHours.find((schedule: string) =>
           schedule.toLowerCase().includes(currentDay.toLowerCase()),
@@ -190,8 +186,6 @@ export const databaseService = {
         if (!todaySchedule) {
           return [];
         }
-
-
 
         // Extract time ranges from schedule (e.g., "segunda:09:00-12:00,13:00-19:00")
         // Split by first colon to separate day from times
@@ -218,8 +212,6 @@ export const databaseService = {
           }
         });
 
-
-
         // Filter out past times if it's today
         const today = new Date().toISOString().split('T')[0];
         const currentTime = new Date();
@@ -239,8 +231,6 @@ export const databaseService = {
 
           return true;
         });
-
-
 
         return availableSlots.sort();
       } catch (error) {

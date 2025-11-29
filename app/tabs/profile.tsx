@@ -13,8 +13,10 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AdminModeToggle } from 'src/components/AdminModeToggle';
 import AppHeader from 'src/components/AppHeader';
-import { useAuth } from 'src/contexts/AuthContext';
+import { useAdminMode } from 'src/contexts/AdminModeContext';
+import { useAuth, useRole } from 'src/contexts/AuthContext';
 import { useTheme } from 'src/contexts/ThemeContext';
 import { useProfileNotifications } from 'src/hooks/useNotifications';
 import { authService } from 'src/services';
@@ -22,6 +24,8 @@ import { authService } from 'src/services';
 export default function ProfileScreen() {
   const { colors } = useTheme();
   const { user, signOut } = useAuth();
+  const { isAdminMode, canAccessAdminMode } = useAdminMode();
+  const { isAdmin, isSuperAdmin } = useRole();
   const router = useRouter();
   const [updatingAvatar, setUpdatingAvatar] = useState(false);
   const { notifyAvatarUpdated } = useProfileNotifications();
@@ -168,7 +172,7 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <AppHeader />
+      <AppHeader rightElement={<AdminModeToggle />} />
       <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={[styles.header, { backgroundColor: colors.background }]}>
           <TouchableOpacity
@@ -194,6 +198,12 @@ export default function ProfileScreen() {
           <Text style={[styles.userEmail, { color: colors.textSecondary }]}>
             {user?.email || 'usuario@email.com'}
           </Text>
+          {isAdminMode && canAccessAdminMode && (
+            <View style={[styles.adminBadge, { backgroundColor: colors.primary }]}>
+              <Ionicons name="shield-checkmark" size={16} color={colors.surface} />
+              <Text style={[styles.adminBadgeText, { color: colors.surface }]}>MODO ADMIN</Text>
+            </View>
+          )}
         </View>
 
         <View
@@ -373,5 +383,18 @@ const styles = StyleSheet.create({
   },
   versionText: {
     fontSize: 12,
+  },
+  adminBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginTop: 8,
+    gap: 4,
+  },
+  adminBadgeText: {
+    fontSize: 12,
+    fontWeight: 'bold',
   },
 });

@@ -61,16 +61,15 @@ export function useCourseProgress(userId?: string, courseId?: string) {
     completed: boolean;
   } | null>(null);
 
-
   const updateProgress = async (watchedMinutes: number) => {
     // This will save progress to the backend
     setProgress((prev) =>
       prev
         ? {
-          ...prev,
-          watchedMinutes,
-          completed: watchedMinutes >= prev.totalMinutes * 0.95, // 95% watched = completed
-        }
+            ...prev,
+            watchedMinutes,
+            completed: watchedMinutes >= prev.totalMinutes * 0.95, // 95% watched = completed
+          }
         : null,
     );
   };

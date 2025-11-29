@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { AdminModeProvider } from '../contexts/AdminModeContext';
 import { AuthProvider } from '../contexts/AuthContext';
 import { CartProvider } from '../contexts/CartContext';
 import { ThemeProvider } from '../contexts/ThemeContext';
@@ -14,10 +15,12 @@ export function AppProviders({ children }: AppProvidersProps) {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <StatusBarManager />
-        <NotificationProvider>
-          <CartProvider>{children}</CartProvider>
-        </NotificationProvider>
+        <AdminModeProvider>
+          <StatusBarManager />
+          <NotificationProvider>
+            <CartProvider>{children}</CartProvider>
+          </NotificationProvider>
+        </AdminModeProvider>
       </AuthProvider>
     </ThemeProvider>
   );

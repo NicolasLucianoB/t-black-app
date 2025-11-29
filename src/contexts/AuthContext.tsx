@@ -2,8 +2,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 import { authService } from '../services/auth';
+import { roleService } from '../services/roleService';
 import { supabase } from '../services/supabase';
 import { User } from '../types';
+import { UserRole, getUserRoleFromEmail, isSuperAdminEmail } from '../types/auth';
 
 interface AuthContextType {
   user: User | null;
@@ -19,6 +21,14 @@ interface AuthContextType {
   updateProfile: (updates: Partial<User>) => Promise<{ error: string | null }>;
   resetPassword: (email: string) => Promise<{ error: string | null }>;
   isAuthenticated: boolean;
+
+  // Role management
+  userRole: UserRole;
+  isClient: boolean;
+  isAdmin: boolean;
+  isSuperAdmin: boolean;
+  hasPermission: (requiredRole: UserRole) => boolean;
+  refreshUserRole: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,6 +41,19 @@ export const useAuth = (): AuthContextType => {
   return context;
 };
 
+// Hook específico para roles (mais conveniente para uso em componentes)
+export const useRole = () => {
+  const { userRole, isClient, isAdmin, isSuperAdmin, hasPermission } = useAuth();
+
+  return {
+    role: userRole,
+    isClient,
+    isAdmin,
+    isSuperAdmin,
+    hasPermission,
+  };
+};
+
 interface AuthProviderProps {
   children: React.ReactNode;
 }
@@ -40,6 +63,7 @@ const AUTH_STORAGE_KEY = 'auth_user';
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState<UserRole>('client');
 
   // Load user from storage on app start and set up auth listener
   useEffect(() => {
@@ -59,14 +83,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
           name: session.user.user_metadata?.name || session.user.email || '',
           phone: session.user.user_metadata?.phone || null,
           avatar: session.user.user_metadata?.avatar_url || null,
+          user_role: getUserRoleFromEmail(session.user.email || ''), // Definir role baseado no email
           createdAt: session.user.created_at,
         };
 
         setUser(userData);
         await saveUserToStorage(userData);
+
+        // Inicializar role
+        setUserRole(userData.user_role);
       } else if (event === 'SIGNED_OUT') {
         // User signed out
         setUser(null);
+        setUserRole('client'); // Reset role
         await saveUserToStorage(null);
       }
 
@@ -82,7 +111,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const userData = await AsyncStorage.getItem(AUTH_STORAGE_KEY);
       if (userData) {
-        setUser(JSON.parse(userData));
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+
+        // Carregar role do usuário
+        if (parsedUser.email) {
+          if (isSuperAdminEmail(parsedUser.email)) {
+            setUserRole('superadmin');
+          } else {
+            // Tentar buscar do banco, ou usar client como padrão
+            try {
+              const role = await roleService.getUserRole(parsedUser.id);
+              setUserRole(role || 'client');
+            } catch (error) {
+              setUserRole(getUserRoleFromEmail(parsedUser.email));
+            }
+          }
+        }
       }
     } catch (error) {
       console.log('Error loading user from storage:', error);
@@ -103,6 +148,46 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  // Funções de verificação de role
+  const isClient = userRole === 'client';
+  const isAdmin = userRole === 'admin' || userRole === 'superadmin';
+  const isSuperAdmin = userRole === 'superadmin';
+
+  // Verificar se usuário tem permissão para determinada role
+  const hasPermission = (requiredRole: UserRole): boolean => {
+    const roleHierarchy: Record<UserRole, number> = {
+      client: 1,
+      admin: 2,
+      superadmin: 3,
+    };
+
+    return roleHierarchy[userRole] >= roleHierarchy[requiredRole];
+  };
+
+  // Atualizar role do usuário (buscar no banco)
+  const refreshUserRole = async (): Promise<void> => {
+    if (!user) {
+      setUserRole('client');
+      return;
+    }
+
+    try {
+      // Primeiro verifica se é superadmin por email
+      if (isSuperAdminEmail(user.email)) {
+        setUserRole('superadmin');
+        return;
+      }
+
+      // Depois busca no banco de dados
+      const role = await roleService.getUserRole(user.id);
+      setUserRole(role || 'client');
+    } catch (error) {
+      console.log('Error refreshing user role:', error);
+      // Em caso de erro, usar role baseado no email
+      setUserRole(getUserRoleFromEmail(user.email));
+    }
+  };
+
   const signIn = async (email: string, password: string): Promise<{ error: string | null }> => {
     try {
       setLoading(true);
@@ -115,6 +200,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (userData) {
         setUser(userData);
         await saveUserToStorage(userData);
+
+        // Inicializar role do usuário
+        await refreshUserRole();
       }
 
       return { error: null };
@@ -142,6 +230,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (userData) {
         setUser(userData);
         await saveUserToStorage(userData);
+
+        // Inicializar role do usuário
+        await refreshUserRole();
       }
 
       return { error: null };
@@ -157,6 +248,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setLoading(true);
       await authService.signOut();
       setUser(null);
+      setUserRole('client'); // Reset role
       await saveUserToStorage(null);
     } catch (error) {
       console.log('Error signing out:', error);
@@ -201,6 +293,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     updateProfile,
     resetPassword,
     isAuthenticated: !!user,
+
+    // Role management
+    userRole,
+    isClient,
+    isAdmin,
+    isSuperAdmin,
+    hasPermission,
+    refreshUserRole,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -45,13 +45,10 @@ export const firebaseNotificationService = {
   },
 
   // Handle notification received
-  handleNotificationReceived: (notification: any) => {
-
-  },
+  handleNotificationReceived: (notification: any) => {},
 
   // Handle notification response (user tapped)
   handleNotificationResponse: (response: any) => {
-
     // Navigate to specific screen based on notification data
   },
 };
@@ -60,7 +57,7 @@ export const firebaseNotificationService = {
 export const messaging = null;
 export const analytics = null;
 export const requestPermissionAndGetToken = firebaseNotificationService.getExpoToken;
-export const onMessageListener = () => new Promise(() => { });
+export const onMessageListener = () => new Promise(() => {});
 
 // Mock app export (no Firebase SDK needed)
 export default { name: 'expo-notifications-only' };

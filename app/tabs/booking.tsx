@@ -98,7 +98,6 @@ function AgendarTab() {
   const [loading, setLoading] = useState(false);
   const [isCalendarExpanded, setIsCalendarExpanded] = useState(false);
 
-
   const {
     createBooking,
     loading: bookingLoading,
@@ -579,7 +578,9 @@ function AgendarTab() {
                           {new Date(data + 'T00:00:00').getDate()}
                         </Text>
                         <Text style={[styles.monthAbbr, { color: colors.textSecondary }]}>
-                          {new Date(data + 'T00:00:00').toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase()}
+                          {new Date(data + 'T00:00:00')
+                            .toLocaleDateString('pt-BR', { month: 'short' })
+                            .toUpperCase()}
                         </Text>
                       </View>
                     </View>
@@ -834,7 +835,6 @@ function ProfissionaisTab() {
     </ScrollView>
   );
 }
-
 
 export default function BookingScreen() {
   const { colors } = useTheme();
