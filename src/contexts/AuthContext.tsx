@@ -77,21 +77,40 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       if (session?.user && event === 'SIGNED_IN') {
         // User signed in via OAuth or other method
+        console.log('📧 DEBUG - Auth state change SIGNED_IN for:', session.user.email);
+
+        // Buscar role correto do banco de dados
+        let correctRole: UserRole = 'client';
+        try {
+          const roleFromDB = await roleService.getUserRole(session.user.id);
+          console.log('🔍 DEBUG - Role from DB in auth listener:', roleFromDB);
+
+          if (roleFromDB) {
+            correctRole = roleFromDB;
+          } else {
+            correctRole = getUserRoleFromEmail(session.user.email || '');
+          }
+        } catch (error) {
+          console.error('❌ DEBUG - Error getting role in auth listener:', error);
+          correctRole = getUserRoleFromEmail(session.user.email || '');
+        }
+
         const userData: User = {
           id: session.user.id,
           email: session.user.email || '',
           name: session.user.user_metadata?.name || session.user.email || '',
           phone: session.user.user_metadata?.phone || null,
           avatar: session.user.user_metadata?.avatar_url || null,
-          user_role: getUserRoleFromEmail(session.user.email || ''), // Definir role baseado no email
+          user_role: correctRole,
           createdAt: session.user.created_at,
         };
 
         setUser(userData);
         await saveUserToStorage(userData);
 
-        // Inicializar role
-        setUserRole(userData.user_role);
+        // Definir role correto
+        setUserRole(correctRole);
+        console.log('✅ DEBUG - Role set in auth listener:', correctRole);
       } else if (event === 'SIGNED_OUT') {
         // User signed out
         setUser(null);
@@ -116,16 +135,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         // Carregar role do usuário
         if (parsedUser.email) {
-          if (isSuperAdminEmail(parsedUser.email)) {
-            setUserRole('superadmin');
-          } else {
-            // Tentar buscar do banco, ou usar client como padrão
-            try {
-              const role = await roleService.getUserRole(parsedUser.id);
-              setUserRole(role || 'client');
-            } catch (error) {
-              setUserRole(getUserRoleFromEmail(parsedUser.email));
+          console.log('🔍 DEBUG - User email:', parsedUser.email);
+          console.log('🔍 DEBUG - User ID:', parsedUser.id);
+          console.log('🔍 DEBUG - isSuperAdminEmail check:', isSuperAdminEmail(parsedUser.email));
+
+          // SEMPRE buscar role do banco primeiro
+          try {
+            const roleFromDB = await roleService.getUserRole(parsedUser.id);
+            console.log('🔍 DEBUG - Role from DB:', roleFromDB);
+
+            if (roleFromDB) {
+              setUserRole(roleFromDB);
+              console.log('✅ DEBUG - Role set from DB:', roleFromDB);
+            } else {
+              // Fallback para email apenas se não houver no banco
+              const roleFromEmail = getUserRoleFromEmail(parsedUser.email);
+              setUserRole(roleFromEmail);
+              console.log('⚠️ DEBUG - Role set from email fallback:', roleFromEmail);
             }
+          } catch (error) {
+            console.error('❌ DEBUG - Error getting role from DB:', error);
+            const roleFromEmail = getUserRoleFromEmail(parsedUser.email);
+            setUserRole(roleFromEmail);
+            console.log('🔄 DEBUG - Role set from email after error:', roleFromEmail);
           }
         }
       }
@@ -172,19 +204,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     try {
-      // Primeiro verifica se é superadmin por email
-      if (isSuperAdminEmail(user.email)) {
-        setUserRole('superadmin');
-        return;
-      }
+      console.log('🔄 DEBUG - Refreshing role for user:', user.email, 'ID:', user.id);
 
-      // Depois busca no banco de dados
-      const role = await roleService.getUserRole(user.id);
-      setUserRole(role || 'client');
+      // SEMPRE buscar role do banco primeiro
+      const roleFromDB = await roleService.getUserRole(user.id);
+      console.log('🔍 DEBUG - Role from DB on refresh:', roleFromDB);
+
+      if (roleFromDB) {
+        setUserRole(roleFromDB);
+        console.log('✅ DEBUG - Role refreshed from DB:', roleFromDB);
+      } else {
+        // Fallback para email apenas se não houver no banco
+        const roleFromEmail = getUserRoleFromEmail(user.email);
+        setUserRole(roleFromEmail);
+        console.log('⚠️ DEBUG - Role refreshed from email fallback:', roleFromEmail);
+      }
     } catch (error) {
-      console.log('Error refreshing user role:', error);
+      console.error('❌ DEBUG - Error refreshing role:', error);
       // Em caso de erro, usar role baseado no email
-      setUserRole(getUserRoleFromEmail(user.email));
+      const roleFromEmail = getUserRoleFromEmail(user.email);
+      setUserRole(roleFromEmail);
+      console.log('🔄 DEBUG - Role set from email after refresh error:', roleFromEmail);
     }
   };
 
@@ -201,8 +241,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(userData);
         await saveUserToStorage(userData);
 
-        // Inicializar role do usuário
-        await refreshUserRole();
+        // Definir role do usuário imediatamente após login
+        console.log('🔑 DEBUG - Setting role after login for:', userData.email);
+        try {
+          const roleFromDB = await roleService.getUserRole(userData.id);
+          console.log('🔍 DEBUG - Role from DB after login:', roleFromDB);
+
+          if (roleFromDB) {
+            setUserRole(roleFromDB);
+            console.log('✅ DEBUG - Role set after login:', roleFromDB);
+          } else {
+            const roleFromEmail = getUserRoleFromEmail(userData.email);
+            setUserRole(roleFromEmail);
+            console.log('⚠️ DEBUG - Role set from email after login:', roleFromEmail);
+          }
+        } catch (error) {
+          console.error('❌ DEBUG - Error setting role after login:', error);
+          const roleFromEmail = getUserRoleFromEmail(userData.email);
+          setUserRole(roleFromEmail);
+          console.log('🔄 DEBUG - Role set from email fallback after login:', roleFromEmail);
+        }
       }
 
       return { error: null };

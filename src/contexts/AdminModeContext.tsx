@@ -11,15 +11,16 @@ const AdminModeContext = createContext<AdminModeContextType | undefined>(undefin
 
 export function AdminModeProvider({ children }: { children: React.ReactNode }) {
   const [isAdminMode, setIsAdminMode] = useState(false);
-  const { userRole, isAdmin, isSuperAdmin } = useRole();
+  const { role, isAdmin, isSuperAdmin } = useRole();
 
-  // Só admin e superadmin podem acessar modo admin
-  const canAccessAdminMode = isAdmin || isSuperAdmin;
+  // SEGURANÇA CRÍTICA: Só admin e superadmin podem acessar modo admin
+  // Verificação DUPLA por segurança
+  const canAccessAdminMode =
+    (role === 'admin' || role === 'superadmin') && (isAdmin || isSuperAdmin);
 
   const toggleAdminMode = () => {
     if (canAccessAdminMode) {
       setIsAdminMode(!isAdminMode);
-      console.log(`🔧 Admin mode ${!isAdminMode ? 'ENABLED' : 'DISABLED'} for role: ${userRole}`);
     }
   };
 

@@ -135,7 +135,6 @@ export const authService = {
         return { user, error: null };
       }
 
-      console.log('❌ No user returned from Supabase');
       return { user: null, error: 'Erro ao criar usuário' };
     } catch (error) {
       console.error('💥 Catch error in signUp:', error);

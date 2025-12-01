@@ -2,14 +2,19 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Alert, StyleSheet, TouchableOpacity } from 'react-native';
 import { useAdminMode } from '../contexts/AdminModeContext';
+import { useRole } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 
 export function AdminModeToggle() {
   const { isAdminMode, toggleAdminMode, canAccessAdminMode } = useAdminMode();
+  const { role } = useRole();
   const { colors } = useTheme();
 
-  // Só renderiza se pode acessar modo admin
-  if (!canAccessAdminMode) {
+  // SEGURANÇA DUPLA: Verificação crítica de segurança
+  const isSecureAdmin = role === 'admin' || role === 'superadmin';
+
+  // Só renderiza se AMBAS verificações passarem
+  if (!canAccessAdminMode || !isSecureAdmin) {
     return null;
   }
 
