@@ -62,4 +62,6 @@ export interface CreateBookingData {
 }
 
 // Complete booking data for database insertion
-export type CreateBookingRequest = Omit<Booking, 'id' | 'createdAt' | 'barber' | 'service'>;
+export type CreateBookingRequest = Omit<Booking, 'id' | 'createdAt' | 'barber' | 'service'> & {
+  clientName?: string; // Para agendamentos sem usuário cadastrado
+};

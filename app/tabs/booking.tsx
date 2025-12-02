@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import AppHeader from 'src/components/AppHeader';
+import { useAdminMode } from 'src/contexts/AdminModeContext';
 import { useAuth } from 'src/contexts/AuthContext';
 import { useTheme } from 'src/contexts/ThemeContext';
 import { useCreateBooking } from 'src/hooks/useBookings';
@@ -836,9 +837,794 @@ function ProfissionaisTab() {
   );
 }
 
+// Componente da Agenda Administrativa - Estilo Apple Calendar
+function AgendaAdminTab() {
+  const { colors } = useTheme();
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedBarberId, setSelectedBarberId] = useState<string>('');
+  const [agendamentos, setAgendamentos] = useState<any[]>([]);
+  const [barbeiros, setBarbeiros] = useState<Barber[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Estados do modal CRUD
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [editingBooking, setEditingBooking] = useState<any>(null);
+  const [allServices, setAllServices] = useState<any[]>([]);
+  const [allClients, setAllClients] = useState<any[]>([]);
+
+  // Estados do formulário
+  const [formData, setFormData] = useState({
+    clientId: '',
+    clientName: '',
+    barberId: '',
+    serviceId: '',
+    date: '',
+    time: '',
+    notes: '',
+  });
+  const [isNewClient, setIsNewClient] = useState(false);
+  const [modalLoading, setModalLoading] = useState(false);
+
+  // Carregar dados iniciais
+  useEffect(() => {
+    loadInitialData();
+  }, []);
+
+  // Carregar agendamentos quando data ou barbeiro mudam
+  useEffect(() => {
+    if (selectedBarberId) {
+      loadBookingsForDate();
+    }
+  }, [currentDate, selectedBarberId]);
+
+  // Atualizar horário atual a cada minuto
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Atualiza a cada 60 segundos
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const loadInitialData = async () => {
+    setLoading(true);
+    try {
+      const [barbersData, servicesData, clientsData] = await Promise.all([
+        databaseService.barbers.getAll(),
+        databaseService.services.getAll(),
+        databaseService.users.getAll(), // Assumindo que temos este método
+      ]);
+
+      setBarbeiros(barbersData);
+      setAllServices(servicesData);
+      setAllClients(clientsData.filter((user) => user.role === 'client'));
+
+      if (barbersData.length > 0) {
+        setSelectedBarberId(barbersData[0].id);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados iniciais:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadBookingsForDate = async () => {
+    if (!selectedBarberId) return;
+
+    try {
+      const dateStr = currentDate.toISOString().split('T')[0];
+      const allBookings = await databaseService.bookings.getByDate(dateStr);
+      const barberBookings = allBookings.filter(
+        (booking) => booking.barber_id === selectedBarberId,
+      );
+      setAgendamentos(barberBookings);
+    } catch (error) {
+      console.error('Erro ao carregar agendamentos:', error);
+    }
+  };
+
+  // Gerar dias da semana
+  const getWeekDays = () => {
+    const startOfWeek = new Date(currentDate);
+    const day = startOfWeek.getDay();
+    const diff = startOfWeek.getDate() - day;
+    startOfWeek.setDate(diff);
+
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(startOfWeek);
+      date.setDate(startOfWeek.getDate() + i);
+      days.push(date);
+    }
+    return days;
+  };
+
+  // Gerar horários (8h às 20h)
+  const generateTimeSlots = () => {
+    const slots = [];
+    for (let hour = 8; hour <= 20; hour++) {
+      slots.push(`${hour.toString().padStart(2, '0')}:00`);
+      if (hour < 20) {
+        slots.push(`${hour.toString().padStart(2, '0')}:30`);
+      }
+    }
+    return slots;
+  };
+
+  // Obter horário atual para a agulha (apenas no dia atual)
+  const getCurrentTimePosition = () => {
+    const now = currentTime;
+    const today = now.toDateString();
+    const selectedDay = currentDate.toDateString();
+
+    // Só mostrar agulha se o dia selecionado for hoje
+    if (today !== selectedDay) return null;
+
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+
+    // Só mostrar agulha no horário de funcionamento (8h às 20h)
+    if (hours < 8 || hours > 20) return null;
+
+    const totalMinutes = (hours - 8) * 60 + minutes;
+    const slotHeight = 60; // altura de cada slot
+    const position = (totalMinutes / 30) * slotHeight;
+    return position;
+  };
+  const weekDays = getWeekDays();
+  const timeSlots = generateTimeSlots();
+  const currentTimePosition = getCurrentTimePosition();
+
+  // Navegação de semana
+  const goToPreviousWeek = () => {
+    const newDate = new Date(currentDate);
+    newDate.setDate(newDate.getDate() - 7);
+    setCurrentDate(newDate);
+  };
+
+  const goToNextWeek = () => {
+    const newDate = new Date(currentDate);
+    newDate.setDate(newDate.getDate() + 7);
+    setCurrentDate(newDate);
+  };
+
+  // Obter agendamento para um horário específico
+  const getBookingForTime = (time: string) => {
+    return agendamentos.find((booking) => booking.time === time);
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <Text style={[styles.loadingText, { color: colors.text }]}>Carregando agenda...</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={[styles.calendarContainer, { backgroundColor: colors.background }]}>
+      {/* Header do Mês */}
+      <View
+        style={[
+          styles.monthHeader,
+          { backgroundColor: colors.surface, borderBottomColor: colors.border },
+        ]}
+      >
+        <TouchableOpacity onPress={goToPreviousWeek} style={styles.navButton}>
+          <Ionicons name="chevron-back" size={24} color={colors.text} />
+        </TouchableOpacity>
+
+        <Text style={[styles.monthText, { color: colors.text }]}>
+          {currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+        </Text>
+
+        <TouchableOpacity onPress={goToNextWeek} style={styles.navButton}>
+          <Ionicons name="chevron-forward" size={24} color={colors.text} />
+        </TouchableOpacity>
+      </View>
+
+      {/* Dias da Semana */}
+      <View
+        style={[
+          styles.weekHeader,
+          { backgroundColor: colors.surface, borderBottomColor: colors.border },
+        ]}
+      >
+        {weekDays.map((day, index) => {
+          const isToday = day.toDateString() === new Date().toDateString();
+          const isSelected = day.toDateString() === currentDate.toDateString();
+
+          return (
+            <TouchableOpacity
+              key={index}
+              style={styles.dayButton}
+              onPress={() => setCurrentDate(day)}
+            >
+              <Text style={[styles.dayName, { color: colors.textSecondary }]}>
+                {day.toLocaleDateString('pt-BR', { weekday: 'short' })}
+              </Text>
+              <View
+                style={[
+                  styles.dayNumberContainer,
+                  isSelected && { backgroundColor: colors.primary },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.dayNumber,
+                    { color: isToday ? colors.primary : colors.text },
+                    isSelected && { color: colors.card },
+                  ]}
+                >
+                  {day.getDate()}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      {/* Carrossel de Profissionais */}
+      <View
+        style={[
+          styles.professionalsCarousel,
+          { backgroundColor: colors.surface, borderBottomColor: colors.border },
+        ]}
+      >
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.carouselContent}
+        >
+          {barbeiros.map((barber) => (
+            <TouchableOpacity
+              key={barber.id}
+              style={[
+                styles.professionalChip,
+                {
+                  backgroundColor: selectedBarberId === barber.id ? colors.primary : colors.card,
+                  borderColor: selectedBarberId === barber.id ? colors.primary : colors.border,
+                },
+              ]}
+              onPress={() => setSelectedBarberId(barber.id)}
+            >
+              <View
+                style={[
+                  styles.professionalAvatar,
+                  {
+                    backgroundColor: selectedBarberId === barber.id ? colors.card : colors.primary,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.professionalInitial,
+                    { color: selectedBarberId === barber.id ? colors.primary : colors.card },
+                  ]}
+                >
+                  {barber.name.charAt(0)}
+                </Text>
+              </View>
+              <Text
+                style={[
+                  styles.professionalName,
+                  { color: selectedBarberId === barber.id ? colors.card : colors.text },
+                ]}
+              >
+                {barber.name.split(' ')[0]}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
+      {/* Timeline da Agenda */}
+      <View style={styles.timelineContainer}>
+        <ScrollView style={styles.timelineScroll} showsVerticalScrollIndicator={false}>
+          {/* Container para a agulha do horário atual */}
+          {currentTimePosition !== null && (
+            <View
+              style={[
+                styles.currentTimeIndicator,
+                {
+                  top: currentTimePosition + 8, // offset reduzido para headers compactos
+                  backgroundColor: '#FF3B30',
+                },
+              ]}
+            >
+              <View style={[styles.currentTimeLabel, { backgroundColor: '#FF3B30' }]}>
+                <Text style={[styles.currentTimeLabelText, { color: '#FFFFFF' }]}>
+                  {new Date().getHours().toString().padStart(2, '0')}:
+                  {new Date().getMinutes().toString().padStart(2, '0')}
+                </Text>
+              </View>
+              <View style={[styles.currentTimeLine, { backgroundColor: '#FF3B30' }]} />
+            </View>
+          )}
+
+          {timeSlots.map((time, index) => {
+            const booking = getBookingForTime(time);
+
+            return (
+              <View key={time} style={[styles.timeSlot, { borderBottomColor: colors.border }]}>
+                {/* Horário */}
+                <View style={styles.timeColumn}>
+                  <Text style={[styles.timeText, { color: colors.textSecondary }]}>{time}</Text>
+                </View>
+
+                {/* Evento ou slot vazio */}
+                <View style={styles.eventColumn}>
+                  {booking ? (
+                    <TouchableOpacity
+                      style={[
+                        styles.eventBlock,
+                        { backgroundColor: colors.primary + '20', borderColor: colors.primary },
+                      ]}
+                      onPress={() => handleEditBooking(booking)}
+                    >
+                      <Text
+                        style={[styles.eventTitle, { color: colors.primary }]}
+                        numberOfLines={1}
+                      >
+                        {booking.client_name}
+                      </Text>
+                      <Text
+                        style={[styles.eventSubtitle, { color: colors.textSecondary }]}
+                        numberOfLines={1}
+                      >
+                        {booking.service_name}
+                      </Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <View style={styles.emptyEventSlot} />
+                  )}
+                </View>
+              </View>
+            );
+          })}
+        </ScrollView>
+      </View>
+
+      {/* Botão Flutuante */}
+      <TouchableOpacity
+        style={[styles.floatingButton, { backgroundColor: colors.primary }]}
+        onPress={openCreateModal}
+      >
+        <Ionicons name="add" size={24} color={colors.card} />
+      </TouchableOpacity>
+
+      {/* Modal CRUD */}
+      <BookingCRUDModal />
+    </View>
+  );
+
+  // Componente do Modal CRUD
+  function BookingCRUDModal() {
+    return (
+      <Modal
+        visible={showBookingModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowBookingModal(false)}
+      >
+        <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
+          {/* Header */}
+          <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
+            <TouchableOpacity onPress={() => setShowBookingModal(false)}>
+              <Ionicons name="close" size={24} color={colors.text} />
+            </TouchableOpacity>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>
+              {editingBooking ? 'Editar Agendamento' : 'Novo Agendamento'}
+            </Text>
+            <TouchableOpacity onPress={handleSaveBooking} disabled={modalLoading}>
+              <Text style={[styles.saveButton, { color: colors.primary }]}>
+                {modalLoading ? 'Salvando...' : 'Salvar'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalContent}>
+            {/* Seleção de Cliente */}
+            <View style={styles.formSection}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Cliente</Text>
+
+              <View style={styles.clientToggle}>
+                <TouchableOpacity
+                  style={[
+                    styles.toggleButton,
+                    {
+                      backgroundColor: !isNewClient ? colors.primary : colors.card,
+                      borderColor: colors.border,
+                    },
+                  ]}
+                  onPress={() => setIsNewClient(false)}
+                >
+                  <Text
+                    style={[styles.toggleText, { color: !isNewClient ? colors.card : colors.text }]}
+                  >
+                    Cliente Cadastrado
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.toggleButton,
+                    {
+                      backgroundColor: isNewClient ? colors.primary : colors.card,
+                      borderColor: colors.border,
+                    },
+                  ]}
+                  onPress={() => setIsNewClient(true)}
+                >
+                  <Text
+                    style={[styles.toggleText, { color: isNewClient ? colors.card : colors.text }]}
+                  >
+                    Novo Cliente
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {isNewClient ? (
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: colors.card,
+                      color: colors.text,
+                      borderColor: colors.border,
+                    },
+                  ]}
+                  placeholder="Nome do cliente"
+                  placeholderTextColor={colors.textSecondary}
+                  value={formData.clientName}
+                  onChangeText={(text) => setFormData((prev) => ({ ...prev, clientName: text }))}
+                />
+              ) : (
+                <View
+                  style={[
+                    styles.picker,
+                    { backgroundColor: colors.card, borderColor: colors.border },
+                  ]}
+                >
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    {allClients.map((client) => (
+                      <TouchableOpacity
+                        key={client.id}
+                        style={[
+                          styles.clientChip,
+                          {
+                            backgroundColor:
+                              formData.clientId === client.id ? colors.primary : 'transparent',
+                            borderColor: colors.border,
+                          },
+                        ]}
+                        onPress={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            clientId: client.id,
+                            clientName: client.name,
+                          }))
+                        }
+                      >
+                        <Text
+                          style={[
+                            styles.clientChipText,
+                            { color: formData.clientId === client.id ? colors.card : colors.text },
+                          ]}
+                        >
+                          {client.name}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+            </View>
+
+            {/* Seleção de Profissional */}
+            <View style={styles.formSection}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Profissional</Text>
+              <View
+                style={[
+                  styles.picker,
+                  { backgroundColor: colors.card, borderColor: colors.border },
+                ]}
+              >
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  {barbeiros.map((barber) => (
+                    <TouchableOpacity
+                      key={barber.id}
+                      style={[
+                        styles.professionalChip,
+                        {
+                          backgroundColor:
+                            formData.barberId === barber.id ? colors.primary : 'transparent',
+                          borderColor: colors.border,
+                        },
+                      ]}
+                      onPress={() => setFormData((prev) => ({ ...prev, barberId: barber.id }))}
+                    >
+                      <Text
+                        style={[
+                          styles.clientChipText,
+                          { color: formData.barberId === barber.id ? colors.card : colors.text },
+                        ]}
+                      >
+                        {barber.name}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            </View>
+
+            {/* Seleção de Serviço */}
+            <View style={styles.formSection}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Serviço</Text>
+              <View
+                style={[
+                  styles.picker,
+                  { backgroundColor: colors.card, borderColor: colors.border },
+                ]}
+              >
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  {allServices.map((service) => (
+                    <TouchableOpacity
+                      key={service.id}
+                      style={[
+                        styles.serviceChip,
+                        {
+                          backgroundColor:
+                            formData.serviceId === service.id ? colors.primary : 'transparent',
+                          borderColor: colors.border,
+                        },
+                      ]}
+                      onPress={() => setFormData((prev) => ({ ...prev, serviceId: service.id }))}
+                    >
+                      <Text
+                        style={[
+                          styles.serviceChipTitle,
+                          { color: formData.serviceId === service.id ? colors.card : colors.text },
+                        ]}
+                      >
+                        {service.name}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.serviceChipPrice,
+                          {
+                            color:
+                              formData.serviceId === service.id
+                                ? colors.card + '80'
+                                : colors.textSecondary,
+                          },
+                        ]}
+                      >
+                        R$ {service.price?.toFixed(2)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            </View>
+
+            {/* Data e Horário */}
+            <View style={styles.formRow}>
+              <View style={[styles.formSection, { flex: 1, marginRight: 8 }]}>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Data</Text>
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: colors.card,
+                      color: colors.text,
+                      borderColor: colors.border,
+                    },
+                  ]}
+                  value={formData.date}
+                  onChangeText={(text) => setFormData((prev) => ({ ...prev, date: text }))}
+                  placeholder="AAAA-MM-DD"
+                  placeholderTextColor={colors.textSecondary}
+                />
+              </View>
+              <View style={[styles.formSection, { flex: 1, marginLeft: 8 }]}>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Horário</Text>
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: colors.card,
+                      color: colors.text,
+                      borderColor: colors.border,
+                    },
+                  ]}
+                  value={formData.time}
+                  onChangeText={(text) => setFormData((prev) => ({ ...prev, time: text }))}
+                  placeholder="HH:MM"
+                  placeholderTextColor={colors.textSecondary}
+                />
+              </View>
+            </View>
+
+            {/* Observações */}
+            <View style={styles.formSection}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Observações</Text>
+              <TextInput
+                style={[
+                  styles.textArea,
+                  { backgroundColor: colors.card, color: colors.text, borderColor: colors.border },
+                ]}
+                placeholder="Observações especiais..."
+                placeholderTextColor={colors.textSecondary}
+                value={formData.notes}
+                onChangeText={(text) => setFormData((prev) => ({ ...prev, notes: text }))}
+                multiline
+                numberOfLines={4}
+              />
+            </View>
+
+            {/* Botão de Deletar */}
+            {editingBooking && (
+              <TouchableOpacity
+                style={[styles.deleteButton, { backgroundColor: '#FF3B30' }]}
+                onPress={handleDeleteBooking}
+              >
+                <Text style={styles.deleteButtonText}>Cancelar Agendamento</Text>
+              </TouchableOpacity>
+            )}
+          </ScrollView>
+        </View>
+      </Modal>
+    );
+  }
+
+  // Funções CRUD
+  const openCreateModal = () => {
+    setEditingBooking(null);
+    setFormData({
+      clientId: '',
+      clientName: '',
+      barberId: selectedBarberId,
+      serviceId: '',
+      date: currentDate.toISOString().split('T')[0],
+      time: '09:00',
+      notes: '',
+    });
+    setIsNewClient(false);
+    setShowBookingModal(true);
+  };
+
+  const handleEditBooking = (booking: any) => {
+    setEditingBooking(booking);
+    setFormData({
+      clientId: booking.user_id || '',
+      clientName: booking.client_name || '',
+      barberId: booking.barber_id,
+      serviceId: booking.service_id,
+      date: booking.date,
+      time: booking.time,
+      notes: booking.notes || '',
+    });
+    setIsNewClient(!booking.user_id);
+    setShowBookingModal(true);
+  };
+
+  const handleSaveBooking = async () => {
+    // Validar campos obrigatórios
+    if (!formData.barberId || !formData.serviceId || !formData.date || !formData.time) {
+      Alert.alert('Erro', 'Preencha todos os campos obrigatórios');
+      return;
+    }
+
+    if (isNewClient && !formData.clientName.trim()) {
+      Alert.alert('Erro', 'Informe o nome do cliente');
+      return;
+    }
+
+    if (!isNewClient && !formData.clientId) {
+      Alert.alert('Erro', 'Selecione um cliente cadastrado');
+      return;
+    }
+
+    setModalLoading(true);
+    try {
+      console.log('🔧 Form data:', formData);
+      console.log('🔧 Is new client:', isNewClient);
+
+      const selectedService = allServices.find((s) => s.id === formData.serviceId);
+      console.log('🔧 Selected service:', selectedService);
+      const servicePrice = selectedService?.price || 0;
+
+      const bookingData = {
+        userId: isNewClient ? null : formData.clientId,
+        barberId: formData.barberId,
+        serviceId: formData.serviceId,
+        date: formData.date,
+        time: formData.time,
+        status: 'scheduled' as const,
+        notes: formData.notes || '',
+        totalPrice: servicePrice,
+        paymentMethod: 'pending' as const,
+        paymentStatus: 'pending' as const,
+        updatedAt: new Date().toISOString(),
+        clientName: isNewClient ? formData.clientName : undefined,
+      };
+
+      console.log('🔧 Booking data to save:', bookingData);
+
+      let result;
+      if (editingBooking) {
+        console.log('🔧 Updating booking:', editingBooking.id);
+        // Editar agendamento existente
+        result = await databaseService.bookings.update(editingBooking.id, bookingData);
+        console.log('🔧 Update result:', result);
+        if (result) {
+          Alert.alert('Sucesso', 'Agendamento atualizado com sucesso!');
+        } else {
+          throw new Error('Falha ao atualizar agendamento');
+        }
+      } else {
+        console.log('🔧 Creating new booking');
+        // Criar novo agendamento
+        result = await databaseService.bookings.create(bookingData);
+        console.log('🔧 Create result:', result);
+        if (result) {
+          Alert.alert('Sucesso', 'Agendamento criado com sucesso!');
+        } else {
+          throw new Error('Falha ao criar agendamento');
+        }
+      }
+
+      setShowBookingModal(false);
+      await loadBookingsForDate(); // Recarregar agendamentos
+    } catch (error) {
+      console.error('Erro ao salvar agendamento:', error);
+      Alert.alert('Erro', error.message || 'Não foi possível salvar o agendamento');
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const handleDeleteBooking = async () => {
+    if (!editingBooking) return;
+
+    Alert.alert('Confirmar Exclusão', 'Tem certeza que deseja cancelar este agendamento?', [
+      { text: 'Não', style: 'cancel' },
+      {
+        text: 'Sim',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await databaseService.bookings.delete(editingBooking.id);
+            Alert.alert('Sucesso', 'Agendamento cancelado!');
+            setShowBookingModal(false);
+            loadBookingsForDate();
+          } catch (error) {
+            console.error('Erro ao deletar agendamento:', error);
+            Alert.alert('Erro', 'Não foi possível cancelar o agendamento');
+          }
+        },
+      },
+    ]);
+  };
+}
+
 export default function BookingScreen() {
   const { colors } = useTheme();
+  const { isAdminMode } = useAdminMode();
 
+  // Se está em modo admin, mostra apenas a agenda administrativa
+  if (isAdminMode) {
+    return (
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+        <AppHeader />
+        <AgendaAdminTab />
+      </SafeAreaView>
+    );
+  }
+
+  // Modo cliente normal
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <AppHeader />
@@ -1415,6 +2201,437 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'right',
     marginTop: 4,
+  },
+  // Estilos para Agenda Administrativa
+  agendaContainer: {
+    flex: 1,
+  },
+  agendaHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  dateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 8,
+  },
+  dateText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    gap: 6,
+  },
+  addButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  agendaScroll: {
+    flex: 1,
+  },
+  timelineContainer: {
+    minWidth: '100%',
+  },
+  timelineHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#f8f9fa',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+  },
+  timeColumn: {
+    width: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+  },
+  barberColumn: {
+    width: 120,
+    alignItems: 'center',
+  },
+  barberHeader: {
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    width: '100%',
+    borderRadius: 8,
+    margin: 4,
+  },
+  barberAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  barberInitial: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  barberName: {
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  timelineGrid: {
+    flex: 1,
+  },
+  timeRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f3f4',
+    minHeight: 60,
+  },
+  timeLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  appointmentSlot: {
+    margin: 2,
+    padding: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+    minHeight: 50,
+    justifyContent: 'center',
+    width: 116,
+  },
+  appointmentClient: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  appointmentService: {
+    fontSize: 10,
+    fontWeight: '400',
+  },
+  emptySlot: {
+    margin: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    minHeight: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 116,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // Estilos Apple Calendar
+  calendarContainer: {
+    flex: 1,
+  },
+  monthHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  navButton: {
+    padding: 8,
+  },
+  monthText: {
+    fontSize: 16,
+    fontWeight: '600',
+    textTransform: 'capitalize',
+  },
+  weekHeader: {
+    flexDirection: 'row',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+  },
+  dayButton: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 4,
+    marginHorizontal: 2,
+  },
+  dayName: {
+    fontSize: 8,
+    fontWeight: '500',
+    marginBottom: 1,
+    textTransform: 'uppercase',
+  },
+  dayNumberContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  dayNumber: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  professionalsCarousel: {
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+  },
+  carouselContent: {
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+  professionalChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 6,
+  },
+  professionalAvatar: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  professionalInitial: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  professionalName: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  timelineContainer: {
+    flex: 1,
+    position: 'relative',
+  },
+  timelineScroll: {
+    flex: 1,
+  },
+  timeSlot: {
+    flexDirection: 'row',
+    minHeight: 60,
+    borderBottomWidth: 0.5,
+    position: 'relative',
+  },
+  timeColumn: {
+    width: 70,
+    alignItems: 'flex-end',
+    paddingRight: 12,
+    paddingTop: 8,
+  },
+  timeText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  eventColumn: {
+    flex: 1,
+    paddingLeft: 12,
+    paddingRight: 16,
+    paddingVertical: 4,
+  },
+  eventBlock: {
+    backgroundColor: '#007AFF20',
+    borderLeftWidth: 3,
+    borderRadius: 6,
+    padding: 8,
+    minHeight: 50,
+    justifyContent: 'center',
+  },
+  eventTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  eventSubtitle: {
+    fontSize: 12,
+    fontWeight: '400',
+  },
+  emptyEventSlot: {
+    minHeight: 50,
+    borderLeftWidth: 1,
+    borderStyle: 'dashed',
+    borderRadius: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 2,
+  },
+  currentTimeIndicator: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 2,
+    zIndex: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  currentTimeLabel: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginLeft: 8,
+    marginRight: 10,
+    minWidth: 45,
+    height: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  currentTimeLabelText: {
+    fontSize: 11,
+    fontWeight: '700',
+    textAlign: 'center',
+    lineHeight: 13,
+    textAlignVertical: 'center',
+    includeFontPadding: false,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
+  },
+  currentTimeLine: {
+    flex: 1,
+    height: 2,
+    marginRight: 16,
+  },
+  // Estilos Modal CRUD
+  floatingButton: {
+    position: 'absolute',
+    bottom: 30,
+    right: 30,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  modalContainer: {
+    flex: 1,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  saveButton: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalContent: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  formSection: {
+    marginVertical: 12,
+  },
+  formRow: {
+    flexDirection: 'row',
+    marginVertical: 12,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+  },
+  textArea: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    minHeight: 100,
+    textAlignVertical: 'top',
+  },
+  picker: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  clientToggle: {
+    flexDirection: 'row',
+    marginBottom: 12,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  toggleButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+  },
+  toggleText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  clientChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    marginRight: 8,
+    borderWidth: 1,
+  },
+  clientChipText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  serviceChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    marginRight: 12,
+    borderWidth: 1,
+    minWidth: 100,
+  },
+  serviceChipTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  serviceChipPrice: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  deleteButton: {
+    borderRadius: 8,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 40,
+  },
+  deleteButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   // Estilos para o resumo compacto
   compactSummaryCard: {

@@ -32,6 +32,25 @@ export const databaseService = {
         return null;
       }
     },
+
+    async getAll(): Promise<User[]> {
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('*')
+          .order('name', { ascending: true });
+
+        if (error) {
+          console.error('Error fetching users:', error);
+          return [];
+        }
+
+        return data || [];
+      } catch (error) {
+        console.error('Error:', error);
+        return [];
+      }
+    },
   },
 
   // Booking operations
@@ -39,10 +58,10 @@ export const databaseService = {
     async create(booking: CreateBookingRequest): Promise<Booking | null> {
       try {
         // Convert camelCase to snake_case for database
-        const dbBooking = {
-          user_id: booking.userId,
-          barber_id: booking.barberId || null, // Ensure valid UUID or null
-          service_id: booking.serviceId === 'default' ? null : booking.serviceId, // Replace 'default' with null
+        const dbBooking: any = {
+          user_id: booking.userId || null,
+          barber_id: booking.barberId || null,
+          service_id: booking.serviceId === 'default' ? null : booking.serviceId,
           date: booking.date,
           time: booking.time,
           status: booking.status,
@@ -53,24 +72,35 @@ export const databaseService = {
           updated_at: booking.updatedAt,
         };
 
-        if (!dbBooking.barber_id || (dbBooking.service_id !== null && !dbBooking.service_id)) {
-          console.error('Invalid UUID for barber_id or service_id:', dbBooking);
-          throw new Error('Invalid UUID for barber_id or service_id');
+        // Adicionar client_name para agendamentos sem user_id
+        if (booking.clientName && !booking.userId) {
+          dbBooking.client_name = booking.clientName;
+        }
+
+        if (!dbBooking.barber_id || !dbBooking.service_id) {
+          console.error('Missing required fields for booking:', dbBooking);
+          throw new Error(
+            'Campos obrigatórios não preenchidos: barbeiro e serviço são obrigatórios',
+          );
         }
 
         // Check if the time slot is already booked for the barber
-        const existingBooking = await supabase
+        const { data: existingBookings, error: checkError } = await supabase
           .from('bookings')
           .select('*')
           .eq('barber_id', dbBooking.barber_id)
           .eq('date', dbBooking.date)
           .eq('time', dbBooking.time)
-          .eq('status', 'scheduled')
-          .single();
+          .in('status', ['scheduled', 'confirmed', 'in_progress']);
 
-        if (existingBooking.data) {
-          console.error('Time slot already booked for this barber:', dbBooking);
-          throw new Error('Time slot already booked for this barber.');
+        if (checkError) {
+          console.error('Error checking existing bookings:', checkError);
+          // Continue anyway, don't block on this check
+        }
+
+        if (existingBookings && existingBookings.length > 0) {
+          console.warn('Time slot may be already booked for this barber:', dbBooking);
+          // For admin, we'll allow overbooking but warn
         }
 
         const { data, error } = await supabase.from('bookings').insert(dbBooking).select().single();
@@ -130,6 +160,52 @@ export const databaseService = {
           paymentStatus: booking.payment_status,
           createdAt: booking.created_at,
           updatedAt: booking.updated_at,
+        }));
+      } catch (error) {
+        console.error('Error:', error);
+        return [];
+      }
+    },
+
+    async getByDate(date: string): Promise<any[]> {
+      try {
+        const { data, error } = await supabase
+          .from('bookings')
+          .select(
+            `
+            *,
+            users!inner(name),
+            barbers!inner(name),
+            services(name, price, duration)
+          `,
+          )
+          .eq('date', date)
+          .in('status', ['scheduled', 'confirmed', 'in_progress'])
+          .order('time', { ascending: true });
+
+        if (error) {
+          console.error('Error fetching bookings by date:', error);
+          return [];
+        }
+
+        // Transform data for agenda view
+        return (data || []).map((booking) => ({
+          id: booking.id,
+          user_id: booking.user_id,
+          barber_id: booking.barber_id,
+          service_id: booking.service_id,
+          date: booking.date,
+          time: booking.time,
+          status: booking.status,
+          notes: booking.notes,
+          total_price: booking.total_price,
+          client_name: booking.users?.name || 'Cliente',
+          barber_name: booking.barbers?.name || 'Barbeiro',
+          service_name: booking.services?.name || 'Serviço',
+          service_price: booking.services?.price || 0,
+          service_duration: booking.services?.duration || 30,
+          created_at: booking.created_at,
+          updated_at: booking.updated_at,
         }));
       } catch (error) {
         console.error('Error:', error);
@@ -248,6 +324,73 @@ export const databaseService = {
 
         if (error) {
           console.error('Error cancelling booking:', error);
+          return false;
+        }
+
+        return true;
+      } catch (error) {
+        console.error('Error:', error);
+        return false;
+      }
+    },
+
+    async update(id: string, updates: any): Promise<Booking | null> {
+      try {
+        const dbUpdates: any = {};
+
+        if (updates.userId !== undefined) dbUpdates.user_id = updates.userId;
+        if (updates.barberId !== undefined) dbUpdates.barber_id = updates.barberId;
+        if (updates.serviceId !== undefined) dbUpdates.service_id = updates.serviceId;
+        if (updates.date !== undefined) dbUpdates.date = updates.date;
+        if (updates.time !== undefined) dbUpdates.time = updates.time;
+        if (updates.status !== undefined) dbUpdates.status = updates.status;
+        if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
+        if (updates.totalPrice !== undefined) dbUpdates.total_price = updates.totalPrice;
+        if (updates.paymentMethod !== undefined) dbUpdates.payment_method = updates.paymentMethod;
+        if (updates.paymentStatus !== undefined) dbUpdates.payment_status = updates.paymentStatus;
+        if (updates.clientName !== undefined) dbUpdates.client_name = updates.clientName;
+
+        dbUpdates.updated_at = new Date().toISOString();
+
+        const { data, error } = await supabase
+          .from('bookings')
+          .update(dbUpdates)
+          .eq('id', id)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Error updating booking:', error);
+          return null;
+        }
+
+        return {
+          id: data.id,
+          userId: data.user_id,
+          barberId: data.barber_id,
+          serviceId: data.service_id,
+          date: data.date,
+          time: data.time,
+          status: data.status,
+          notes: data.notes,
+          totalPrice: data.total_price,
+          paymentMethod: data.payment_method,
+          paymentStatus: data.payment_status,
+          createdAt: data.created_at,
+          updatedAt: data.updated_at,
+        };
+      } catch (error) {
+        console.error('Error:', error);
+        return null;
+      }
+    },
+
+    async delete(id: string): Promise<boolean> {
+      try {
+        const { error } = await supabase.from('bookings').delete().eq('id', id);
+
+        if (error) {
+          console.error('Error deleting booking:', error);
           return false;
         }
 

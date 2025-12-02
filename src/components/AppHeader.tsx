@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import { useAdminMode } from '../contexts/AdminModeContext';
 import { useCart } from '../contexts/CartContext';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -14,6 +15,7 @@ interface AppHeaderProps {
 export default function AppHeader({ title, rightElement }: AppHeaderProps) {
   const { getCartCount } = useCart();
   const { colors } = useTheme();
+  const { isAdminMode } = useAdminMode();
   const router = useRouter();
 
   return (

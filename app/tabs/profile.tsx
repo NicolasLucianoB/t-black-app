@@ -253,6 +253,29 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Seção Admin - só aparece no modo admin */}
+        {isAdminMode && canAccessAdminMode && (
+          <View
+            style={[styles.section, { backgroundColor: colors.error, shadowColor: colors.shadow }]}
+          >
+            <Text style={[styles.sectionTitle, { color: '#FFFFFF' }]}>🛡️ Administração</Text>
+            <TouchableOpacity
+              style={[styles.menuItem, { borderBottomColor: 'rgba(255,255,255,0.1)' }]}
+              onPress={() => router.push('/admin')}
+            >
+              <Text style={[styles.menuItemText, { color: '#FFFFFF' }]}>Painel Administrativo</Text>
+              <Text style={[styles.menuItemArrow, { color: '#FFFFFF' }]}>›</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.menuItem, { borderBottomColor: 'rgba(255,255,255,0.1)' }]}
+              onPress={() => router.push('/admin/produtos')}
+            >
+              <Text style={[styles.menuItemText, { color: '#FFFFFF' }]}>Gerenciar Produtos</Text>
+              <Text style={[styles.menuItemArrow, { color: '#FFFFFF' }]}>›</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         <View
           style={[styles.section, { backgroundColor: colors.card, shadowColor: colors.shadow }]}
         >

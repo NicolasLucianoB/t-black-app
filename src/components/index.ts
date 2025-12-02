@@ -1,3 +1,5 @@
+export { AdminCard } from './AdminCard';
+export { AdminHeader } from './AdminHeader';
 export { AdminModeToggle } from './AdminModeToggle';
 export { default as AppHeader } from './AppHeader';
 export { AppProviders } from './AppProviders';
