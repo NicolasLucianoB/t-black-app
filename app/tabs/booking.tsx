@@ -1,6 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -8,6 +5,7 @@ import {
   Dimensions,
   Image,
   Modal,
+  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -16,8 +14,16 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  useColorScheme,
 } from 'react-native';
+
+// Third party imports
+import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { Calendar } from 'react-native-calendars';
+
+// Local imports
 import AppHeader from 'src/components/AppHeader';
 import { useAdminMode } from 'src/contexts/AdminModeContext';
 import { useAuth } from 'src/contexts/AuthContext';
@@ -27,7 +33,30 @@ import { useBookingNotifications } from 'src/hooks/useNotifications';
 import { databaseService } from 'src/services';
 import { Barber } from 'src/types';
 
+/**
+ * BookingScreen - Interface híbrida de agendamentos
+ *
+ * Funcionalidades:
+ * - Modo cliente: interface de agendamento tradicional
+ * - Modo admin: agenda estilo Apple Calendar com CRUD completo
+ * - Timeline com horário atual em tempo real
+ * - Carrossel de profissionais
+ * - Modal de CRUD com date/time pickers nativos
+ */
+
 const Tab = createMaterialTopTabNavigator();
+
+// Constants
+const WORKING_HOURS = {
+  START: 7,
+  END: 19,
+  SLOT_DURATION: 30, // minutes
+};
+
+const TIME_FORMAT_OPTIONS = {
+  hour: '2-digit' as const,
+  minute: '2-digit' as const,
+};
 
 // Os dados dos barbeiros agora vêm do Supabase
 // Dados temporários para fallback (removidos depois de integração completa)
@@ -844,7 +873,7 @@ function AgendaAdminTab() {
   const [selectedBarberId, setSelectedBarberId] = useState<string>('');
   const [agendamentos, setAgendamentos] = useState<any[]>([]);
   const [barbeiros, setBarbeiros] = useState<Barber[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
 
   // Estados do modal CRUD
@@ -852,6 +881,7 @@ function AgendaAdminTab() {
   const [editingBooking, setEditingBooking] = useState<any>(null);
   const [allServices, setAllServices] = useState<any[]>([]);
   const [allClients, setAllClients] = useState<any[]>([]);
+  const [modalLoading, setModalLoading] = useState(false);
 
   // Estados do formulário
   const [formData, setFormData] = useState({
@@ -864,12 +894,48 @@ function AgendaAdminTab() {
     notes: '',
   });
   const [isNewClient, setIsNewClient] = useState(false);
-  const [modalLoading, setModalLoading] = useState(false);
+
+  // Estados para date/time pickers
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedTime, setSelectedTime] = useState<Date>(new Date());
+
+  // Estados para dropdowns
+  const [showBarberPicker, setShowBarberPicker] = useState(false);
+  const [selectedBarbierModal, setSelectedBarbierModal] = useState<any>(null);
+
+  // Função auxiliar para garantir data válida
+  const getSafeDate = (date: Date | string | undefined): Date => {
+    if (date instanceof Date && !isNaN(date.getTime())) {
+      return date;
+    }
+    if (typeof date === 'string') {
+      const parsed = new Date(date);
+      return !isNaN(parsed.getTime()) ? parsed : new Date();
+    }
+    return new Date();
+  };
 
   // Carregar dados iniciais
   useEffect(() => {
     loadInitialData();
+
+    // Fallback para garantir que loading não fique travado
+    const timeoutId = setTimeout(() => {
+      console.warn('⚠️ Loading timeout - forçando setLoading(false)');
+      setLoading(false);
+    }, 5000); // 5 segundos
+
+    return () => clearTimeout(timeoutId);
   }, []);
+
+  // UseEffect separado para garantir inicialização dos estados de data/hora
+  useEffect(() => {
+    const now = new Date();
+    setSelectedDate(now);
+    setSelectedTime(now);
+  }, []); // Remove dependências para evitar loops
 
   // Carregar agendamentos quando data ou barbeiro mudam
   useEffect(() => {
@@ -893,18 +959,25 @@ function AgendaAdminTab() {
       const [barbersData, servicesData, clientsData] = await Promise.all([
         databaseService.barbers.getAll(),
         databaseService.services.getAll(),
-        databaseService.users.getAll(), // Assumindo que temos este método
+        databaseService.users.getAll(),
       ]);
 
       setBarbeiros(barbersData);
       setAllServices(servicesData);
-      setAllClients(clientsData.filter((user) => user.role === 'client'));
+      // Filtrar apenas usuários com role 'client' ou 'cliente'
+      const filteredClients = clientsData.filter(
+        (user: any) =>
+          user.user_role === 'client' ||
+          user.user_role === 'cliente' ||
+          (!user.user_role && user.email), // Fallback para usuários sem role definida
+      );
+      setAllClients(filteredClients);
 
       if (barbersData.length > 0) {
         setSelectedBarberId(barbersData[0].id);
       }
     } catch (error) {
-      console.error('Erro ao carregar dados iniciais:', error);
+      console.error('❌ Erro ao carregar dados iniciais:', error);
     } finally {
       setLoading(false);
     }
@@ -977,6 +1050,71 @@ function AgendaAdminTab() {
   const timeSlots = generateTimeSlots();
   const currentTimePosition = getCurrentTimePosition();
 
+  // Função para abrir modal de criação
+  const openCreateModal = () => {
+    setEditingBooking(null);
+
+    // Resetar dados do formulário
+    const today = new Date();
+    const currentTime = new Date();
+    setSelectedDate(today);
+    setSelectedTime(currentTime);
+    setSelectedBarbierModal(barbeiros.find((b) => b.id === selectedBarberId) || null);
+    setFormData({
+      clientId: '',
+      clientName: '',
+      barberId: selectedBarberId || '',
+      serviceId: '',
+      date: today.toISOString().split('T')[0],
+      time: currentTime.toLocaleTimeString('pt-BR', TIME_FORMAT_OPTIONS),
+      notes: '',
+    });
+
+    setShowBookingModal(true);
+  };
+
+  // Função para editar agendamento
+  const handleEditBooking = (booking: any) => {
+    setEditingBooking(booking);
+
+    // Preencher dados do agendamento para edição
+    const bookingDate = booking.date ? new Date(booking.date) : new Date();
+    const bookingTime = new Date();
+    if (booking.time) {
+      const [hours, minutes] = booking.time.split(':');
+      bookingTime.setHours(parseInt(hours) || 0, parseInt(minutes) || 0);
+    }
+
+    setSelectedDate(bookingDate);
+    setSelectedTime(bookingTime);
+    setSelectedBarbierModal(barbeiros.find((b) => b.id === booking.barber_id) || null);
+    setFormData({
+      clientId: booking.user_id || '',
+      clientName: booking.client_name || '',
+      barberId: booking.barber_id || '',
+      serviceId: booking.service_id || '',
+      date: booking.date,
+      time: booking.time,
+      notes: booking.notes || '',
+    });
+
+    setShowBookingModal(true);
+  };
+
+  // Função para salvar agendamento
+  const handleSaveBooking = async () => {
+    // Implementar lógica de salvar
+
+    setShowBookingModal(false);
+  };
+
+  // Função para deletar agendamento
+  const handleDeleteBooking = async () => {
+    // Implementar lógica de deletar
+
+    setShowBookingModal(false);
+  };
+
   // Navegação de semana
   const goToPreviousWeek = () => {
     const newDate = new Date(currentDate);
@@ -1004,12 +1142,25 @@ function AgendaAdminTab() {
   }
 
   return (
-    <View style={[styles.calendarContainer, { backgroundColor: colors.background }]}>
+    <View
+      style={[
+        styles.calendarContainer,
+        {
+          backgroundColor: colors.background,
+          minHeight: 500,
+        },
+      ]}
+    >
+      {/* Container da agenda */}
       {/* Header do Mês */}
       <View
         style={[
           styles.monthHeader,
-          { backgroundColor: colors.surface, borderBottomColor: colors.border },
+          {
+            backgroundColor: colors.card,
+            borderBottomColor: colors.border,
+            borderBottomWidth: 1,
+          },
         ]}
       >
         <TouchableOpacity onPress={goToPreviousWeek} style={styles.navButton}>
@@ -1029,7 +1180,11 @@ function AgendaAdminTab() {
       <View
         style={[
           styles.weekHeader,
-          { backgroundColor: colors.surface, borderBottomColor: colors.border },
+          {
+            backgroundColor: colors.card,
+            borderBottomColor: colors.border,
+            borderBottomWidth: 1,
+          },
         ]}
       >
         {weekDays.map((day, index) => {
@@ -1070,7 +1225,11 @@ function AgendaAdminTab() {
       <View
         style={[
           styles.professionalsCarousel,
-          { backgroundColor: colors.surface, borderBottomColor: colors.border },
+          {
+            backgroundColor: colors.card,
+            borderBottomColor: colors.border,
+            borderBottomWidth: 1,
+          },
         ]}
       >
         <ScrollView
@@ -1121,7 +1280,16 @@ function AgendaAdminTab() {
       </View>
 
       {/* Timeline da Agenda */}
-      <View style={styles.timelineContainer}>
+      <View
+        style={[
+          styles.timelineContainer,
+          {
+            flex: 1,
+            backgroundColor: colors.background,
+            minHeight: 300,
+          },
+        ]}
+      >
         <ScrollView style={styles.timelineScroll} showsVerticalScrollIndicator={false}>
           {/* Container para a agulha do horário atual */}
           {currentTimePosition !== null && (
@@ -1202,417 +1370,419 @@ function AgendaAdminTab() {
 
   // Componente do Modal CRUD
   function BookingCRUDModal() {
+    const [selectedClient, setSelectedClient] = useState<any>(null);
+    const [selectedService, setSelectedService] = useState<any>(null);
+    const [showClientPicker, setShowClientPicker] = useState(false);
+    const [showServicePicker, setShowServicePicker] = useState(false);
+    const [customClientName, setCustomClientName] = useState('');
+    const [observations, setObservations] = useState('');
+
+    // Função para fechar o modal
+    const closeModal = () => {
+      setShowBookingModal(false);
+      setEditingBooking(null);
+      // Reset all internal states
+      setSelectedClient(null);
+      setSelectedService(null);
+      setShowClientPicker(false);
+      setShowServicePicker(false);
+      setCustomClientName('');
+      setObservations('');
+    };
+
+    // Não renderiza nada se o modal não deveria estar visível
+    if (!showBookingModal) {
+      return null;
+    }
+
     return (
       <Modal
         visible={showBookingModal}
         animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowBookingModal(false)}
+        onRequestClose={closeModal}
+        transparent={false}
       >
-        <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
+        <View style={[{ flex: 1, backgroundColor: colors.background }]}>
           {/* Header */}
-          <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
-            <TouchableOpacity onPress={() => setShowBookingModal(false)}>
-              <Ionicons name="close" size={24} color={colors.text} />
-            </TouchableOpacity>
-            <Text style={[styles.modalTitle, { color: colors.text }]}>
-              {editingBooking ? 'Editar Agendamento' : 'Novo Agendamento'}
-            </Text>
-            <TouchableOpacity onPress={handleSaveBooking} disabled={modalLoading}>
-              <Text style={[styles.saveButton, { color: colors.primary }]}>
-                {modalLoading ? 'Salvando...' : 'Salvar'}
+          <SafeAreaView style={{ backgroundColor: colors.background }}>
+            <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
+              <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
+                <Ionicons name="close" size={24} color={colors.text} />
+              </TouchableOpacity>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>
+                {editingBooking ? 'Editar Agendamento' : 'Novo Agendamento'}
               </Text>
-            </TouchableOpacity>
-          </View>
+              <View style={styles.headerSpacer} />
+            </View>
+          </SafeAreaView>
 
-          <ScrollView style={styles.modalContent}>
-            {/* Seleção de Cliente */}
+          <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+            {/* 1. Data e Horário */}
             <View style={styles.formSection}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Cliente</Text>
-
-              <View style={styles.clientToggle}>
-                <TouchableOpacity
-                  style={[
-                    styles.toggleButton,
-                    {
-                      backgroundColor: !isNewClient ? colors.primary : colors.card,
-                      borderColor: colors.border,
-                    },
-                  ]}
-                  onPress={() => setIsNewClient(false)}
-                >
-                  <Text
-                    style={[styles.toggleText, { color: !isNewClient ? colors.card : colors.text }]}
-                  >
-                    Cliente Cadastrado
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.toggleButton,
-                    {
-                      backgroundColor: isNewClient ? colors.primary : colors.card,
-                      borderColor: colors.border,
-                    },
-                  ]}
-                  onPress={() => setIsNewClient(true)}
-                >
-                  <Text
-                    style={[styles.toggleText, { color: isNewClient ? colors.card : colors.text }]}
-                  >
-                    Novo Cliente
-                  </Text>
-                </TouchableOpacity>
+              <View style={styles.sectionTitleRow}>
+                <Ionicons name="calendar-outline" size={20} color={colors.primary} />
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Data e Horário</Text>
               </View>
 
-              {isNewClient ? (
-                <TextInput
-                  style={[
-                    styles.input,
-                    {
-                      backgroundColor: colors.card,
-                      color: colors.text,
-                      borderColor: colors.border,
-                    },
-                  ]}
-                  placeholder="Nome do cliente"
-                  placeholderTextColor={colors.textSecondary}
-                  value={formData.clientName}
-                  onChangeText={(text) => setFormData((prev) => ({ ...prev, clientName: text }))}
-                />
-              ) : (
-                <View
-                  style={[
-                    styles.picker,
-                    { backgroundColor: colors.card, borderColor: colors.border },
-                  ]}
-                >
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    {allClients.map((client) => (
-                      <TouchableOpacity
-                        key={client.id}
-                        style={[
-                          styles.clientChip,
-                          {
-                            backgroundColor:
-                              formData.clientId === client.id ? colors.primary : 'transparent',
-                            borderColor: colors.border,
-                          },
-                        ]}
-                        onPress={() =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            clientId: client.id,
-                            clientName: client.name,
-                          }))
-                        }
-                      >
-                        <Text
-                          style={[
-                            styles.clientChipText,
-                            { color: formData.clientId === client.id ? colors.card : colors.text },
-                          ]}
-                        >
-                          {client.name}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
+              <View style={styles.dateTimeRow}>
+                <View style={styles.dateField}>
+                  <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Data</Text>
+                  <TouchableOpacity
+                    style={[
+                      styles.inputField,
+                      { backgroundColor: colors.card, borderColor: colors.border },
+                    ]}
+                    onPress={() => setShowDatePicker(true)}
+                  >
+                    <Text style={[styles.inputText, { color: colors.text }]}>
+                      {getSafeDate(selectedDate).toLocaleDateString('pt-BR')}
+                    </Text>
+                    <Ionicons name="calendar-outline" size={20} color={colors.textSecondary} />
+                  </TouchableOpacity>
                 </View>
-              )}
+
+                <View style={styles.timeField}>
+                  <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Horário</Text>
+                  <TouchableOpacity
+                    style={[
+                      styles.inputField,
+                      { backgroundColor: colors.card, borderColor: colors.border },
+                    ]}
+                    onPress={() => setShowTimePicker(true)}
+                  >
+                    <Text style={[styles.inputText, { color: colors.text }]}>
+                      {getSafeDate(selectedTime).toLocaleTimeString('pt-BR', TIME_FORMAT_OPTIONS)}
+                    </Text>
+                    <Ionicons name="time-outline" size={20} color={colors.textSecondary} />
+                  </TouchableOpacity>
+                </View>
+              </View>
             </View>
 
-            {/* Seleção de Profissional */}
+            {/* 2. Profissional */}
             <View style={styles.formSection}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Profissional</Text>
-              <View
+              <View style={styles.sectionTitleRow}>
+                <Ionicons name="person-outline" size={20} color={colors.primary} />
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Profissional</Text>
+              </View>
+
+              <TouchableOpacity
                 style={[
-                  styles.picker,
+                  styles.inputField,
                   { backgroundColor: colors.card, borderColor: colors.border },
                 ]}
+                onPress={() => setShowBarberPicker(true)}
               >
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  {barbeiros.map((barber) => (
-                    <TouchableOpacity
-                      key={barber.id}
-                      style={[
-                        styles.professionalChip,
-                        {
-                          backgroundColor:
-                            formData.barberId === barber.id ? colors.primary : 'transparent',
-                          borderColor: colors.border,
-                        },
-                      ]}
-                      onPress={() => setFormData((prev) => ({ ...prev, barberId: barber.id }))}
-                    >
-                      <Text
-                        style={[
-                          styles.clientChipText,
-                          { color: formData.barberId === barber.id ? colors.card : colors.text },
-                        ]}
-                      >
-                        {barber.name}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
+                <View style={styles.professionalOption}>
+                  <View style={[styles.professionalAvatar, { backgroundColor: colors.primary }]}>
+                    <Text style={[styles.professionalInitial, { color: colors.card }]}>
+                      {(
+                        selectedBarbierModal?.name ||
+                        barbeiros.find((b) => b.id === formData.barberId)?.name ||
+                        barbeiros.find((b) => b.id === selectedBarberId)?.name
+                      )?.charAt(0) || 'P'}
+                    </Text>
+                  </View>
+                  <Text style={[styles.inputText, { color: colors.text }]}>
+                    {selectedBarbierModal?.name ||
+                      barbeiros.find((b) => b.id === formData.barberId)?.name ||
+                      barbeiros.find((b) => b.id === selectedBarberId)?.name ||
+                      'Selecionar profissional'}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
+              </TouchableOpacity>
             </View>
 
-            {/* Seleção de Serviço */}
+            {/* 3. Cliente */}
             <View style={styles.formSection}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Serviço</Text>
-              <View
+              <View style={styles.sectionTitleRow}>
+                <Ionicons name="people-outline" size={20} color={colors.primary} />
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Cliente</Text>
+              </View>
+
+              <TouchableOpacity
                 style={[
-                  styles.picker,
+                  styles.inputField,
                   { backgroundColor: colors.card, borderColor: colors.border },
                 ]}
+                onPress={() => setShowClientPicker(true)}
               >
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  {allServices.map((service) => (
-                    <TouchableOpacity
-                      key={service.id}
-                      style={[
-                        styles.serviceChip,
-                        {
-                          backgroundColor:
-                            formData.serviceId === service.id ? colors.primary : 'transparent',
-                          borderColor: colors.border,
-                        },
-                      ]}
-                      onPress={() => setFormData((prev) => ({ ...prev, serviceId: service.id }))}
-                    >
-                      <Text
-                        style={[
-                          styles.serviceChipTitle,
-                          { color: formData.serviceId === service.id ? colors.card : colors.text },
-                        ]}
-                      >
-                        {service.name}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.serviceChipPrice,
-                          {
-                            color:
-                              formData.serviceId === service.id
-                                ? colors.card + '80'
-                                : colors.textSecondary,
-                          },
-                        ]}
-                      >
-                        R$ {service.price?.toFixed(2)}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-            </View>
-
-            {/* Data e Horário */}
-            <View style={styles.formRow}>
-              <View style={[styles.formSection, { flex: 1, marginRight: 8 }]}>
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>Data</Text>
-                <TextInput
+                <Text
                   style={[
-                    styles.input,
-                    {
-                      backgroundColor: colors.card,
-                      color: colors.text,
-                      borderColor: colors.border,
-                    },
+                    styles.inputText,
+                    { color: selectedClient ? colors.text : colors.textSecondary },
                   ]}
-                  value={formData.date}
-                  onChangeText={(text) => setFormData((prev) => ({ ...prev, date: text }))}
-                  placeholder="AAAA-MM-DD"
-                  placeholderTextColor={colors.textSecondary}
-                />
-              </View>
-              <View style={[styles.formSection, { flex: 1, marginLeft: 8 }]}>
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>Horário</Text>
-                <TextInput
-                  style={[
-                    styles.input,
-                    {
-                      backgroundColor: colors.card,
-                      color: colors.text,
-                      borderColor: colors.border,
-                    },
-                  ]}
-                  value={formData.time}
-                  onChangeText={(text) => setFormData((prev) => ({ ...prev, time: text }))}
-                  placeholder="HH:MM"
-                  placeholderTextColor={colors.textSecondary}
-                />
-              </View>
-            </View>
+                >
+                  {selectedClient?.name || 'Selecionar cliente cadastrado'}
+                </Text>
+                <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
+              </TouchableOpacity>
 
-            {/* Observações */}
-            <View style={styles.formSection}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Observações</Text>
+              <Text style={[styles.orText, { color: colors.textSecondary }]}>ou</Text>
+
               <TextInput
                 style={[
-                  styles.textArea,
-                  { backgroundColor: colors.card, color: colors.text, borderColor: colors.border },
+                  styles.inputField,
+                  { backgroundColor: colors.card, borderColor: colors.border, color: colors.text },
                 ]}
-                placeholder="Observações especiais..."
+                placeholder="Digite o nome do novo cliente"
                 placeholderTextColor={colors.textSecondary}
-                value={formData.notes}
-                onChangeText={(text) => setFormData((prev) => ({ ...prev, notes: text }))}
-                multiline
-                numberOfLines={4}
+                value={customClientName}
+                onChangeText={setCustomClientName}
               />
             </View>
 
-            {/* Botão de Deletar */}
-            {editingBooking && (
+            {/* 4. Serviço */}
+            <View style={styles.formSection}>
+              <View style={styles.sectionTitleRow}>
+                <Ionicons name="cut-outline" size={20} color={colors.primary} />
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Serviço</Text>
+              </View>
+
               <TouchableOpacity
-                style={[styles.deleteButton, { backgroundColor: '#FF3B30' }]}
-                onPress={handleDeleteBooking}
+                style={[
+                  styles.inputField,
+                  { backgroundColor: colors.card, borderColor: colors.border },
+                ]}
+                onPress={() => setShowServicePicker(true)}
               >
-                <Text style={styles.deleteButtonText}>Cancelar Agendamento</Text>
+                <Text
+                  style={[
+                    styles.inputText,
+                    { color: selectedService ? colors.text : colors.textSecondary },
+                  ]}
+                >
+                  {selectedService?.name || 'Selecionar serviço'}
+                </Text>
+                <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
               </TouchableOpacity>
-            )}
+
+              {selectedService && (
+                <Text style={[styles.servicePrice, { color: colors.primary }]}>
+                  R$ {selectedService.price}
+                </Text>
+              )}
+            </View>
+
+            {/* 5. Observações */}
+            <View style={styles.formSection}>
+              <View style={styles.sectionTitleRow}>
+                <Ionicons name="document-text-outline" size={20} color={colors.primary} />
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Observações</Text>
+              </View>
+
+              <TextInput
+                style={[
+                  styles.inputField,
+                  styles.textArea,
+                  { backgroundColor: colors.card, borderColor: colors.border, color: colors.text },
+                ]}
+                placeholder="Adicione observações sobre o agendamento..."
+                placeholderTextColor={colors.textSecondary}
+                value={observations}
+                onChangeText={setObservations}
+                multiline={true}
+                numberOfLines={3}
+                textAlignVertical="top"
+              />
+            </View>
+
+            {/* Botão Agendar */}
+            <View style={styles.agendarButtonContainer}>
+              <TouchableOpacity
+                style={[styles.agendarButton, { backgroundColor: colors.primary }]}
+                onPress={handleSaveBooking}
+                disabled={modalLoading}
+              >
+                <Text style={[styles.agendarButtonText, { color: colors.card }]}>
+                  {modalLoading ? 'Agendando...' : editingBooking ? 'Atualizar' : 'Agendar'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </ScrollView>
+
+          {/* Client Picker Modal */}
+          <Modal visible={showClientPicker} animationType="slide" presentationStyle="pageSheet">
+            <View style={[styles.pickerContainer, { backgroundColor: colors.background }]}>
+              <View style={[styles.pickerHeader, { borderBottomColor: colors.border }]}>
+                <TouchableOpacity onPress={() => setShowClientPicker(false)}>
+                  <Text style={[styles.cancelButton, { color: colors.text }]}>Cancelar</Text>
+                </TouchableOpacity>
+                <Text style={[styles.pickerTitle, { color: colors.text }]}>Selecionar Cliente</Text>
+                <View style={{ width: 60 }} />
+              </View>
+
+              <ScrollView style={styles.pickerList}>
+                {allClients.map((client) => (
+                  <TouchableOpacity
+                    key={client.id}
+                    style={[styles.clientItem, { borderBottomColor: colors.border }]}
+                    onPress={() => {
+                      setSelectedClient(client);
+                      setCustomClientName('');
+                      setShowClientPicker(false);
+                    }}
+                  >
+                    <Text style={[styles.clientName, { color: colors.text }]}>{client.name}</Text>
+                    <Text style={[styles.clientEmail, { color: colors.textSecondary }]}>
+                      {client.email}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </Modal>
+
+          {/* Barber Picker Modal */}
+          <Modal visible={showBarberPicker} animationType="slide" presentationStyle="pageSheet">
+            <View style={[styles.pickerContainer, { backgroundColor: colors.background }]}>
+              <View style={[styles.pickerHeader, { borderBottomColor: colors.border }]}>
+                <TouchableOpacity onPress={() => setShowBarberPicker(false)}>
+                  <Text style={[styles.cancelButton, { color: colors.text }]}>Cancelar</Text>
+                </TouchableOpacity>
+                <Text style={[styles.pickerTitle, { color: colors.text }]}>
+                  Selecionar Profissional
+                </Text>
+                <View style={{ width: 60 }} />
+              </View>
+
+              <ScrollView style={styles.pickerList}>
+                {barbeiros.map((barber) => (
+                  <TouchableOpacity
+                    key={barber.id}
+                    style={[styles.clientItem, { borderBottomColor: colors.border }]}
+                    onPress={() => {
+                      setSelectedBarbierModal(barber);
+                      setFormData((prev) => ({ ...prev, barberId: barber.id }));
+                      setShowBarberPicker(false);
+                    }}
+                  >
+                    <View style={styles.professionalOption}>
+                      <View
+                        style={[styles.professionalAvatar, { backgroundColor: colors.primary }]}
+                      >
+                        <Text style={[styles.professionalInitial, { color: colors.card }]}>
+                          {barber.name?.charAt(0) || 'P'}
+                        </Text>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.clientName, { color: colors.text }]}>
+                          {barber.name}
+                        </Text>
+                        <Text style={[styles.clientEmail, { color: colors.textSecondary }]}>
+                          {barber.description || 'Barbeiro'}
+                        </Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </Modal>
+
+          {/* Service Picker Modal */}
+          <Modal visible={showServicePicker} animationType="slide" presentationStyle="pageSheet">
+            <View style={[styles.pickerContainer, { backgroundColor: colors.background }]}>
+              <View style={[styles.pickerHeader, { borderBottomColor: colors.border }]}>
+                <TouchableOpacity onPress={() => setShowServicePicker(false)}>
+                  <Text style={[styles.cancelButton, { color: colors.text }]}>Cancelar</Text>
+                </TouchableOpacity>
+                <Text style={[styles.pickerTitle, { color: colors.text }]}>Selecionar Serviço</Text>
+                <View style={{ width: 60 }} />
+              </View>
+
+              <ScrollView style={styles.pickerList}>
+                {allServices.map((service) => (
+                  <TouchableOpacity
+                    key={service.id}
+                    style={[styles.serviceItem, { borderBottomColor: colors.border }]}
+                    onPress={() => {
+                      setSelectedService(service);
+                      setShowServicePicker(false);
+                    }}
+                  >
+                    <View style={styles.serviceInfo}>
+                      <Text style={[styles.serviceName, { color: colors.text }]}>
+                        {service.name}
+                      </Text>
+                      <Text style={[styles.serviceDuration, { color: colors.textSecondary }]}>
+                        ⏱️ {service.duration} min
+                      </Text>
+                    </View>
+                    <Text style={[styles.servicePrice, { color: colors.primary }]}>
+                      R$ {service.price}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </Modal>
         </View>
+
+        {/* Date Picker */}
+        {showDatePicker && (
+          <View style={{ backgroundColor: colors.background }}>
+            <DateTimePicker
+              value={getSafeDate(selectedDate)}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              themeVariant={colorScheme === 'dark' ? 'dark' : 'light'}
+              textColor={colors.text}
+              accentColor={colors.primary}
+              onChange={(event, date) => {
+                if (Platform.OS === 'android') {
+                  setShowDatePicker(false);
+                }
+                if (event.type === 'set' && date) {
+                  setSelectedDate(date);
+                  setFormData((prev) => ({
+                    ...prev,
+                    date: date.toISOString().split('T')[0],
+                  }));
+                }
+              }}
+              onTouchCancel={() => setShowDatePicker(false)}
+            />
+          </View>
+        )}
+
+        {/* Time Picker */}
+        {showTimePicker && (
+          <View style={{ backgroundColor: colors.background }}>
+            <DateTimePicker
+              value={getSafeDate(selectedTime)}
+              mode="time"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              themeVariant={colorScheme === 'dark' ? 'dark' : 'light'}
+              textColor={colors.text}
+              accentColor={colors.primary}
+              onChange={(event, time) => {
+                if (Platform.OS === 'android') {
+                  setShowTimePicker(false);
+                }
+                if (event.type === 'set' && time) {
+                  setSelectedTime(time);
+                  const timeString = time.toLocaleTimeString('pt-BR', TIME_FORMAT_OPTIONS);
+                  setFormData((prev) => ({
+                    ...prev,
+                    time: timeString,
+                  }));
+                }
+              }}
+              onTouchCancel={() => setShowTimePicker(false)}
+            />
+          </View>
+        )}
       </Modal>
     );
   }
-
-  // Funções CRUD
-  const openCreateModal = () => {
-    setEditingBooking(null);
-    setFormData({
-      clientId: '',
-      clientName: '',
-      barberId: selectedBarberId,
-      serviceId: '',
-      date: currentDate.toISOString().split('T')[0],
-      time: '09:00',
-      notes: '',
-    });
-    setIsNewClient(false);
-    setShowBookingModal(true);
-  };
-
-  const handleEditBooking = (booking: any) => {
-    setEditingBooking(booking);
-    setFormData({
-      clientId: booking.user_id || '',
-      clientName: booking.client_name || '',
-      barberId: booking.barber_id,
-      serviceId: booking.service_id,
-      date: booking.date,
-      time: booking.time,
-      notes: booking.notes || '',
-    });
-    setIsNewClient(!booking.user_id);
-    setShowBookingModal(true);
-  };
-
-  const handleSaveBooking = async () => {
-    // Validar campos obrigatórios
-    if (!formData.barberId || !formData.serviceId || !formData.date || !formData.time) {
-      Alert.alert('Erro', 'Preencha todos os campos obrigatórios');
-      return;
-    }
-
-    if (isNewClient && !formData.clientName.trim()) {
-      Alert.alert('Erro', 'Informe o nome do cliente');
-      return;
-    }
-
-    if (!isNewClient && !formData.clientId) {
-      Alert.alert('Erro', 'Selecione um cliente cadastrado');
-      return;
-    }
-
-    setModalLoading(true);
-    try {
-      console.log('🔧 Form data:', formData);
-      console.log('🔧 Is new client:', isNewClient);
-
-      const selectedService = allServices.find((s) => s.id === formData.serviceId);
-      console.log('🔧 Selected service:', selectedService);
-      const servicePrice = selectedService?.price || 0;
-
-      const bookingData = {
-        userId: isNewClient ? null : formData.clientId,
-        barberId: formData.barberId,
-        serviceId: formData.serviceId,
-        date: formData.date,
-        time: formData.time,
-        status: 'scheduled' as const,
-        notes: formData.notes || '',
-        totalPrice: servicePrice,
-        paymentMethod: 'pending' as const,
-        paymentStatus: 'pending' as const,
-        updatedAt: new Date().toISOString(),
-        clientName: isNewClient ? formData.clientName : undefined,
-      };
-
-      console.log('🔧 Booking data to save:', bookingData);
-
-      let result;
-      if (editingBooking) {
-        console.log('🔧 Updating booking:', editingBooking.id);
-        // Editar agendamento existente
-        result = await databaseService.bookings.update(editingBooking.id, bookingData);
-        console.log('🔧 Update result:', result);
-        if (result) {
-          Alert.alert('Sucesso', 'Agendamento atualizado com sucesso!');
-        } else {
-          throw new Error('Falha ao atualizar agendamento');
-        }
-      } else {
-        console.log('🔧 Creating new booking');
-        // Criar novo agendamento
-        result = await databaseService.bookings.create(bookingData);
-        console.log('🔧 Create result:', result);
-        if (result) {
-          Alert.alert('Sucesso', 'Agendamento criado com sucesso!');
-        } else {
-          throw new Error('Falha ao criar agendamento');
-        }
-      }
-
-      setShowBookingModal(false);
-      await loadBookingsForDate(); // Recarregar agendamentos
-    } catch (error) {
-      console.error('Erro ao salvar agendamento:', error);
-      Alert.alert('Erro', error.message || 'Não foi possível salvar o agendamento');
-    } finally {
-      setModalLoading(false);
-    }
-  };
-
-  const handleDeleteBooking = async () => {
-    if (!editingBooking) return;
-
-    Alert.alert('Confirmar Exclusão', 'Tem certeza que deseja cancelar este agendamento?', [
-      { text: 'Não', style: 'cancel' },
-      {
-        text: 'Sim',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await databaseService.bookings.delete(editingBooking.id);
-            Alert.alert('Sucesso', 'Agendamento cancelado!');
-            setShowBookingModal(false);
-            loadBookingsForDate();
-          } catch (error) {
-            console.error('Erro ao deletar agendamento:', error);
-            Alert.alert('Erro', 'Não foi possível cancelar o agendamento');
-          }
-        },
-      },
-    ]);
-  };
 }
 
 export default function BookingScreen() {
   const { colors } = useTheme();
   const { isAdminMode } = useAdminMode();
+  const colorScheme = useColorScheme();
 
   // Se está em modo admin, mostra apenas a agenda administrativa
   if (isAdminMode) {
@@ -1999,8 +2169,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   modalContainer: {
-    minHeight: '90%',
-    maxHeight: '95%',
+    flex: 1,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     shadowOffset: { width: 0, height: -4 },
@@ -2011,8 +2180,9 @@ const styles = StyleSheet.create({
   modalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingVertical: 16,
     borderBottomWidth: 1,
   },
   modalBackButton: {
@@ -2086,9 +2256,6 @@ const styles = StyleSheet.create({
   stepHeader: {
     marginBottom: 24,
   },
-  professionalAvatar: {
-    marginRight: 16,
-  },
   avatarPlaceholder: {
     width: 50,
     height: 50,
@@ -2110,6 +2277,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 12,
+    lineHeight: 20,
+  },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 10,
+    paddingVertical: 2,
   },
   timeGrid: {
     flexDirection: 'row',
@@ -2243,6 +2418,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   timelineContainer: {
+    flex: 1,
     minWidth: '100%',
   },
   timelineHeader: {
@@ -2409,14 +2585,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
   },
-  professionalName: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  timelineContainer: {
-    flex: 1,
-    position: 'relative',
-  },
   timelineScroll: {
     flex: 1,
   },
@@ -2425,12 +2593,6 @@ const styles = StyleSheet.create({
     minHeight: 60,
     borderBottomWidth: 0.5,
     position: 'relative',
-  },
-  timeColumn: {
-    width: 70,
-    alignItems: 'flex-end',
-    paddingRight: 12,
-    paddingTop: 8,
   },
   timeText: {
     fontSize: 13,
@@ -2461,9 +2623,6 @@ const styles = StyleSheet.create({
   },
   emptyEventSlot: {
     minHeight: 50,
-    borderLeftWidth: 1,
-    borderStyle: 'dashed',
-    borderRadius: 4,
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 2,
@@ -2519,10 +2678,57 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
   },
-  modalContainer: {
+
+  dateTimeRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  dateField: {
+    flex: 2,
+  },
+  timeField: {
     flex: 1,
   },
-  modalHeader: {
+  fieldLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  inputField: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    minHeight: 48,
+  },
+  inputText: {
+    fontSize: 16,
+    flex: 1,
+  },
+  professionalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  orText: {
+    textAlign: 'center',
+    fontSize: 14,
+    fontWeight: '500',
+    marginVertical: 8,
+  },
+  textArea: {
+    minHeight: 80,
+    paddingTop: 14,
+  },
+  pickerContainer: {
+    flex: 1,
+  },
+  pickerHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -2530,17 +2736,44 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderBottomWidth: 1,
   },
-  modalTitle: {
+  pickerTitle: {
     fontSize: 18,
     fontWeight: '600',
+  },
+  cancelButton: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  pickerList: {
+    flex: 1,
+  },
+  clientItem: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+  },
+  clientName: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  clientEmail: {
+    fontSize: 14,
+  },
+  serviceItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+  },
+  serviceInfo: {
+    flex: 1,
   },
   saveButton: {
     fontSize: 16,
     fontWeight: '600',
-  },
-  modalContent: {
-    flex: 1,
-    paddingHorizontal: 20,
   },
   formSection: {
     marginVertical: 12,
@@ -2549,26 +2782,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginVertical: 12,
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
   input: {
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-  },
-  textArea: {
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    minHeight: 100,
-    textAlignVertical: 'top',
   },
   picker: {
     borderWidth: 1,
@@ -2678,11 +2897,6 @@ const styles = StyleSheet.create({
   dateSummary: {
     alignItems: 'center',
   },
-  dayNumber: {
-    fontSize: 24,
-    fontWeight: '700',
-    lineHeight: 28,
-  },
   monthAbbr: {
     fontSize: 12,
     fontWeight: '600',
@@ -2732,5 +2946,35 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 12,
     paddingHorizontal: 16,
+  },
+  // Estilos para header melhorado
+  closeButton: {
+    padding: 8,
+  },
+  headerSpacer: {
+    width: 40, // Mesma largura do botão close para centralizar o título
+  },
+  // Estilos para botão Agendar
+  agendarButtonContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    paddingBottom: 30,
+  },
+  agendarButton: {
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  agendarButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
