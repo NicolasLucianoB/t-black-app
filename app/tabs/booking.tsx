@@ -1727,7 +1727,7 @@ function AgendaAdminTab() {
               value={getSafeDate(selectedDate)}
               mode="date"
               display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              themeVariant={colorScheme === 'dark' ? 'dark' : 'light'}
+              themeVariant={useColorScheme() === 'dark' ? 'dark' : 'light'}
               textColor={colors.text}
               accentColor={colors.primary}
               onChange={(event, date) => {
@@ -1754,7 +1754,7 @@ function AgendaAdminTab() {
               value={getSafeDate(selectedTime)}
               mode="time"
               display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              themeVariant={colorScheme === 'dark' ? 'dark' : 'light'}
+              themeVariant={useColorScheme() === 'dark' ? 'dark' : 'light'}
               textColor={colors.text}
               accentColor={colors.primary}
               onChange={(event, time) => {
