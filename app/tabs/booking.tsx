@@ -902,7 +902,6 @@ function AgendaAdminTab() {
   const [selectedTime, setSelectedTime] = useState<Date>(new Date());
 
   // Estados para dropdowns
-  const [showBarberPicker, setShowBarberPicker] = useState(false);
   const [selectedBarbierModal, setSelectedBarbierModal] = useState<any>(null);
 
   // Função auxiliar para garantir data válida
@@ -944,14 +943,19 @@ function AgendaAdminTab() {
     }
   }, [currentDate, selectedBarberId]);
 
-  // Atualizar horário atual a cada minuto
+  // Atualizar horário atual a cada minuto - pausar quando modal estiver aberta
   useEffect(() => {
+    // Não iniciar timer se modal estiver aberta
+    if (showBookingModal) {
+      return;
+    }
+
     const interval = setInterval(() => {
       setCurrentTime(new Date());
     }, 60000); // Atualiza a cada 60 segundos
 
     return () => clearInterval(interval);
-  }, []);
+  }, [showBookingModal]);
 
   const loadInitialData = async () => {
     setLoading(true);
@@ -1463,32 +1467,44 @@ function AgendaAdminTab() {
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>Profissional</Text>
               </View>
 
-              <TouchableOpacity
-                style={[
-                  styles.inputField,
-                  { backgroundColor: colors.card, borderColor: colors.border },
-                ]}
-                onPress={() => setShowBarberPicker(true)}
-              >
-                <View style={styles.professionalOption}>
-                  <View style={[styles.professionalAvatar, { backgroundColor: colors.primary }]}>
-                    <Text style={[styles.professionalInitial, { color: colors.card }]}>
-                      {(
-                        selectedBarbierModal?.name ||
-                        barbeiros.find((b) => b.id === formData.barberId)?.name ||
-                        barbeiros.find((b) => b.id === selectedBarberId)?.name
-                      )?.charAt(0) || 'P'}
-                    </Text>
+              {barbeiros.map((barber) => (
+                <TouchableOpacity
+                  key={barber.id}
+                  style={[
+                    styles.inputField,
+                    {
+                      backgroundColor: colors.card,
+                      borderColor: (selectedBarbierModal?.id === barber.id || formData.barberId === barber.id)
+                        ? colors.primary
+                        : colors.border,
+                      borderWidth: (selectedBarbierModal?.id === barber.id || formData.barberId === barber.id) ? 2 : 1,
+                      marginBottom: 12,
+                    },
+                  ]}
+                  onPress={() => {
+                    setSelectedBarbierModal(barber);
+                    setFormData((prev) => ({ ...prev, barberId: barber.id }));
+                  }}
+                >
+                  <View style={styles.professionalOption}>
+                    <View style={[styles.professionalAvatar, { backgroundColor: colors.primary }]}>
+                      <Text style={[styles.professionalInitial, { color: colors.card }]}>
+                        {barber.name?.charAt(0) || 'P'}
+                      </Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.inputText, { color: colors.text }]}>
+                        {barber.name}
+                      </Text>
+                      {barber.description && (
+                        <Text style={[{ color: colors.textSecondary, fontSize: 12, marginTop: 2 }]}>
+                          {barber.description}
+                        </Text>
+                      )}
+                    </View>
                   </View>
-                  <Text style={[styles.inputText, { color: colors.text }]}>
-                    {selectedBarbierModal?.name ||
-                      barbeiros.find((b) => b.id === formData.barberId)?.name ||
-                      barbeiros.find((b) => b.id === selectedBarberId)?.name ||
-                      'Selecionar profissional'}
-                  </Text>
-                </View>
-                <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
-              </TouchableOpacity>
+                </TouchableOpacity>
+              ))}
             </View>
 
             {/* 3. Cliente */}
@@ -1625,53 +1641,6 @@ function AgendaAdminTab() {
                     <Text style={[styles.clientEmail, { color: colors.textSecondary }]}>
                       {client.email}
                     </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          </Modal>
-
-          {/* Barber Picker Modal */}
-          <Modal visible={showBarberPicker} animationType="slide" presentationStyle="pageSheet">
-            <View style={{ flex: 1, backgroundColor: colors.background }}>
-              <View style={[styles.pickerHeader, { borderBottomColor: colors.border }]}>
-                <TouchableOpacity onPress={() => setShowBarberPicker(false)} style={styles.closeButton}>
-                  <Ionicons name="close" size={24} color={colors.text} />
-                </TouchableOpacity>
-                <Text style={[styles.pickerTitle, { color: colors.text }]}>
-                  Selecionar Profissional
-                </Text>
-                <View style={{ width: 40 }} />
-              </View>
-
-              <ScrollView style={styles.pickerList}>
-                {barbeiros.map((barber) => (
-                  <TouchableOpacity
-                    key={barber.id}
-                    style={[styles.clientItem, { borderBottomColor: colors.border }]}
-                    onPress={() => {
-                      setSelectedBarbierModal(barber);
-                      setFormData((prev) => ({ ...prev, barberId: barber.id }));
-                      setShowBarberPicker(false);
-                    }}
-                  >
-                    <View style={styles.professionalOption}>
-                      <View
-                        style={[styles.professionalAvatar, { backgroundColor: colors.primary }]}
-                      >
-                        <Text style={[styles.professionalInitial, { color: colors.card }]}>
-                          {barber.name?.charAt(0) || 'P'}
-                        </Text>
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text style={[styles.clientName, { color: colors.text }]}>
-                          {barber.name}
-                        </Text>
-                        <Text style={[styles.clientEmail, { color: colors.textSecondary }]}>
-                          {barber.description || 'Barbeiro'}
-                        </Text>
-                      </View>
-                    </View>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
