@@ -1164,15 +1164,21 @@ function AgendaAdminTab() {
         }
       } else {
         // Criar novo agendamento
-        const newBooking = await databaseService.bookings.create({
-          userId: clientId,
+        const bookingData: any = {
           barberId: formData.barberId,
           serviceId: formData.serviceId,
           date: formData.date,
           time: formData.time,
           notes: formData.notes,
           clientName: clientName, // Para clientes não cadastrados
-        });
+        };
+
+        // Só adiciona userId se existir
+        if (clientId) {
+          bookingData.userId = clientId;
+        }
+
+        const newBooking = await databaseService.bookings.create(bookingData);
 
         if (newBooking) {
           Alert.alert('Sucesso', 'Agendamento criado com sucesso!');
