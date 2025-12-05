@@ -1370,6 +1370,8 @@ function AgendaAdminTab() {
 
   // Componente do Modal CRUD
   function BookingCRUDModal() {
+    const { colors } = useTheme();
+    const colorScheme = useColorScheme();
     const [selectedClient, setSelectedClient] = useState<any>(null);
     const [selectedService, setSelectedService] = useState<any>(null);
     const [showClientPicker, setShowClientPicker] = useState(false);
@@ -1396,12 +1398,7 @@ function AgendaAdminTab() {
     }
 
     return (
-      <Modal
-        visible={showBookingModal}
-        animationType="slide"
-        onRequestClose={closeModal}
-        transparent={false}
-      >
+      <Modal visible={showBookingModal} animationType="slide" onRequestClose={closeModal}>
         <View style={[{ flex: 1, backgroundColor: colors.background }]}>
           {/* Header */}
           <SafeAreaView style={{ backgroundColor: colors.background }}>
@@ -1706,9 +1703,12 @@ function AgendaAdminTab() {
                       <Text style={[styles.serviceName, { color: colors.text }]}>
                         {service.name}
                       </Text>
-                      <Text style={[styles.serviceDuration, { color: colors.textSecondary }]}>
-                        ⏱️ {service.duration} min
-                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                        <Ionicons name="time-outline" size={14} color={colors.textSecondary} />
+                        <Text style={[styles.serviceDuration, { color: colors.textSecondary }]}>
+                          {service.duration} min
+                        </Text>
+                      </View>
                     </View>
                     <Text style={[styles.servicePrice, { color: colors.primary }]}>
                       R$ {service.price}
@@ -1719,60 +1719,96 @@ function AgendaAdminTab() {
             </View>
           </Modal>
         </View>
-
         {/* Date Picker */}
         {showDatePicker && (
-          <View style={{ backgroundColor: colors.background }}>
-            <DateTimePicker
-              value={getSafeDate(selectedDate)}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              themeVariant={useColorScheme() === 'dark' ? 'dark' : 'light'}
-              textColor={colors.text}
-              accentColor={colors.primary}
-              onChange={(event, date) => {
-                if (Platform.OS === 'android') {
-                  setShowDatePicker(false);
-                }
-                if (event.type === 'set' && date) {
-                  setSelectedDate(date);
-                  setFormData((prev) => ({
-                    ...prev,
-                    date: date.toISOString().split('T')[0],
-                  }));
-                }
-              }}
-              onTouchCancel={() => setShowDatePicker(false)}
-            />
-          </View>
+          <TouchableOpacity
+            style={styles.pickerOverlay}
+            activeOpacity={1}
+            onPress={() => setShowDatePicker(false)}
+          >
+            <View style={[styles.pickerContainer, { backgroundColor: colors.background }]}>
+              <Text style={[styles.pickerTitle, { color: colors.text }]}>Selecionar Data</Text>
+              <DateTimePicker
+                value={getSafeDate(selectedDate)}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                themeVariant={colorScheme === 'dark' ? 'dark' : 'light'}
+                textColor={colors.text}
+                accentColor={colors.primary}
+                onChange={(event, date) => {
+                  if (event.type === 'set' && date) {
+                    setSelectedDate(date);
+                  }
+                }}
+              />
+              <View style={styles.pickerButtons}>
+                <TouchableOpacity
+                  style={[styles.pickerButton, styles.cancelButton, { borderColor: colors.border }]}
+                  onPress={() => setShowDatePicker(false)}
+                >
+                  <Text style={[styles.cancelButtonText, { color: colors.textSecondary }]}>
+                    Cancelar
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.pickerButton,
+                    styles.confirmButton,
+                    { backgroundColor: colors.primary },
+                  ]}
+                  onPress={() => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      date: selectedDate.toISOString().split('T')[0],
+                    }));
+                    setShowDatePicker(false);
+                  }}
+                >
+                  <Text style={[styles.confirmButtonText, { color: colors.card }]}>Salvar</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </TouchableOpacity>
         )}
-
         {/* Time Picker */}
         {showTimePicker && (
-          <View style={{ backgroundColor: colors.background }}>
-            <DateTimePicker
-              value={getSafeDate(selectedTime)}
-              mode="time"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              themeVariant={useColorScheme() === 'dark' ? 'dark' : 'light'}
-              textColor={colors.text}
-              accentColor={colors.primary}
-              onChange={(event, time) => {
-                if (Platform.OS === 'android') {
-                  setShowTimePicker(false);
-                }
-                if (event.type === 'set' && time) {
-                  setSelectedTime(time);
-                  const timeString = time.toLocaleTimeString('pt-BR', TIME_FORMAT_OPTIONS);
-                  setFormData((prev) => ({
-                    ...prev,
-                    time: timeString,
-                  }));
-                }
-              }}
-              onTouchCancel={() => setShowTimePicker(false)}
-            />
-          </View>
+          <TouchableOpacity
+            style={styles.pickerOverlay}
+            activeOpacity={1}
+            onPress={() => setShowTimePicker(false)}
+          >
+            <TouchableOpacity
+              style={[styles.pickerContainer, { backgroundColor: colors.background }]}
+              activeOpacity={1}
+              onPress={(e) => e.stopPropagation()}
+            >
+              <DateTimePicker
+                value={getSafeDate(selectedTime)}
+                mode="time"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                themeVariant={colorScheme === 'dark' ? 'dark' : 'light'}
+                textColor={colors.text}
+                accentColor={colors.primary}
+                onChange={(event, time) => {
+                  if (event.type === 'dismissed') {
+                    setShowTimePicker(false);
+                    return;
+                  }
+                  if (event.type === 'set' && time) {
+                    setSelectedTime(time);
+                    const timeString = time.toLocaleTimeString('pt-BR', TIME_FORMAT_OPTIONS);
+                    setFormData((prev) => ({
+                      ...prev,
+                      time: timeString,
+                    }));
+                    // Fechar o picker após seleção
+                    setShowTimePicker(false);
+                  }
+                }}
+                onTouchCancel={() => setShowTimePicker(false)}
+              />
+            </TouchableOpacity>
+          </TouchableOpacity>
         )}
       </Modal>
     );
@@ -1945,18 +1981,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
     alignItems: 'center',
   },
-  confirmButton: {
-    borderRadius: 24,
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 200,
-  },
-  confirmButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+  // Removed duplicate definition of confirmButton
   declarationText: {
     fontSize: 12,
     textAlign: 'center',
@@ -2725,9 +2750,6 @@ const styles = StyleSheet.create({
     minHeight: 80,
     paddingTop: 14,
   },
-  pickerContainer: {
-    flex: 1,
-  },
   pickerHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2739,10 +2761,6 @@ const styles = StyleSheet.create({
   pickerTitle: {
     fontSize: 18,
     fontWeight: '600',
-  },
-  cancelButton: {
-    fontSize: 16,
-    fontWeight: '500',
   },
   pickerList: {
     flex: 1,
@@ -2852,7 +2870,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  // Estilos para o resumo compacto
   compactSummaryCard: {
     borderRadius: 16,
     padding: 20,
@@ -2916,7 +2933,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  // Estilos para grid de profissionais sem cards
   professionalsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -2939,7 +2955,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 18,
   },
-  // Estilo para horários centralizados
   timeGridCentered: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -2947,14 +2962,12 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingHorizontal: 16,
   },
-  // Estilos para header melhorado
   closeButton: {
     padding: 8,
   },
   headerSpacer: {
-    width: 40, // Mesma largura do botão close para centralizar o título
+    width: 40,
   },
-  // Estilos para botão Agendar
   agendarButtonContainer: {
     paddingHorizontal: 20,
     paddingVertical: 20,
@@ -2974,6 +2987,55 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
   },
   agendarButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  pickerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  pickerContainer: {
+    borderRadius: 12,
+    padding: 20,
+    margin: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  pickerButtons: {
+    flexDirection: 'row',
+    marginTop: 20,
+    gap: 12,
+  },
+  pickerButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    borderWidth: 1,
+  },
+  confirmButton: {
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  confirmButtonText: {
     fontSize: 16,
     fontWeight: '600',
   },
