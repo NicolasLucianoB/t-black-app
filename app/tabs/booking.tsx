@@ -1601,13 +1601,13 @@ function AgendaAdminTab() {
 
           {/* Client Picker Modal */}
           <Modal visible={showClientPicker} animationType="slide" presentationStyle="pageSheet">
-            <View style={[styles.pickerContainer, { backgroundColor: colors.background }]}>
+            <View style={{ flex: 1, backgroundColor: colors.background }}>
               <View style={[styles.pickerHeader, { borderBottomColor: colors.border }]}>
-                <TouchableOpacity onPress={() => setShowClientPicker(false)}>
-                  <Text style={[styles.cancelButton, { color: colors.text }]}>Cancelar</Text>
+                <TouchableOpacity onPress={() => setShowClientPicker(false)} style={styles.closeButton}>
+                  <Ionicons name="close" size={24} color={colors.text} />
                 </TouchableOpacity>
                 <Text style={[styles.pickerTitle, { color: colors.text }]}>Selecionar Cliente</Text>
-                <View style={{ width: 60 }} />
+                <View style={{ width: 40 }} />
               </View>
 
               <ScrollView style={styles.pickerList}>
@@ -1633,15 +1633,15 @@ function AgendaAdminTab() {
 
           {/* Barber Picker Modal */}
           <Modal visible={showBarberPicker} animationType="slide" presentationStyle="pageSheet">
-            <View style={[styles.pickerContainer, { backgroundColor: colors.background }]}>
+            <View style={{ flex: 1, backgroundColor: colors.background }}>
               <View style={[styles.pickerHeader, { borderBottomColor: colors.border }]}>
-                <TouchableOpacity onPress={() => setShowBarberPicker(false)}>
-                  <Text style={[styles.cancelButton, { color: colors.text }]}>Cancelar</Text>
+                <TouchableOpacity onPress={() => setShowBarberPicker(false)} style={styles.closeButton}>
+                  <Ionicons name="close" size={24} color={colors.text} />
                 </TouchableOpacity>
                 <Text style={[styles.pickerTitle, { color: colors.text }]}>
                   Selecionar Profissional
                 </Text>
-                <View style={{ width: 60 }} />
+                <View style={{ width: 40 }} />
               </View>
 
               <ScrollView style={styles.pickerList}>
@@ -1680,13 +1680,13 @@ function AgendaAdminTab() {
 
           {/* Service Picker Modal */}
           <Modal visible={showServicePicker} animationType="slide" presentationStyle="pageSheet">
-            <View style={[styles.pickerContainer, { backgroundColor: colors.background }]}>
+            <View style={{ flex: 1, backgroundColor: colors.background }}>
               <View style={[styles.pickerHeader, { borderBottomColor: colors.border }]}>
-                <TouchableOpacity onPress={() => setShowServicePicker(false)}>
-                  <Text style={[styles.cancelButton, { color: colors.text }]}>Cancelar</Text>
+                <TouchableOpacity onPress={() => setShowServicePicker(false)} style={styles.closeButton}>
+                  <Ionicons name="close" size={24} color={colors.text} />
                 </TouchableOpacity>
                 <Text style={[styles.pickerTitle, { color: colors.text }]}>Selecionar Serviço</Text>
-                <View style={{ width: 60 }} />
+                <View style={{ width: 40 }} />
               </View>
 
               <ScrollView style={styles.pickerList}>
