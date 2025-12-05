@@ -106,7 +106,7 @@ export const databaseService = {
         const { data, error } = await supabase.from('bookings').insert(dbBooking).select().single();
 
         if (error) {
-          console.error('Error creating booking:', error);
+          console.error('❌ Error creating booking:', error);
           return null;
         }
 
@@ -174,17 +174,16 @@ export const databaseService = {
           .select(
             `
             *,
-            users!inner(name),
-            barbers!inner(name),
+            users(name),
+            barbers(name),
             services(name, price, duration)
           `,
           )
           .eq('date', date)
-          .in('status', ['scheduled', 'confirmed', 'in_progress'])
           .order('time', { ascending: true });
 
         if (error) {
-          console.error('Error fetching bookings by date:', error);
+          console.error('❌ Error fetching bookings by date:', error);
           return [];
         }
 
@@ -208,7 +207,7 @@ export const databaseService = {
           updated_at: booking.updated_at,
         }));
       } catch (error) {
-        console.error('Error:', error);
+        console.error('💥 Error:', error);
         return [];
       }
     },

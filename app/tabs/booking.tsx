@@ -979,11 +979,26 @@ function AgendaAdminTab() {
 
       if (barbersData.length > 0) {
         setSelectedBarberId(barbersData[0].id);
+        // Carregar agendamentos após definir o barbeiro
+        await loadBookingsForDateWithBarber(barbersData[0].id);
       }
     } catch (error) {
       console.error('❌ Erro ao carregar dados iniciais:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadBookingsForDateWithBarber = async (barberId: string) => {
+    try {
+      const dateStr = currentDate.toISOString().split('T')[0];
+      const allBookings = await databaseService.bookings.getByDate(dateStr);
+
+      const barberBookings = allBookings.filter((booking) => booking.barber_id === barberId);
+
+      setAgendamentos(barberBookings);
+    } catch (error) {
+      console.error('❌ Erro ao carregar agendamentos:', error);
     }
   };
 
@@ -993,12 +1008,14 @@ function AgendaAdminTab() {
     try {
       const dateStr = currentDate.toISOString().split('T')[0];
       const allBookings = await databaseService.bookings.getByDate(dateStr);
+
       const barberBookings = allBookings.filter(
         (booking) => booking.barber_id === selectedBarberId,
       );
+
       setAgendamentos(barberBookings);
     } catch (error) {
-      console.error('Erro ao carregar agendamentos:', error);
+      console.error('❌ Erro ao carregar agendamentos:', error);
     }
   };
 
@@ -1107,16 +1124,135 @@ function AgendaAdminTab() {
 
   // Função para salvar agendamento
   const handleSaveBooking = async () => {
-    // Implementar lógica de salvar
+    try {
+      // Pegar dados do modal (usando closure para acessar os estados internos)
+      // Validação será feita aqui com os dados corretos
 
-    setShowBookingModal(false);
+      if (!formData.barberId || !formData.serviceId) {
+        Alert.alert('Erro', 'Selecione o profissional e o serviço');
+        return;
+      }
+
+      // Cliente: pode ser ID (cadastrado) ou nome customizado
+      const clientId = formData.clientId || null;
+      const clientName = formData.clientName || '';
+
+      if (!clientId && !clientName) {
+        Alert.alert('Erro', 'Selecione um cliente ou digite o nome');
+        return;
+      }
+
+      if (editingBooking) {
+        // Editar agendamento existente
+        const updates = {
+          user_id: clientId,
+          barber_id: formData.barberId,
+          service_id: formData.serviceId,
+          date: formData.date,
+          time: formData.time,
+          notes: formData.notes,
+          client_name: clientName, // Para clientes não cadastrados
+        };
+
+        const updated = await databaseService.bookings.update(editingBooking.id, updates);
+
+        if (updated) {
+          Alert.alert('Sucesso', 'Agendamento atualizado com sucesso!');
+          await loadBookingsForDate();
+        } else {
+          Alert.alert('Erro', 'Não foi possível atualizar o agendamento');
+        }
+      } else {
+        // Criar novo agendamento
+        const newBooking = await databaseService.bookings.create({
+          userId: clientId,
+          barberId: formData.barberId,
+          serviceId: formData.serviceId,
+          date: formData.date,
+          time: formData.time,
+          notes: formData.notes,
+          clientName: clientName, // Para clientes não cadastrados
+        });
+
+        if (newBooking) {
+          Alert.alert('Sucesso', 'Agendamento criado com sucesso!');
+          await loadBookingsForDate();
+        } else {
+          Alert.alert('Erro', 'Não foi possível criar o agendamento');
+        }
+      }
+
+      setShowBookingModal(false);
+    } catch (error) {
+      console.error('❌ Erro ao salvar agendamento:', error);
+      Alert.alert('Erro', 'Ocorreu um erro ao salvar o agendamento');
+    }
   };
 
   // Função para deletar agendamento
   const handleDeleteBooking = async () => {
-    // Implementar lógica de deletar
+    if (!editingBooking) return;
 
-    setShowBookingModal(false);
+    Alert.alert('Confirmar Exclusão', 'Tem certeza que deseja excluir este agendamento?', [
+      {
+        text: 'Cancelar',
+        style: 'cancel',
+      },
+      {
+        text: 'Excluir',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            const success = await databaseService.bookings.delete(editingBooking.id);
+
+            if (success) {
+              Alert.alert('Sucesso', 'Agendamento excluído com sucesso!');
+              await loadBookingsForDate();
+              setShowBookingModal(false);
+            } else {
+              Alert.alert('Erro', 'Não foi possível excluir o agendamento');
+            }
+          } catch (error) {
+            console.error('❌ Erro ao deletar agendamento:', error);
+            Alert.alert('Erro', 'Ocorreu um erro ao excluir o agendamento');
+          }
+        },
+      },
+    ]);
+  };
+
+  // Função para cancelar agendamento (muda status para 'cancelled')
+  const handleCancelBooking = async () => {
+    if (!editingBooking) return;
+
+    Alert.alert('Cancelar Agendamento', 'Tem certeza que deseja cancelar este agendamento?', [
+      {
+        text: 'Não',
+        style: 'cancel',
+      },
+      {
+        text: 'Sim, Cancelar',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            const updated = await databaseService.bookings.update(editingBooking.id, {
+              status: 'cancelled',
+            });
+
+            if (updated) {
+              Alert.alert('Sucesso', 'Agendamento cancelado com sucesso!');
+              await loadBookingsForDate();
+              setShowBookingModal(false);
+            } else {
+              Alert.alert('Erro', 'Não foi possível cancelar o agendamento');
+            }
+          } catch (error) {
+            console.error('❌ Erro ao cancelar agendamento:', error);
+            Alert.alert('Erro', 'Ocorreu um erro ao cancelar o agendamento');
+          }
+        },
+      },
+    ]);
   };
 
   // Navegação de semana
@@ -1134,7 +1270,11 @@ function AgendaAdminTab() {
 
   // Obter agendamento para um horário específico
   const getBookingForTime = (time: string) => {
-    return agendamentos.find((booking) => booking.time === time);
+    // time vem no formato "08:00", booking.time vem como "16:00:00"
+    return agendamentos.find((booking) => {
+      const bookingTime = booking.time.substring(0, 5); // Pega só HH:MM
+      return bookingTime === time;
+    });
   };
 
   if (loading) {
@@ -1318,6 +1458,9 @@ function AgendaAdminTab() {
 
           {timeSlots.map((time, index) => {
             const booking = getBookingForTime(time);
+            const isCancelled = booking?.status === 'cancelled';
+            const isCompleted = booking?.status === 'completed';
+            const isScheduled = booking?.status === 'scheduled' || booking?.status === 'confirmed';
 
             return (
               <View key={time} style={[styles.timeSlot, { borderBottomColor: colors.border }]}>
@@ -1332,22 +1475,50 @@ function AgendaAdminTab() {
                     <TouchableOpacity
                       style={[
                         styles.eventBlock,
-                        { backgroundColor: colors.primary + '20', borderColor: colors.primary },
+                        {
+                          backgroundColor: isCancelled
+                            ? '#FF3B3020'
+                            : isCompleted
+                              ? '#8E8E9320'
+                              : '#34C75920',
+                          borderColor: isCancelled
+                            ? '#FF3B30'
+                            : isCompleted
+                              ? '#8E8E93'
+                              : '#34C759',
+                          opacity: isCancelled || isCompleted ? 0.6 : 1,
+                        },
                       ]}
                       onPress={() => handleEditBooking(booking)}
                     >
                       <Text
-                        style={[styles.eventTitle, { color: colors.primary }]}
+                        style={[
+                          styles.eventTitle,
+                          {
+                            color: colors.text,
+                          },
+                        ]}
                         numberOfLines={1}
                       >
-                        {booking.client_name}
+                        {booking.client_name || 'Cliente'}
                       </Text>
                       <Text
                         style={[styles.eventSubtitle, { color: colors.textSecondary }]}
                         numberOfLines={1}
                       >
-                        {booking.service_name}
+                        {booking.service_name || 'Serviço'} • {booking.service_duration || 30}min
                       </Text>
+                      {booking.notes && (
+                        <Text
+                          style={[
+                            styles.eventSubtitle,
+                            { color: colors.textSecondary, fontSize: 11, marginTop: 2 },
+                          ]}
+                          numberOfLines={1}
+                        >
+                          💬 {booking.notes}
+                        </Text>
+                      )}
                     </TouchableOpacity>
                   ) : (
                     <View style={styles.emptyEventSlot} />
@@ -1382,6 +1553,27 @@ function AgendaAdminTab() {
     const [showServicePicker, setShowServicePicker] = useState(false);
     const [customClientName, setCustomClientName] = useState('');
     const [observations, setObservations] = useState('');
+
+    // Sincronizar estados quando estiver editando
+    useEffect(() => {
+      if (editingBooking && showBookingModal) {
+        // Carregar cliente
+        const client = allClients.find((c) => c.id === editingBooking.user_id);
+        setSelectedClient(client || null);
+
+        // Carregar serviço
+        const service = allServices.find((s) => s.id === editingBooking.service_id);
+        setSelectedService(service || null);
+
+        // Carregar observações
+        setObservations(editingBooking.notes || '');
+
+        // Se não tem cliente cadastrado, mostrar nome customizado
+        if (!client && editingBooking.client_name) {
+          setCustomClientName(editingBooking.client_name);
+        }
+      }
+    }, [editingBooking, showBookingModal]);
 
     // Função para fechar o modal
     const closeModal = () => {
@@ -1474,10 +1666,14 @@ function AgendaAdminTab() {
                     styles.inputField,
                     {
                       backgroundColor: colors.card,
-                      borderColor: (selectedBarbierModal?.id === barber.id || formData.barberId === barber.id)
-                        ? colors.primary
-                        : colors.border,
-                      borderWidth: (selectedBarbierModal?.id === barber.id || formData.barberId === barber.id) ? 2 : 1,
+                      borderColor:
+                        selectedBarbierModal?.id === barber.id || formData.barberId === barber.id
+                          ? colors.primary
+                          : colors.border,
+                      borderWidth:
+                        selectedBarbierModal?.id === barber.id || formData.barberId === barber.id
+                          ? 2
+                          : 1,
                       marginBottom: 12,
                     },
                   ]}
@@ -1493,9 +1689,7 @@ function AgendaAdminTab() {
                       </Text>
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={[styles.inputText, { color: colors.text }]}>
-                        {barber.name}
-                      </Text>
+                      <Text style={[styles.inputText, { color: colors.text }]}>{barber.name}</Text>
                       {barber.description && (
                         <Text style={[{ color: colors.textSecondary, fontSize: 12, marginTop: 2 }]}>
                           {barber.description}
@@ -1542,7 +1736,17 @@ function AgendaAdminTab() {
                 placeholder="Digite o nome do novo cliente"
                 placeholderTextColor={colors.textSecondary}
                 value={customClientName}
-                onChangeText={setCustomClientName}
+                onChangeText={(text) => {
+                  setCustomClientName(text);
+                  if (text) {
+                    setSelectedClient(null);
+                    setFormData((prev) => ({
+                      ...prev,
+                      clientId: '',
+                      clientName: text,
+                    }));
+                  }
+                }}
               />
             </View>
 
@@ -1594,7 +1798,13 @@ function AgendaAdminTab() {
                 placeholder="Adicione observações sobre o agendamento..."
                 placeholderTextColor={colors.textSecondary}
                 value={observations}
-                onChangeText={setObservations}
+                onChangeText={(text) => {
+                  setObservations(text);
+                  setFormData((prev) => ({
+                    ...prev,
+                    notes: text,
+                  }));
+                }}
                 multiline={true}
                 numberOfLines={3}
                 textAlignVertical="top"
@@ -1612,6 +1822,47 @@ function AgendaAdminTab() {
                   {modalLoading ? 'Agendando...' : editingBooking ? 'Atualizar' : 'Agendar'}
                 </Text>
               </TouchableOpacity>
+
+              {/* Botões de ação para edição */}
+              {editingBooking && (
+                <>
+                  <TouchableOpacity
+                    style={[
+                      styles.agendarButton,
+                      {
+                        backgroundColor: 'transparent',
+                        borderWidth: 1,
+                        borderColor: '#FF9500',
+                        marginTop: 12,
+                      },
+                    ]}
+                    onPress={handleCancelBooking}
+                    disabled={modalLoading}
+                  >
+                    <Text style={[styles.agendarButtonText, { color: '#FF9500' }]}>
+                      Cancelar Agendamento
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.agendarButton,
+                      {
+                        backgroundColor: 'transparent',
+                        borderWidth: 1,
+                        borderColor: '#FF3B30',
+                        marginTop: 12,
+                      },
+                    ]}
+                    onPress={handleDeleteBooking}
+                    disabled={modalLoading}
+                  >
+                    <Text style={[styles.agendarButtonText, { color: '#FF3B30' }]}>
+                      Excluir Agendamento
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              )}
             </View>
           </ScrollView>
 
@@ -1619,7 +1870,10 @@ function AgendaAdminTab() {
           <Modal visible={showClientPicker} animationType="slide" presentationStyle="pageSheet">
             <View style={{ flex: 1, backgroundColor: colors.background }}>
               <View style={[styles.pickerHeader, { borderBottomColor: colors.border }]}>
-                <TouchableOpacity onPress={() => setShowClientPicker(false)} style={styles.closeButton}>
+                <TouchableOpacity
+                  onPress={() => setShowClientPicker(false)}
+                  style={styles.closeButton}
+                >
                   <Ionicons name="close" size={24} color={colors.text} />
                 </TouchableOpacity>
                 <Text style={[styles.pickerTitle, { color: colors.text }]}>Selecionar Cliente</Text>
@@ -1634,6 +1888,11 @@ function AgendaAdminTab() {
                     onPress={() => {
                       setSelectedClient(client);
                       setCustomClientName('');
+                      setFormData((prev) => ({
+                        ...prev,
+                        clientId: client.id,
+                        clientName: client.name,
+                      }));
                       setShowClientPicker(false);
                     }}
                   >
@@ -1651,7 +1910,10 @@ function AgendaAdminTab() {
           <Modal visible={showServicePicker} animationType="slide" presentationStyle="pageSheet">
             <View style={{ flex: 1, backgroundColor: colors.background }}>
               <View style={[styles.pickerHeader, { borderBottomColor: colors.border }]}>
-                <TouchableOpacity onPress={() => setShowServicePicker(false)} style={styles.closeButton}>
+                <TouchableOpacity
+                  onPress={() => setShowServicePicker(false)}
+                  style={styles.closeButton}
+                >
                   <Ionicons name="close" size={24} color={colors.text} />
                 </TouchableOpacity>
                 <Text style={[styles.pickerTitle, { color: colors.text }]}>Selecionar Serviço</Text>
@@ -1665,6 +1927,10 @@ function AgendaAdminTab() {
                     style={[styles.serviceItem, { borderBottomColor: colors.border }]}
                     onPress={() => {
                       setSelectedService(service);
+                      setFormData((prev) => ({
+                        ...prev,
+                        serviceId: service.id,
+                      }));
                       setShowServicePicker(false);
                     }}
                   >
@@ -2998,8 +3264,7 @@ const styles = StyleSheet.create({
   cancelButton: {
     borderWidth: 1,
   },
-  confirmButton: {
-  },
+  confirmButton: {},
   cancelButtonText: {
     fontSize: 16,
     fontWeight: '500',
