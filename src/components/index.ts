@@ -11,3 +11,6 @@ export { default as LoadingSpinner } from './LoadingSpinner';
 export { NotificationProvider } from './NotificationProvider';
 export { AdminRoute, ProtectedRoute, SuperAdminRoute, usePermissionCheck } from './ProtectedRoute';
 export { default as StatusBarManager } from './StatusBarManager';
+
+// Booking components
+export * from './booking';

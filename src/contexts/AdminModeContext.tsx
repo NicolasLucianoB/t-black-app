@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useRole } from './AuthContext';
 
 interface AdminModeContextType {
@@ -18,9 +18,25 @@ export function AdminModeProvider({ children }: { children: React.ReactNode }) {
   const canAccessAdminMode =
     (role === 'admin' || role === 'superadmin') && (isAdmin || isSuperAdmin);
 
+  // SEGURANÇA CRÍTICA: Resetar modo admin quando usuário não tem mais permissão
+  useEffect(() => {
+    if (!canAccessAdminMode && isAdminMode) {
+      console.log('🔒 SEGURANÇA: Desabilitando modo admin - usuário sem permissão');
+      setIsAdminMode(false);
+    }
+  }, [canAccessAdminMode, isAdminMode]);
+
+  // SEGURANÇA CRÍTICA: Resetar modo admin quando role mudar
+  useEffect(() => {
+    console.log('🔄 Role changed:', role, '- Resetando modo admin');
+    setIsAdminMode(false);
+  }, [role]);
+
   const toggleAdminMode = () => {
     if (canAccessAdminMode) {
       setIsAdminMode(!isAdminMode);
+    } else {
+      console.warn('⚠️ SEGURANÇA: Tentativa de acesso ao modo admin negada');
     }
   };
 

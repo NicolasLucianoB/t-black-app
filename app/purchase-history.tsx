@@ -178,8 +178,8 @@ export default function PurchaseHistoryScreen() {
                       {item.itemType === 'product' ? 'Produto' : 'Curso'}
                     </Text>
                     <Text style={[styles.itemPrice, { color: colors.text }]}>
-                      {item.quantity}x R$ {item.unitPrice.toFixed(2)} = R${' '}
-                      {item.totalPrice.toFixed(2)}
+                      {item.quantity}x R$ {item.unitPrice?.toFixed(2) || '0.00'} = R${' '}
+                      {item.totalPrice?.toFixed(2) || '0.00'}
                     </Text>
                   </View>
                 </View>

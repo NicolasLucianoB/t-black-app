@@ -207,7 +207,7 @@ export default function BookingsScreen() {
             )}
 
             <Text style={[styles.totalPrice, { color: colors.text }]}>
-              Total: R$ {booking.totalPrice.toFixed(2)}
+              Total: R$ {booking.totalPrice ? booking.totalPrice.toFixed(2) : '0.00'}
             </Text>
 
             {booking.notes && (
