@@ -2435,7 +2435,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   modalContainer: {
-    flex: 1,
+    height: '90%',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     shadowOffset: { width: 0, height: -4 },
@@ -3270,7 +3270,13 @@ const styles = StyleSheet.create({
   cancelButton: {
     borderWidth: 1,
   },
-  confirmButton: {},
+  confirmButton: {
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   cancelButtonText: {
     fontSize: 16,
     fontWeight: '500',
