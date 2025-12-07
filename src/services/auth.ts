@@ -201,6 +201,8 @@ export const authService = {
   // Update user profile
   async updateProfile(updates: Partial<User>): Promise<AuthResponse> {
     try {
+      console.log('🔄 Updating profile with:', updates);
+
       const { data, error } = await supabase.auth.updateUser({
         data: {
           name: updates.name,
@@ -210,12 +212,13 @@ export const authService = {
       });
 
       if (error) {
+        console.error('❌ Error updating auth metadata:', error);
         return { user: null, error: error.message };
       }
 
       if (data.user) {
         // Também atualizar na tabela users
-        await supabase
+        const { error: dbError } = await supabase
           .from('users')
           .update({
             name: updates.name,
@@ -225,20 +228,29 @@ export const authService = {
           })
           .eq('id', data.user.id);
 
+        if (dbError) {
+          console.error('❌ Error updating users table:', dbError);
+        } else {
+          console.log('✅ Profile updated successfully in users table');
+        }
+
         const user: User = {
           id: data.user.id,
           email: data.user.email || '',
           name: data.user.user_metadata?.name || data.user.email || '',
           phone: data.user.user_metadata?.phone || null,
-          avatar: data.user.user_metadata?.avatar_url || null,
+          avatar: data.user.user_metadata?.avatar_url || updates.avatar || null,
           user_role: getUserRoleFromEmail(data.user.email || ''),
           createdAt: data.user.created_at,
         };
+
+        console.log('✅ Profile updated, returning user with avatar:', user.avatar);
         return { user, error: null };
       }
 
       return { user: null, error: 'Erro ao atualizar perfil' };
     } catch (error) {
+      console.error('❌ Exception in updateProfile:', error);
       return { user: null, error: 'Erro de conexão' };
     }
   },

@@ -79,6 +79,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // User signed in via OAuth or other method
         console.log('📧 DEBUG - Auth state change SIGNED_IN for:', session.user.email);
 
+        // Buscar dados completos da tabela users (incluindo avatar)
+        const { data: dbUser, error: dbError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
         // Buscar role correto do banco de dados
         let correctRole: UserRole = 'client';
         try {
@@ -95,16 +102,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
           correctRole = getUserRoleFromEmail(session.user.email || '');
         }
 
-        const userData: User = {
-          id: session.user.id,
-          email: session.user.email || '',
-          name: session.user.user_metadata?.name || session.user.email || '',
-          phone: session.user.user_metadata?.phone || null,
-          avatar: session.user.user_metadata?.avatar_url || null,
-          user_role: correctRole,
-          createdAt: session.user.created_at,
-        };
+        // Se conseguiu buscar da tabela users, use esses dados (mais completos)
+        const userData: User =
+          dbUser && !dbError
+            ? {
+                id: dbUser.id,
+                email: dbUser.email,
+                name: dbUser.name,
+                phone: dbUser.phone,
+                avatar: dbUser.avatar, // ✅ Avatar vem da tabela users
+                user_role: correctRole,
+                createdAt: dbUser.created_at,
+                updatedAt: dbUser.updated_at,
+              }
+            : {
+                // Fallback para user_metadata se não encontrar na tabela
+                id: session.user.id,
+                email: session.user.email || '',
+                name: session.user.user_metadata?.name || session.user.email || '',
+                phone: session.user.user_metadata?.phone || null,
+                avatar: session.user.user_metadata?.avatar_url || null,
+                user_role: correctRole,
+                createdAt: session.user.created_at,
+              };
 
+        console.log('✅ DEBUG - User data loaded with avatar:', userData.avatar);
         setUser(userData);
         await saveUserToStorage(userData);
 
@@ -238,6 +260,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       if (userData) {
+        console.log('👤 DEBUG - User data after login:', {
+          id: userData.id,
+          email: userData.email,
+          avatar: userData.avatar,
+          hasAvatar: !!userData.avatar,
+        });
         setUser(userData);
         await saveUserToStorage(userData);
 

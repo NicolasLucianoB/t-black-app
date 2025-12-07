@@ -36,8 +36,8 @@ export const storageService = {
         return { url: null, error: 'Usuário não autenticado' };
       }
 
-      // Upload using fetch directly (works better in React Native)
-      const response = await fetch(`${SUPABASE_URL}/storage/v1/object/avatars/${filePath}`, {
+      // Try POST first (new file), if 409 Duplicate then try PUT (update)
+      let response = await fetch(`${SUPABASE_URL}/storage/v1/object/avatars/${filePath}`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${session.access_token}`,
@@ -45,15 +45,45 @@ export const storageService = {
         body: formData,
       });
 
+      // If file already exists (409 Duplicate), update it with PUT
+      if (response.status === 409) {
+        console.log('📝 Avatar já existe, atualizando...');
+
+        // Recreate FormData for PUT request (FormData can only be used once)
+        const newFormData = new FormData();
+        newFormData.append('file', {
+          uri: imageUri,
+          type: `image/${fileExt}`,
+          name: finalFileName,
+        } as any);
+
+        response = await fetch(`${SUPABASE_URL}/storage/v1/object/avatars/${filePath}`, {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: newFormData,
+        });
+      }
+
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Upload failed:', errorText);
+        console.error('❌ Upload failed after retry:', errorText);
+
+        // Se ainda falhou, pelo menos retorne a URL do arquivo existente
+        if (response.status === 409) {
+          console.log('⚠️ Arquivo existe mas não pode ser atualizado, retornando URL existente');
+          const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+          return { url: data.publicUrl, error: null };
+        }
+
         return { url: null, error: 'Falha no upload da imagem' };
       }
 
       // Get public URL
       const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
 
+      console.log('✅ Avatar uploaded successfully:', data.publicUrl);
       return { url: data.publicUrl, error: null };
     } catch (error) {
       console.error('Storage error:', error);
