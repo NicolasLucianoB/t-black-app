@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Modal,
-  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -79,6 +78,10 @@ function AgendaAdminTab() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedTime, setSelectedTime] = useState<Date>(new Date());
 
+  // Refs temporários para pickers (NÃO causam re-render durante rolagem)
+  const tempDateRef = useRef<Date>(new Date());
+  const tempTimeRef = useRef<Date>(new Date());
+
   // Estados para dropdowns
   const [selectedBarbierModal, setSelectedBarbierModal] = useState<any>(null);
 
@@ -92,6 +95,14 @@ function AgendaAdminTab() {
       return !isNaN(parsed.getTime()) ? parsed : new Date();
     }
     return new Date();
+  };
+
+  // Função para converter Date para string YYYY-MM-DD no timezone local
+  const formatDateToLocalString = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   // Carregar dados iniciais
@@ -162,7 +173,7 @@ function AgendaAdminTab() {
 
   const loadBookingsForDateWithBarber = async (barberId: string) => {
     try {
-      const dateStr = currentDate.toISOString().split('T')[0];
+      const dateStr = formatDateToLocalString(currentDate);
       const allBookings = await databaseService.bookings.getByDate(dateStr);
       const barberBookings = allBookings.filter((booking) => booking.barber_id === barberId);
       setAgendamentos(barberBookings);
@@ -175,7 +186,7 @@ function AgendaAdminTab() {
     if (!selectedBarberId) return;
 
     try {
-      const dateStr = currentDate.toISOString().split('T')[0];
+      const dateStr = formatDateToLocalString(currentDate);
       const allBookings = await databaseService.bookings.getByDate(dateStr);
       const barberBookings = allBookings.filter(
         (booking) => booking.barber_id === selectedBarberId,
@@ -246,7 +257,7 @@ function AgendaAdminTab() {
       clientName: '',
       barberId: selectedBarberId || '',
       serviceId: '',
-      date: today.toISOString().split('T')[0],
+      date: formatDateToLocalString(today),
       time: currentTime.toLocaleTimeString('pt-BR', TIME_FORMAT_OPTIONS),
       notes: '',
     });
@@ -277,15 +288,25 @@ function AgendaAdminTab() {
     setShowBookingModal(true);
   };
 
-  const handleSaveBooking = async () => {
+  const handleSaveBooking = async (overrides?: Partial<typeof formData>) => {
     try {
-      if (!formData.barberId || !formData.serviceId) {
+      // Usar overrides se fornecidos, senão usar formData
+      const dataToSave = { ...formData, ...overrides };
+
+      console.log('🔍 DEBUG - formData ao salvar:', dataToSave);
+      console.log('🔍 DEBUG - barberId:', dataToSave.barberId);
+      console.log('🔍 DEBUG - serviceId:', dataToSave.serviceId);
+      console.log('🔍 DEBUG - clientId:', dataToSave.clientId);
+      console.log('🔍 DEBUG - clientName:', dataToSave.clientName);
+      console.log('🔍 DEBUG - notes:', dataToSave.notes);
+
+      if (!dataToSave.barberId || !dataToSave.serviceId) {
         Alert.alert('Erro', 'Selecione o profissional e o serviço');
         return;
       }
 
-      const clientId = formData.clientId || null;
-      const clientName = formData.clientName || '';
+      const clientId = dataToSave.clientId || null;
+      const clientName = dataToSave.clientName || '';
 
       if (!clientId && !clientName) {
         Alert.alert('Erro', 'Selecione um cliente ou digite o nome');
@@ -295,13 +316,15 @@ function AgendaAdminTab() {
       if (editingBooking) {
         const updates = {
           user_id: clientId,
-          barber_id: formData.barberId,
-          service_id: formData.serviceId,
-          date: formData.date,
-          time: formData.time,
-          notes: formData.notes,
+          barber_id: dataToSave.barberId,
+          service_id: dataToSave.serviceId,
+          date: dataToSave.date,
+          time: dataToSave.time,
+          notes: dataToSave.notes || '',
           client_name: clientName,
         };
+
+        console.log('📝 DEBUG - Atualizando agendamento:', updates);
 
         const updated = await databaseService.bookings.update(editingBooking.id, updates);
 
@@ -313,13 +336,15 @@ function AgendaAdminTab() {
         }
       } else {
         const bookingData: any = {
-          barberId: formData.barberId,
-          serviceId: formData.serviceId,
-          date: formData.date,
-          time: formData.time,
-          notes: formData.notes,
+          barberId: dataToSave.barberId,
+          serviceId: dataToSave.serviceId,
+          date: dataToSave.date,
+          time: dataToSave.time,
+          notes: dataToSave.notes || '',
           clientName: clientName,
         };
+
+        console.log('📝 DEBUG - Criando agendamento:', bookingData);
 
         if (clientId) {
           bookingData.userId = clientId;
@@ -675,6 +700,12 @@ function AgendaAdminTab() {
         if (!client && editingBooking.client_name) {
           setCustomClientName(editingBooking.client_name);
         }
+      } else if (showBookingModal && !editingBooking) {
+        // Resetar ao abrir para novo
+        setSelectedClient(null);
+        setSelectedService(null);
+        setCustomClientName('');
+        setObservations('');
       }
     }, [editingBooking, showBookingModal]);
 
@@ -687,6 +718,37 @@ function AgendaAdminTab() {
       setShowServicePicker(false);
       setCustomClientName('');
       setObservations('');
+    };
+
+    const handleSave = () => {
+      try {
+        // Coletar valores dos estados locais
+        const barberId = selectedBarbierModal?.id || formData.barberId || '';
+        const serviceId = selectedService?.id || formData.serviceId || '';
+        const clientId = selectedClient?.id || formData.clientId || '';
+        const clientName = customClientName || selectedClient?.name || formData.clientName || '';
+        const notes = observations || '';
+
+        console.log('📝 DEBUG handleSave:', {
+          barberId,
+          serviceId,
+          clientId,
+          clientName,
+          notes,
+        });
+
+        // Passar os valores diretamente para handleSaveBooking
+        handleSaveBooking({
+          barberId,
+          serviceId,
+          clientId,
+          clientName,
+          notes,
+        });
+      } catch (error) {
+        console.error('❌ Erro em handleSave:', error);
+        Alert.alert('Erro', 'Erro ao preparar dados para salvar');
+      }
     };
 
     if (!showBookingModal) {
@@ -723,7 +785,10 @@ function AgendaAdminTab() {
                       styles.inputField,
                       { backgroundColor: colors.card, borderColor: colors.border },
                     ]}
-                    onPress={() => setShowDatePicker(true)}
+                    onPress={() => {
+                      tempDateRef.current = selectedDate;
+                      setShowDatePicker(true);
+                    }}
                   >
                     <Text style={[styles.inputText, { color: colors.text }]}>
                       {getSafeDate(selectedDate).toLocaleDateString('pt-BR')}
@@ -739,7 +804,10 @@ function AgendaAdminTab() {
                       styles.inputField,
                       { backgroundColor: colors.card, borderColor: colors.border },
                     ]}
-                    onPress={() => setShowTimePicker(true)}
+                    onPress={() => {
+                      tempTimeRef.current = selectedTime;
+                      setShowTimePicker(true);
+                    }}
                   >
                     <Text style={[styles.inputText, { color: colors.text }]}>
                       {getSafeDate(selectedTime).toLocaleTimeString('pt-BR', TIME_FORMAT_OPTIONS)}
@@ -765,19 +833,13 @@ function AgendaAdminTab() {
                     {
                       backgroundColor: colors.card,
                       borderColor:
-                        selectedBarbierModal?.id === barber.id || formData.barberId === barber.id
-                          ? colors.primary
-                          : colors.border,
-                      borderWidth:
-                        selectedBarbierModal?.id === barber.id || formData.barberId === barber.id
-                          ? 2
-                          : 1,
+                        selectedBarbierModal?.id === barber.id ? colors.primary : colors.border,
+                      borderWidth: selectedBarbierModal?.id === barber.id ? 2 : 1,
                       marginBottom: 12,
                     },
                   ]}
                   onPress={() => {
                     setSelectedBarbierModal(barber);
-                    setFormData((prev) => ({ ...prev, barberId: barber.id }));
                   }}
                 >
                   <View style={styles.professionalOption}>
@@ -838,11 +900,6 @@ function AgendaAdminTab() {
                   setCustomClientName(text);
                   if (text) {
                     setSelectedClient(null);
-                    setFormData((prev) => ({
-                      ...prev,
-                      clientId: '',
-                      clientName: text,
-                    }));
                   }
                 }}
               />
@@ -896,13 +953,7 @@ function AgendaAdminTab() {
                 placeholder="Adicione observações sobre o agendamento..."
                 placeholderTextColor={colors.textSecondary}
                 value={observations}
-                onChangeText={(text) => {
-                  setObservations(text);
-                  setFormData((prev) => ({
-                    ...prev,
-                    notes: text,
-                  }));
-                }}
+                onChangeText={setObservations}
                 multiline={true}
                 numberOfLines={3}
                 textAlignVertical="top"
@@ -913,7 +964,7 @@ function AgendaAdminTab() {
             <View style={styles.agendarButtonContainer}>
               <TouchableOpacity
                 style={[styles.agendarButton, { backgroundColor: colors.primary }]}
-                onPress={handleSaveBooking}
+                onPress={handleSave}
                 disabled={modalLoading}
               >
                 <Text style={[styles.agendarButtonText, { color: colors.card }]}>
@@ -985,11 +1036,6 @@ function AgendaAdminTab() {
                     onPress={() => {
                       setSelectedClient(client);
                       setCustomClientName('');
-                      setFormData((prev) => ({
-                        ...prev,
-                        clientId: client.id,
-                        clientName: client.name,
-                      }));
                       setShowClientPicker(false);
                     }}
                   >
@@ -1024,10 +1070,6 @@ function AgendaAdminTab() {
                     style={[styles.serviceItem, { borderBottomColor: colors.border }]}
                     onPress={() => {
                       setSelectedService(service);
-                      setFormData((prev) => ({
-                        ...prev,
-                        serviceId: service.id,
-                      }));
                       setShowServicePicker(false);
                     }}
                   >
@@ -1052,24 +1094,33 @@ function AgendaAdminTab() {
           </Modal>
 
           {/* Date Picker */}
-          {showDatePicker && (
+          <Modal
+            visible={showDatePicker}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setShowDatePicker(false)}
+          >
             <TouchableOpacity
               style={styles.pickerOverlay}
               activeOpacity={1}
               onPress={() => setShowDatePicker(false)}
             >
-              <View style={[styles.pickerContainer, { backgroundColor: colors.background }]}>
+              <TouchableOpacity
+                style={[styles.pickerContainer, { backgroundColor: colors.background }]}
+                activeOpacity={1}
+                onPress={(e) => e.stopPropagation()}
+              >
                 <Text style={[styles.pickerTitle, { color: colors.text }]}>Selecionar Data</Text>
                 <DateTimePicker
-                  value={getSafeDate(selectedDate)}
+                  value={getSafeDate(tempDateRef.current)}
                   mode="date"
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  display="spinner"
                   themeVariant={colorScheme === 'dark' ? 'dark' : 'light'}
                   textColor={colors.text}
                   accentColor={colors.primary}
                   onChange={(event, date) => {
-                    if (event.type === 'set' && date) {
-                      setSelectedDate(date);
+                    if (date) {
+                      tempDateRef.current = date;
                     }
                   }}
                 />
@@ -1093,9 +1144,10 @@ function AgendaAdminTab() {
                       { backgroundColor: colors.primary },
                     ]}
                     onPress={() => {
+                      setSelectedDate(tempDateRef.current);
                       setFormData((prev) => ({
                         ...prev,
-                        date: selectedDate.toISOString().split('T')[0],
+                        date: formatDateToLocalString(tempDateRef.current),
                       }));
                       setShowDatePicker(false);
                     }}
@@ -1103,12 +1155,17 @@ function AgendaAdminTab() {
                     <Text style={[styles.confirmButtonText, { color: colors.card }]}>Salvar</Text>
                   </TouchableOpacity>
                 </View>
-              </View>
+              </TouchableOpacity>
             </TouchableOpacity>
-          )}
+          </Modal>
 
           {/* Time Picker */}
-          {showTimePicker && (
+          <Modal
+            visible={showTimePicker}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setShowTimePicker(false)}
+          >
             <TouchableOpacity
               style={styles.pickerOverlay}
               activeOpacity={1}
@@ -1119,33 +1176,60 @@ function AgendaAdminTab() {
                 activeOpacity={1}
                 onPress={(e) => e.stopPropagation()}
               >
+                <Text style={[styles.pickerTitle, { color: colors.text, marginBottom: 12 }]}>
+                  Selecionar Horário
+                </Text>
                 <DateTimePicker
-                  value={getSafeDate(selectedTime)}
+                  value={getSafeDate(tempTimeRef.current)}
                   mode="time"
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  display="spinner"
                   themeVariant={colorScheme === 'dark' ? 'dark' : 'light'}
                   textColor={colors.text}
                   accentColor={colors.primary}
                   onChange={(event, time) => {
-                    if (event.type === 'dismissed') {
-                      setShowTimePicker(false);
-                      return;
+                    if (time) {
+                      tempTimeRef.current = time;
                     }
-                    if (event.type === 'set' && time) {
-                      setSelectedTime(time);
-                      const timeString = time.toLocaleTimeString('pt-BR', TIME_FORMAT_OPTIONS);
+                  }}
+                />
+                <View style={styles.pickerButtons}>
+                  <TouchableOpacity
+                    style={[
+                      styles.pickerButton,
+                      styles.cancelButton,
+                      { borderColor: colors.border },
+                    ]}
+                    onPress={() => setShowTimePicker(false)}
+                  >
+                    <Text style={[styles.cancelButtonText, { color: colors.textSecondary }]}>
+                      Cancelar
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.pickerButton,
+                      styles.confirmButton,
+                      { backgroundColor: colors.primary },
+                    ]}
+                    onPress={() => {
+                      setSelectedTime(tempTimeRef.current);
+                      const timeString = tempTimeRef.current.toLocaleTimeString(
+                        'pt-BR',
+                        TIME_FORMAT_OPTIONS,
+                      );
                       setFormData((prev) => ({
                         ...prev,
                         time: timeString,
                       }));
                       setShowTimePicker(false);
-                    }
-                  }}
-                  onTouchCancel={() => setShowTimePicker(false)}
-                />
+                    }}
+                  >
+                    <Text style={[styles.confirmButtonText, { color: colors.card }]}>Salvar</Text>
+                  </TouchableOpacity>
+                </View>
               </TouchableOpacity>
             </TouchableOpacity>
-          )}
+          </Modal>
         </SafeAreaView>
       </Modal>
     );
@@ -1393,8 +1477,6 @@ const styles = StyleSheet.create({
   },
   formSection: {
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
   sectionTitleRow: {
     flexDirection: 'row',
