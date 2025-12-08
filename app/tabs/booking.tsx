@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -769,250 +771,277 @@ function AgendaAdminTab() {
             <View style={styles.headerSpacer} />
           </View>
 
-          <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
-            {/* Data e Horário */}
-            <View style={styles.formSection}>
-              <View style={styles.sectionTitleRow}>
-                <Ionicons name="calendar-outline" size={20} color={colors.primary} />
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>Data e Horário</Text>
-              </View>
-
-              <View style={styles.dateTimeRow}>
-                <View style={styles.dateField}>
-                  <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Data</Text>
-                  <TouchableOpacity
-                    style={[
-                      styles.inputField,
-                      { backgroundColor: colors.card, borderColor: colors.border },
-                    ]}
-                    onPress={() => {
-                      tempDateRef.current = selectedDate;
-                      setShowDatePicker(true);
-                    }}
-                  >
-                    <Text style={[styles.inputText, { color: colors.text }]}>
-                      {getSafeDate(selectedDate).toLocaleDateString('pt-BR')}
-                    </Text>
-                    <Ionicons name="calendar-outline" size={20} color={colors.textSecondary} />
-                  </TouchableOpacity>
+          <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+          >
+            <ScrollView
+              style={styles.modalContent}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 200 }}
+              keyboardShouldPersistTaps="handled"
+            >
+              {/* Data e Horário */}
+              <View style={styles.formSection}>
+                <View style={styles.sectionTitleRow}>
+                  <Ionicons name="calendar-outline" size={20} color={colors.primary} />
+                  <Text style={[styles.sectionTitle, { color: colors.text }]}>Data e Horário</Text>
                 </View>
 
-                <View style={styles.timeField}>
-                  <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Horário</Text>
-                  <TouchableOpacity
-                    style={[
-                      styles.inputField,
-                      { backgroundColor: colors.card, borderColor: colors.border },
-                    ]}
-                    onPress={() => {
-                      tempTimeRef.current = selectedTime;
-                      setShowTimePicker(true);
-                    }}
-                  >
-                    <Text style={[styles.inputText, { color: colors.text }]}>
-                      {getSafeDate(selectedTime).toLocaleTimeString('pt-BR', TIME_FORMAT_OPTIONS)}
+                <View style={styles.dateTimeRow}>
+                  <View style={styles.dateField}>
+                    <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Data</Text>
+                    <TouchableOpacity
+                      style={[
+                        styles.inputField,
+                        { backgroundColor: colors.card, borderColor: colors.border },
+                      ]}
+                      onPress={() => {
+                        tempDateRef.current = selectedDate;
+                        setShowDatePicker(true);
+                      }}
+                    >
+                      <Text style={[styles.inputText, { color: colors.text }]}>
+                        {getSafeDate(selectedDate).toLocaleDateString('pt-BR')}
+                      </Text>
+                      <Ionicons name="calendar-outline" size={20} color={colors.textSecondary} />
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.timeField}>
+                    <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>
+                      Horário
                     </Text>
-                    <Ionicons name="time-outline" size={20} color={colors.textSecondary} />
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.inputField,
+                        { backgroundColor: colors.card, borderColor: colors.border },
+                      ]}
+                      onPress={() => {
+                        tempTimeRef.current = selectedTime;
+                        setShowTimePicker(true);
+                      }}
+                    >
+                      <Text style={[styles.inputText, { color: colors.text }]}>
+                        {getSafeDate(selectedTime).toLocaleTimeString('pt-BR', TIME_FORMAT_OPTIONS)}
+                      </Text>
+                      <Ionicons name="time-outline" size={20} color={colors.textSecondary} />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
-            </View>
 
-            {/* Profissional */}
-            <View style={styles.formSection}>
-              <View style={styles.sectionTitleRow}>
-                <Ionicons name="person-outline" size={20} color={colors.primary} />
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>Profissional</Text>
+              {/* Profissional */}
+              <View style={styles.formSection}>
+                <View style={styles.sectionTitleRow}>
+                  <Ionicons name="person-outline" size={20} color={colors.primary} />
+                  <Text style={[styles.sectionTitle, { color: colors.text }]}>Profissional</Text>
+                </View>
+
+                {barbeiros.map((barber) => (
+                  <TouchableOpacity
+                    key={barber.id}
+                    style={[
+                      styles.inputField,
+                      {
+                        backgroundColor: colors.card,
+                        borderColor:
+                          selectedBarbierModal?.id === barber.id ? colors.primary : colors.border,
+                        borderWidth: selectedBarbierModal?.id === barber.id ? 2 : 1,
+                        marginBottom: 12,
+                      },
+                    ]}
+                    onPress={() => {
+                      setSelectedBarbierModal(barber);
+                    }}
+                  >
+                    <View style={styles.professionalOption}>
+                      <View
+                        style={[styles.professionalAvatar, { backgroundColor: colors.primary }]}
+                      >
+                        <Text style={[styles.professionalInitial, { color: colors.card }]}>
+                          {barber.name?.charAt(0) || 'P'}
+                        </Text>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.inputText, { color: colors.text }]}>
+                          {barber.name}
+                        </Text>
+                        {barber.description && (
+                          <Text
+                            style={[{ color: colors.textSecondary, fontSize: 12, marginTop: 2 }]}
+                          >
+                            {barber.description}
+                          </Text>
+                        )}
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                ))}
               </View>
 
-              {barbeiros.map((barber) => (
+              {/* Cliente */}
+              <View style={styles.formSection}>
+                <View style={styles.sectionTitleRow}>
+                  <Ionicons name="people-outline" size={20} color={colors.primary} />
+                  <Text style={[styles.sectionTitle, { color: colors.text }]}>Cliente</Text>
+                </View>
+
                 <TouchableOpacity
-                  key={barber.id}
+                  style={[
+                    styles.inputField,
+                    { backgroundColor: colors.card, borderColor: colors.border },
+                  ]}
+                  onPress={() => setShowClientPicker(true)}
+                >
+                  <Text
+                    style={[
+                      styles.inputText,
+                      { color: selectedClient ? colors.text : colors.textSecondary },
+                    ]}
+                  >
+                    {selectedClient?.name || 'Selecionar cliente cadastrado'}
+                  </Text>
+                  <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
+                </TouchableOpacity>
+
+                <Text style={[styles.orText, { color: colors.textSecondary }]}>ou</Text>
+
+                <TextInput
                   style={[
                     styles.inputField,
                     {
                       backgroundColor: colors.card,
-                      borderColor:
-                        selectedBarbierModal?.id === barber.id ? colors.primary : colors.border,
-                      borderWidth: selectedBarbierModal?.id === barber.id ? 2 : 1,
-                      marginBottom: 12,
+                      borderColor: colors.border,
+                      color: colors.text,
                     },
                   ]}
-                  onPress={() => {
-                    setSelectedBarbierModal(barber);
+                  placeholder="Digite o nome do novo cliente"
+                  placeholderTextColor={colors.textSecondary}
+                  value={customClientName}
+                  onChangeText={(text) => {
+                    setCustomClientName(text);
+                    if (text) {
+                      setSelectedClient(null);
+                    }
                   }}
+                />
+              </View>
+
+              {/* Serviço */}
+              <View style={styles.formSection}>
+                <View style={styles.sectionTitleRow}>
+                  <Ionicons name="cut-outline" size={20} color={colors.primary} />
+                  <Text style={[styles.sectionTitle, { color: colors.text }]}>Serviço</Text>
+                </View>
+
+                <TouchableOpacity
+                  style={[
+                    styles.inputField,
+                    { backgroundColor: colors.card, borderColor: colors.border },
+                  ]}
+                  onPress={() => setShowServicePicker(true)}
                 >
-                  <View style={styles.professionalOption}>
-                    <View style={[styles.professionalAvatar, { backgroundColor: colors.primary }]}>
-                      <Text style={[styles.professionalInitial, { color: colors.card }]}>
-                        {barber.name?.charAt(0) || 'P'}
-                      </Text>
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.inputText, { color: colors.text }]}>{barber.name}</Text>
-                      {barber.description && (
-                        <Text style={[{ color: colors.textSecondary, fontSize: 12, marginTop: 2 }]}>
-                          {barber.description}
-                        </Text>
-                      )}
-                    </View>
-                  </View>
+                  <Text
+                    style={[
+                      styles.inputText,
+                      { color: selectedService ? colors.text : colors.textSecondary },
+                    ]}
+                  >
+                    {selectedService?.name || 'Selecionar serviço'}
+                  </Text>
+                  <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
                 </TouchableOpacity>
-              ))}
-            </View>
 
-            {/* Cliente */}
-            <View style={styles.formSection}>
-              <View style={styles.sectionTitleRow}>
-                <Ionicons name="people-outline" size={20} color={colors.primary} />
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>Cliente</Text>
+                {selectedService && (
+                  <Text style={[styles.servicePrice, { color: colors.primary }]}>
+                    R$ {selectedService.price}
+                  </Text>
+                )}
               </View>
 
-              <TouchableOpacity
-                style={[
-                  styles.inputField,
-                  { backgroundColor: colors.card, borderColor: colors.border },
-                ]}
-                onPress={() => setShowClientPicker(true)}
-              >
-                <Text
+              {/* Observações */}
+              <View style={styles.formSection}>
+                <View style={styles.sectionTitleRow}>
+                  <Ionicons name="document-text-outline" size={20} color={colors.primary} />
+                  <Text style={[styles.sectionTitle, { color: colors.text }]}>Observações</Text>
+                </View>
+
+                <TextInput
                   style={[
-                    styles.inputText,
-                    { color: selectedClient ? colors.text : colors.textSecondary },
+                    styles.inputField,
+                    styles.textArea,
+                    {
+                      backgroundColor: colors.card,
+                      borderColor: colors.border,
+                      color: colors.text,
+                    },
                   ]}
-                >
-                  {selectedClient?.name || 'Selecionar cliente cadastrado'}
-                </Text>
-                <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
-              </TouchableOpacity>
-
-              <Text style={[styles.orText, { color: colors.textSecondary }]}>ou</Text>
-
-              <TextInput
-                style={[
-                  styles.inputField,
-                  { backgroundColor: colors.card, borderColor: colors.border, color: colors.text },
-                ]}
-                placeholder="Digite o nome do novo cliente"
-                placeholderTextColor={colors.textSecondary}
-                value={customClientName}
-                onChangeText={(text) => {
-                  setCustomClientName(text);
-                  if (text) {
-                    setSelectedClient(null);
-                  }
-                }}
-              />
-            </View>
-
-            {/* Serviço */}
-            <View style={styles.formSection}>
-              <View style={styles.sectionTitleRow}>
-                <Ionicons name="cut-outline" size={20} color={colors.primary} />
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>Serviço</Text>
+                  placeholder="Adicione observações sobre o agendamento..."
+                  placeholderTextColor={colors.textSecondary}
+                  value={observations}
+                  onChangeText={setObservations}
+                  multiline={true}
+                  numberOfLines={3}
+                  textAlignVertical="top"
+                />
               </View>
 
-              <TouchableOpacity
-                style={[
-                  styles.inputField,
-                  { backgroundColor: colors.card, borderColor: colors.border },
-                ]}
-                onPress={() => setShowServicePicker(true)}
-              >
-                <Text
-                  style={[
-                    styles.inputText,
-                    { color: selectedService ? colors.text : colors.textSecondary },
-                  ]}
+              {/* Botões */}
+              <View style={styles.agendarButtonContainer}>
+                <TouchableOpacity
+                  style={[styles.agendarButton, { backgroundColor: colors.primary }]}
+                  onPress={handleSave}
+                  disabled={modalLoading}
                 >
-                  {selectedService?.name || 'Selecionar serviço'}
-                </Text>
-                <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
-              </TouchableOpacity>
+                  <Text style={[styles.agendarButtonText, { color: colors.card }]}>
+                    {modalLoading ? 'Agendando...' : editingBooking ? 'Atualizar' : 'Agendar'}
+                  </Text>
+                </TouchableOpacity>
 
-              {selectedService && (
-                <Text style={[styles.servicePrice, { color: colors.primary }]}>
-                  R$ {selectedService.price}
-                </Text>
-              )}
-            </View>
+                {editingBooking && (
+                  <>
+                    <TouchableOpacity
+                      style={[
+                        styles.agendarButton,
+                        {
+                          backgroundColor: 'transparent',
+                          borderWidth: 1,
+                          borderColor: '#FF9500',
+                          marginTop: 12,
+                        },
+                      ]}
+                      onPress={handleCancelBooking}
+                      disabled={modalLoading}
+                    >
+                      <Text style={[styles.agendarButtonText, { color: '#FF9500' }]}>
+                        Cancelar Agendamento
+                      </Text>
+                    </TouchableOpacity>
 
-            {/* Observações */}
-            <View style={styles.formSection}>
-              <View style={styles.sectionTitleRow}>
-                <Ionicons name="document-text-outline" size={20} color={colors.primary} />
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>Observações</Text>
+                    <TouchableOpacity
+                      style={[
+                        styles.agendarButton,
+                        {
+                          backgroundColor: 'transparent',
+                          borderWidth: 1,
+                          borderColor: '#FF3B30',
+                          marginTop: 12,
+                        },
+                      ]}
+                      onPress={handleDeleteBooking}
+                      disabled={modalLoading}
+                    >
+                      <Text style={[styles.agendarButtonText, { color: '#FF3B30' }]}>
+                        Excluir Agendamento
+                      </Text>
+                    </TouchableOpacity>
+                  </>
+                )}
               </View>
-
-              <TextInput
-                style={[
-                  styles.inputField,
-                  styles.textArea,
-                  { backgroundColor: colors.card, borderColor: colors.border, color: colors.text },
-                ]}
-                placeholder="Adicione observações sobre o agendamento..."
-                placeholderTextColor={colors.textSecondary}
-                value={observations}
-                onChangeText={setObservations}
-                multiline={true}
-                numberOfLines={3}
-                textAlignVertical="top"
-              />
-            </View>
-
-            {/* Botões */}
-            <View style={styles.agendarButtonContainer}>
-              <TouchableOpacity
-                style={[styles.agendarButton, { backgroundColor: colors.primary }]}
-                onPress={handleSave}
-                disabled={modalLoading}
-              >
-                <Text style={[styles.agendarButtonText, { color: colors.card }]}>
-                  {modalLoading ? 'Agendando...' : editingBooking ? 'Atualizar' : 'Agendar'}
-                </Text>
-              </TouchableOpacity>
-
-              {editingBooking && (
-                <>
-                  <TouchableOpacity
-                    style={[
-                      styles.agendarButton,
-                      {
-                        backgroundColor: 'transparent',
-                        borderWidth: 1,
-                        borderColor: '#FF9500',
-                        marginTop: 12,
-                      },
-                    ]}
-                    onPress={handleCancelBooking}
-                    disabled={modalLoading}
-                  >
-                    <Text style={[styles.agendarButtonText, { color: '#FF9500' }]}>
-                      Cancelar Agendamento
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.agendarButton,
-                      {
-                        backgroundColor: 'transparent',
-                        borderWidth: 1,
-                        borderColor: '#FF3B30',
-                        marginTop: 12,
-                      },
-                    ]}
-                    onPress={handleDeleteBooking}
-                    disabled={modalLoading}
-                  >
-                    <Text style={[styles.agendarButtonText, { color: '#FF3B30' }]}>
-                      Excluir Agendamento
-                    </Text>
-                  </TouchableOpacity>
-                </>
-              )}
-            </View>
-          </ScrollView>
+            </ScrollView>
+          </KeyboardAvoidingView>
 
           {/* Client Picker Modal */}
           <Modal visible={showClientPicker} animationType="slide" presentationStyle="pageSheet">

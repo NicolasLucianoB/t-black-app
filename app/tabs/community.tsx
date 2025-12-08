@@ -236,35 +236,37 @@ export default function CommunityScreen() {
             isMe ? styles.currentUserMessage : styles.otherUserMessage,
           ]}
         >
-          <View
-            style={[
-              styles.messageBubble,
-              { backgroundColor: colors.card },
-              isSelected && {
-                backgroundColor: colors.primary + '20',
-                borderWidth: 2,
-                borderColor: colors.primary,
-              },
-            ]}
-          >
+          <View style={styles.messageRow}>
             {selectionMode && canDelete && (
-              <View style={styles.selectionIndicator}>
+              <View style={styles.selectionIndicatorLeft}>
                 <Ionicons
                   name={isSelected ? 'checkmark-circle' : 'ellipse-outline'}
-                  size={20}
+                  size={24}
                   color={isSelected ? colors.primary : colors.border}
                 />
               </View>
             )}
-            <View style={styles.messageHeader}>
-              <Text style={[styles.senderName, { color: getUserColor(item.senderId) }]}>
-                {isMe ? 'Você' : item.senderName}
-              </Text>
-              <Text style={[styles.timestamp, { color: colors.textSecondary }]}>
-                {formatTime(item.createdAt)}
-              </Text>
+            <View
+              style={[
+                styles.messageBubble,
+                { backgroundColor: colors.card },
+                isSelected && {
+                  backgroundColor: colors.primary + '20',
+                  borderWidth: 2,
+                  borderColor: colors.primary,
+                },
+              ]}
+            >
+              <View style={styles.messageHeader}>
+                <Text style={[styles.senderName, { color: getUserColor(item.senderId) }]}>
+                  {isMe ? 'Você' : item.senderName}
+                </Text>
+                <Text style={[styles.timestamp, { color: colors.textSecondary }]}>
+                  {formatTime(item.createdAt)}
+                </Text>
+              </View>
+              <Text style={[styles.messageText, { color: colors.text }]}>{item.content}</Text>
             </View>
-            <Text style={[styles.messageText, { color: colors.text }]}>{item.content}</Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -450,6 +452,10 @@ const styles = StyleSheet.create({
   messageContainer: {
     marginVertical: 4,
   },
+  messageRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   currentUserMessage: {
     alignItems: 'flex-end',
   },
@@ -460,19 +466,15 @@ const styles = StyleSheet.create({
     maxWidth: '80%',
     borderRadius: 16,
     padding: 12,
-    paddingRight: 12,
     elevation: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
-    position: 'relative',
   },
-  selectionIndicator: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    zIndex: 1,
+  selectionIndicatorLeft: {
+    marginRight: 8,
+    marginLeft: 4,
   },
   messageHeader: {
     flexDirection: 'row',

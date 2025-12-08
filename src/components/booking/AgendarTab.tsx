@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import {
   Animated,
   Dimensions,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -119,41 +121,52 @@ export function AgendarTab() {
             <BookingModalHeader onBack={handleBack} onClose={closeModal} colors={colors} />
             <BookingProgressIndicator step={bookingFlow.step} colors={colors} />
 
-            <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
-              {bookingFlow.step === 'professional' && (
-                <ProfessionalStep
-                  barbeiros={bookingFlow.barbeiros}
-                  onSelect={bookingFlow.handleProfessionalSelect}
-                  colors={colors}
-                />
-              )}
+            <KeyboardAvoidingView
+              style={{ flex: 1 }}
+              behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+              keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+            >
+              <ScrollView
+                style={styles.modalContent}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 200 }}
+                keyboardShouldPersistTaps="handled"
+              >
+                {bookingFlow.step === 'professional' && (
+                  <ProfessionalStep
+                    barbeiros={bookingFlow.barbeiros}
+                    onSelect={bookingFlow.handleProfessionalSelect}
+                    colors={colors}
+                  />
+                )}
 
-              {bookingFlow.step === 'datetime' && (
-                <DateTimeStep
-                  data={bookingFlow.data}
-                  horario={bookingFlow.horario}
-                  horariosDisponiveis={bookingFlow.horariosDisponiveis}
-                  onDateChange={bookingFlow.handleDataChange}
-                  onTimeSelect={bookingFlow.handleTimeSelect}
-                  colors={colors}
-                />
-              )}
+                {bookingFlow.step === 'datetime' && (
+                  <DateTimeStep
+                    data={bookingFlow.data}
+                    horario={bookingFlow.horario}
+                    horariosDisponiveis={bookingFlow.horariosDisponiveis}
+                    onDateChange={bookingFlow.handleDataChange}
+                    onTimeSelect={bookingFlow.handleTimeSelect}
+                    colors={colors}
+                  />
+                )}
 
-              {bookingFlow.step === 'summary' && (
-                <SummaryStep
-                  servicoSelecionado={bookingFlow.servicoSelecionado}
-                  barbeiro={bookingFlow.barbeiro}
-                  barbeiros={bookingFlow.barbeiros}
-                  data={bookingFlow.data}
-                  horario={bookingFlow.horario}
-                  noConversation={bookingFlow.noConversation}
-                  observacoes={bookingFlow.observacoes}
-                  onNoConversationChange={bookingFlow.setNoConversation}
-                  onObservacoesChange={bookingFlow.setObservacoes}
-                  colors={colors}
-                />
-              )}
-            </ScrollView>
+                {bookingFlow.step === 'summary' && (
+                  <SummaryStep
+                    servicoSelecionado={bookingFlow.servicoSelecionado}
+                    barbeiro={bookingFlow.barbeiro}
+                    barbeiros={bookingFlow.barbeiros}
+                    data={bookingFlow.data}
+                    horario={bookingFlow.horario}
+                    noConversation={bookingFlow.noConversation}
+                    observacoes={bookingFlow.observacoes}
+                    onNoConversationChange={bookingFlow.setNoConversation}
+                    onObservacoesChange={bookingFlow.setObservacoes}
+                    colors={colors}
+                  />
+                )}
+              </ScrollView>
+            </KeyboardAvoidingView>
 
             {bookingFlow.step === 'summary' && (
               <View
