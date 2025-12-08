@@ -739,6 +739,25 @@ export const databaseService = {
         return false;
       }
     },
+
+    async updateMessage(messageId: string, newContent: string): Promise<boolean> {
+      try {
+        const { error } = await supabase
+          .from('messages')
+          .update({ content: newContent, updated_at: new Date().toISOString() })
+          .eq('id', messageId);
+
+        if (error) {
+          console.error('Error updating message:', error);
+          return false;
+        }
+
+        return true;
+      } catch (error) {
+        console.error('Error:', error);
+        return false;
+      }
+    },
   },
 
   // Services operations

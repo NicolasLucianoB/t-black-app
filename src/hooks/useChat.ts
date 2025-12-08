@@ -73,6 +73,22 @@ export function useChat() {
     }
   };
 
+  // Edit message (only for message sender)
+  const editMessage = async (messageId: string, newContent: string) => {
+    try {
+      const success = await databaseService.chat.updateMessage(messageId, newContent.trim());
+      if (success) {
+        setMessages((prev) =>
+          prev.map((msg) => (msg.id === messageId ? { ...msg, content: newContent.trim() } : msg)),
+        );
+      }
+      return success;
+    } catch (error) {
+      console.error('Error editing message:', error);
+      return false;
+    }
+  };
+
   // Set up real-time subscription
   useEffect(() => {
     loadMessages();
@@ -117,6 +133,24 @@ export function useChat() {
           setMessages((prev) => prev.filter((msg) => msg.id !== payload.old.id));
         },
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+        },
+        (payload) => {
+          console.log('Message updated:', payload);
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === payload.new.id
+                ? { ...msg, content: payload.new.content, updatedAt: payload.new.updated_at }
+                : msg,
+            ),
+          );
+        },
+      )
       .subscribe();
 
     // Cleanup subscription on unmount
@@ -132,6 +166,7 @@ export function useChat() {
     error,
     sendMessage,
     deleteMessage,
+    editMessage,
     refetch: loadMessages,
   };
 }
