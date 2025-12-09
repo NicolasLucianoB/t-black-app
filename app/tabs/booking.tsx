@@ -1277,6 +1277,7 @@ export default function BookingScreen() {
   const params = useLocalSearchParams<{
     quickBookServiceId?: string;
     quickBookBarberId?: string;
+    initialTab?: string;
   }>();
 
   if (isAdminMode) {
@@ -1292,6 +1293,7 @@ export default function BookingScreen() {
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <AppHeader />
       <Tab.Navigator
+        initialRouteName={params.initialTab === 'Profissionais' ? 'Profissionais' : 'Agendar'}
         screenOptions={{
           tabBarActiveTintColor: colors.primary,
           tabBarInactiveTintColor: colors.textSecondary,
