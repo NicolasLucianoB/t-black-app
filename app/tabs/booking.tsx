@@ -337,6 +337,10 @@ function AgendaAdminTab() {
           Alert.alert('Erro', 'Não foi possível atualizar o agendamento');
         }
       } else {
+        // Buscar o preço do serviço selecionado
+        const selectedService = allServices.find((s) => s.id === dataToSave.serviceId);
+        const totalPrice = selectedService?.price || 0;
+
         const bookingData: any = {
           barberId: dataToSave.barberId,
           serviceId: dataToSave.serviceId,
@@ -344,6 +348,7 @@ function AgendaAdminTab() {
           time: dataToSave.time,
           notes: dataToSave.notes || '',
           clientName: clientName,
+          totalPrice: totalPrice,
         };
 
         console.log('📝 DEBUG - Criando agendamento:', bookingData);
