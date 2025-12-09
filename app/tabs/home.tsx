@@ -1,5 +1,6 @@
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import { useRouter } from 'expo-router';
+import { CommonActions } from '@react-navigation/native';
+import { useNavigation, useRouter } from 'expo-router';
 import React from 'react';
 import { SafeAreaView, StyleSheet } from 'react-native';
 import AppHeader from 'src/components/AppHeader';
@@ -11,6 +12,7 @@ const Tab = createMaterialTopTabNavigator();
 
 export default function HomeScreen() {
   const router = useRouter();
+  const navigation = useNavigation();
   const { colors } = useTheme();
   const { initializeWelcomeFlow } = useMarketingNotifications();
 
@@ -19,9 +21,19 @@ export default function HomeScreen() {
     initializeWelcomeFlow();
   }, []);
 
-  const handleNavigate = (screenName: string) => {
+  const handleNavigate = (screenName: string, params?: any) => {
     try {
-      router.push(screenName as any);
+      if (params?.screen) {
+        // Navegação com state para tabs específicas
+        navigation.dispatch(
+          CommonActions.navigate({
+            name: screenName,
+            params: params,
+          }),
+        );
+      } else {
+        router.push(screenName as any);
+      }
     } catch (error) {
       console.log('Erro na navegação:', error);
     }

@@ -7,7 +7,7 @@ import { useTheme } from 'src/contexts/ThemeContext';
 import { databaseService } from 'src/services/database';
 
 interface HomeMainTabProps {
-  onNavigate: (screenName: string) => void;
+  onNavigate: (screenName: string, params?: any) => void;
 }
 
 export function HomeMainTab({ onNavigate }: HomeMainTabProps) {
@@ -60,8 +60,8 @@ export function HomeMainTab({ onNavigate }: HomeMainTabProps) {
 
   const handleQuickBook = () => {
     if (lastBooking) {
-      router.push({
-        pathname: '/tabs/booking',
+      onNavigate('booking', {
+        screen: 'Agendar',
         params: {
           quickBookServiceId: lastBooking.serviceId,
           quickBookBarberId: lastBooking.barberId,
@@ -123,7 +123,7 @@ export function HomeMainTab({ onNavigate }: HomeMainTabProps) {
           icon="calendar-outline"
           title="Agendar Horário"
           subtitle="Marque seu horário com nossos barbeiros"
-          onPress={() => onNavigate('/tabs/booking')}
+          onPress={() => onNavigate('booking', { screen: 'Agendar' })}
           colors={colors}
           iconColor={iconColor}
         />

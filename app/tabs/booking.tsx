@@ -18,6 +18,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { useRoute } from '@react-navigation/native';
 import { useLocalSearchParams } from 'expo-router';
 
 // Local imports
@@ -1274,11 +1275,25 @@ function AgendaAdminTab() {
 export default function BookingScreen() {
   const { colors } = useTheme();
   const { isAdminMode } = useAdminMode();
-  const params = useLocalSearchParams<{
+  const route = useRoute();
+  const routeParams = (route.params as any) || {};
+
+  // Pegar params do React Navigation (quando vem de CommonActions.navigate)
+  const navigationParams = routeParams.params || {};
+
+  // Pegar params da URL (quando vem de router.push)
+  const urlParams = useLocalSearchParams<{
     quickBookServiceId?: string;
     quickBookBarberId?: string;
     initialTab?: string;
   }>();
+
+  // Combinar ambos os tipos de params
+  const params = {
+    quickBookServiceId: navigationParams.quickBookServiceId || urlParams.quickBookServiceId,
+    quickBookBarberId: navigationParams.quickBookBarberId || urlParams.quickBookBarberId,
+    initialTab: routeParams.screen || urlParams.initialTab,
+  };
 
   if (isAdminMode) {
     return (

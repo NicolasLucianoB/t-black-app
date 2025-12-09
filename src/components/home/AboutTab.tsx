@@ -4,7 +4,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { useTheme } from 'src/contexts/ThemeContext';
 
 interface AboutTabProps {
-  onNavigate: (screenName: string) => void;
+  onNavigate: (screenName: string, params?: any) => void;
 }
 
 export function AboutTab({ onNavigate }: AboutTabProps) {
@@ -61,7 +61,7 @@ export function AboutTab({ onNavigate }: AboutTabProps) {
           icon="people"
           title="Conheça nossa equipe de profissionais"
           subtitle="Veja quem cuida do seu visual"
-          onPress={() => onNavigate('/tabs/booking?initialTab=Profissionais')}
+          onPress={() => onNavigate('booking', { screen: 'Profissionais' })}
           colors={colors}
         />
       </View>
