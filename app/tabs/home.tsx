@@ -1,23 +1,71 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import AppHeader from 'src/components/AppHeader';
+import { useAuth } from 'src/contexts/AuthContext';
 import { useCart } from 'src/contexts/CartContext';
 import { useTheme } from 'src/contexts/ThemeContext';
 import { useMarketingNotifications } from 'src/hooks/useNotifications';
+import { databaseService } from 'src/services/database';
 
 export default function HomeScreen() {
   const router = useRouter();
   const { getCartCount } = useCart();
   const { colors, theme } = useTheme();
+  const { user } = useAuth();
   const { initializeWelcomeFlow } = useMarketingNotifications();
   const iconColor = '#111';
+
+  const [lastBooking, setLastBooking] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   // Initialize welcome notifications for new users
   React.useEffect(() => {
     initializeWelcomeFlow();
   }, []);
+
+  // Buscar último agendamento do usuário
+  useEffect(() => {
+    const fetchLastBooking = async () => {
+      if (!user?.id) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const bookings = await databaseService.bookings.getByUserId(user.id);
+        if (bookings && bookings.length > 0) {
+          // Ordenar por data/hora mais recente
+          const sortedBookings = bookings.sort((a: any, b: any) => {
+            const dateA = new Date(`${a.date}T${a.time}`);
+            const dateB = new Date(`${b.date}T${b.time}`);
+            return dateB.getTime() - dateA.getTime();
+          });
+
+          const lastBookingData = sortedBookings[0];
+
+          // Buscar dados do serviço e barbeiro
+          const [service, barber] = await Promise.all([
+            databaseService.services.getById(lastBookingData.serviceId),
+            databaseService.barbers.getById(lastBookingData.barberId),
+          ]);
+
+          setLastBooking({
+            ...lastBookingData,
+            service,
+            barber,
+          });
+        }
+      } catch (error) {
+        console.error('Erro ao buscar último agendamento:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLastBooking();
+  }, [user]);
 
   const handleNavigate = (screenName: string) => {
     try {
@@ -46,57 +94,72 @@ export default function HomeScreen() {
           </Text>
         </View>
 
-        {/* Card de Agendamento Rápido */}
-        <View style={styles.quickBookContainer}>
-          <View style={[styles.quickBookSection, { backgroundColor: colors.card }]}>
-            <View
-              style={[
-                styles.quickBookHeader,
-                { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-              ]}
-            >
-              <Ionicons name="flash" size={20} color="#25D366" />
-              <Text
+        {/* Card de Agendamento Rápido - Só mostra se houver agendamento anterior */}
+        {!loading && lastBooking && (
+          <View style={styles.quickBookContainer}>
+            <View style={[styles.quickBookSection, { backgroundColor: colors.card }]}>
+              <View
                 style={[
-                  styles.quickBookTitle,
-                  { color: colors.text, fontSize: 16, fontWeight: 'bold', marginLeft: 8 },
+                  styles.quickBookHeader,
+                  { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
                 ]}
               >
-                Agendamento Rápido
-              </Text>
-            </View>
-            <TouchableOpacity
-              style={[
-                styles.quickBookCard,
-                {
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  backgroundColor: 'transparent',
-                  borderRadius: 8,
-                  padding: 12,
-                  marginBottom: 8,
-                },
-              ]}
-              onPress={() => handleNavigate('/tabs/booking')}
-            >
-              <View style={{ flex: 1 }}>
+                <Ionicons name="flash" size={20} color="#25D366" />
                 <Text
                   style={[
-                    styles.quickBookService,
-                    { color: colors.text, fontSize: 14, fontWeight: 'bold' },
+                    styles.quickBookTitle,
+                    { color: colors.text, fontSize: 16, fontWeight: 'bold', marginLeft: 8 },
                   ]}
                 >
-                  Corte Degradê - Tiago
-                </Text>
-                <Text style={[styles.quickBookDate, { color: colors.textSecondary, fontSize: 12 }]}>
-                  Último: 15/01/2024 às 14:00
+                  Agendamento Rápido
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.quickBookCard,
+                  {
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    backgroundColor: 'transparent',
+                    borderRadius: 8,
+                    padding: 12,
+                    marginBottom: 8,
+                  },
+                ]}
+                onPress={() => {
+                  // Navegar para booking passando os dados do último agendamento
+                  router.push({
+                    pathname: '/tabs/booking',
+                    params: {
+                      quickBookServiceId: lastBooking.serviceId,
+                      quickBookBarberId: lastBooking.barberId,
+                    },
+                  });
+                }}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={[
+                      styles.quickBookService,
+                      { color: colors.text, fontSize: 14, fontWeight: 'bold' },
+                    ]}
+                  >
+                    {lastBooking.service?.name || 'Serviço'} -{' '}
+                    {lastBooking.barber?.name?.split(' ')[0] || 'Barbeiro'}
+                  </Text>
+                  <Text
+                    style={[styles.quickBookDate, { color: colors.textSecondary, fontSize: 12 }]}
+                  >
+                    Último: {new Date(lastBooking.date).toLocaleDateString('pt-BR')} às{' '}
+                    {lastBooking.time.substring(0, 5)}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        )}
 
         <View style={styles.cardsContainer}>
           <TouchableOpacity

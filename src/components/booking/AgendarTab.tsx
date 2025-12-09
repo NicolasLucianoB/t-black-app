@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Animated,
   Dimensions,
@@ -21,13 +21,37 @@ import { ServiceCard } from './ServiceCard';
 import { SummaryStep } from './SummaryStep';
 import { useBookingFlow } from './useBookingFlow';
 
-export function AgendarTab() {
+interface AgendarTabProps {
+  quickBookServiceId?: string;
+  quickBookBarberId?: string;
+}
+
+export function AgendarTab({ quickBookServiceId, quickBookBarberId }: AgendarTabProps) {
   const { colors } = useTheme();
   const { user } = useAuth();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalAnimation] = useState(new Animated.Value(0));
 
   const bookingFlow = useBookingFlow(user?.id || '');
+
+  // Processar quick booking quando houver parâmetros
+  useEffect(() => {
+    const processQuickBook = async () => {
+      if (quickBookServiceId && quickBookBarberId && bookingFlow.allServices.length > 0) {
+        // Encontrar serviço
+        const service = bookingFlow.allServices.find((s) => s.id === quickBookServiceId);
+        if (service) {
+          // Selecionar serviço e abrir modal
+          await bookingFlow.handleServiceSelect(service);
+          // Selecionar barbeiro automaticamente
+          bookingFlow.handleProfessionalSelect(quickBookBarberId);
+          openModal();
+        }
+      }
+    };
+
+    processQuickBook();
+  }, [quickBookServiceId, quickBookBarberId, bookingFlow.allServices]);
 
   const openModal = () => {
     setIsModalVisible(true);

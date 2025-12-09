@@ -18,6 +18,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { useLocalSearchParams } from 'expo-router';
 
 // Local imports
 import AppHeader from 'src/components/AppHeader';
@@ -1273,6 +1274,10 @@ function AgendaAdminTab() {
 export default function BookingScreen() {
   const { colors } = useTheme();
   const { isAdminMode } = useAdminMode();
+  const params = useLocalSearchParams<{
+    quickBookServiceId?: string;
+    quickBookBarberId?: string;
+  }>();
 
   if (isAdminMode) {
     return (
@@ -1301,7 +1306,14 @@ export default function BookingScreen() {
           tabBarLabelStyle: styles.tabBarLabelStyle,
         }}
       >
-        <Tab.Screen name="Agendar" component={AgendarTab} />
+        <Tab.Screen name="Agendar">
+          {() => (
+            <AgendarTab
+              quickBookServiceId={params.quickBookServiceId}
+              quickBookBarberId={params.quickBookBarberId}
+            />
+          )}
+        </Tab.Screen>
         <Tab.Screen name="Profissionais" component={ProfessionalsTab} />
       </Tab.Navigator>
     </SafeAreaView>

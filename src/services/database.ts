@@ -762,6 +762,22 @@ export const databaseService = {
 
   // Services operations
   services: {
+    async getById(id: string) {
+      try {
+        const { data, error } = await supabase.from('services').select('*').eq('id', id).single();
+
+        if (error) {
+          console.error('Error fetching service:', error);
+          return null;
+        }
+
+        return data;
+      } catch (error) {
+        console.error('Error:', error);
+        return null;
+      }
+    },
+
     async getByBarberId(barberId: string) {
       try {
         const { data, error } = await supabase
