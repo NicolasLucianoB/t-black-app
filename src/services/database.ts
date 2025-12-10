@@ -51,6 +51,57 @@ export const databaseService = {
         return [];
       }
     },
+
+    async update(id: string, updates: Partial<User>): Promise<User | null> {
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .update({
+            name: updates.name,
+            email: updates.email,
+            phone: updates.phone,
+            is_banned: updates.isBanned,
+          })
+          .eq('id', id)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Error updating user:', error);
+          return null;
+        }
+
+        return data;
+      } catch (error) {
+        console.error('Error:', error);
+        return null;
+      }
+    },
+
+    async create(userData: Partial<User>): Promise<User | null> {
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .insert({
+            name: userData.name,
+            email: userData.email,
+            phone: userData.phone,
+            is_banned: userData.isBanned || false,
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Error creating user:', error);
+          return null;
+        }
+
+        return data;
+      } catch (error) {
+        console.error('Error:', error);
+        return null;
+      }
+    },
   },
 
   // Booking operations
@@ -514,8 +565,10 @@ export const databaseService = {
           specialties: barber.specialty ? [barber.specialty] : [],
           workingHours: barber.available_times || [],
           active: barber.active,
-          description: barber.bio, // Map bio to description
+          description: barber.description,
           rating: barber.rating,
+          position: barber.position,
+          showInBooking: barber.show_in_booking,
         }));
       } catch (error) {
         console.error('Error:', error);
@@ -542,12 +595,108 @@ export const databaseService = {
           specialties: data.specialty ? [data.specialty] : [],
           workingHours: data.available_times || [],
           active: data.active,
-          description: data.bio, // Map bio to description
+          description: data.description,
           rating: data.rating,
+          position: data.position,
+          showInBooking: data.show_in_booking,
         };
       } catch (error) {
         console.error('Error:', error);
         return null;
+      }
+    },
+
+    async update(id: string, updates: Partial<Barber>): Promise<Barber | null> {
+      try {
+        const { data, error } = await supabase
+          .from('barbers')
+          .update({
+            name: updates.name,
+            position: updates.position,
+            description: updates.description,
+            show_in_booking: updates.showInBooking,
+            available_times: updates.workingHours,
+            profile_image: updates.avatar,
+          })
+          .eq('id', id)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Error updating barber:', error);
+          return null;
+        }
+
+        return {
+          id: data.id,
+          name: data.name,
+          avatar: data.profile_image,
+          specialties: data.specialty ? [data.specialty] : [],
+          workingHours: data.available_times || [],
+          active: data.active,
+          description: data.description,
+          rating: data.rating,
+          position: data.position,
+          showInBooking: data.show_in_booking,
+        };
+      } catch (error) {
+        console.error('Error:', error);
+        return null;
+      }
+    },
+
+    async create(barberData: Partial<Barber>): Promise<Barber | null> {
+      try {
+        const { data, error } = await supabase
+          .from('barbers')
+          .insert({
+            name: barberData.name,
+            position: barberData.position || 'Barbeiro',
+            description: barberData.description,
+            show_in_booking: barberData.showInBooking ?? true,
+            available_times: barberData.workingHours || [],
+            profile_image: barberData.avatar,
+            active: true,
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Error creating barber:', error);
+          return null;
+        }
+
+        return {
+          id: data.id,
+          name: data.name,
+          avatar: data.profile_image,
+          specialties: data.specialty ? [data.specialty] : [],
+          workingHours: data.available_times || [],
+          active: data.active,
+          description: data.description,
+          rating: data.rating,
+          position: data.position,
+          showInBooking: data.show_in_booking,
+        };
+      } catch (error) {
+        console.error('Error:', error);
+        return null;
+      }
+    },
+
+    async delete(id: string): Promise<boolean> {
+      try {
+        const { error } = await supabase.from('barbers').delete().eq('id', id);
+
+        if (error) {
+          console.error('Error deleting barber:', error);
+          return false;
+        }
+
+        return true;
+      } catch (error) {
+        console.error('Error:', error);
+        return false;
       }
     },
   },

@@ -58,10 +58,15 @@ export default function CommunityScreen() {
       }
     } else {
       // Enviar nova mensagem
+      if (!user.id) {
+        Alert.alert('Erro', 'Usuário não autenticado');
+        return;
+      }
+
       const result = await sendMessage(
         newMessage.trim(),
         user.id,
-        user.name,
+        user.name || 'Usuário',
         user.avatar || undefined,
       );
 

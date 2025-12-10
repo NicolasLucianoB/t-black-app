@@ -2,14 +2,15 @@
 import { UserRole } from './auth';
 
 export interface User {
-  id: string;
-  email: string;
-  name: string;
-  phone: string | null;
-  avatar: string | null;
-  user_role: UserRole;
-  createdAt: string;
+  id?: string;
+  email?: string;
+  name?: string;
+  phone?: string | null;
+  avatar?: string | null;
+  user_role?: UserRole;
+  createdAt?: string;
   updatedAt?: string;
+  isBanned?: boolean;
 }
 
 export interface UserProfile extends User {

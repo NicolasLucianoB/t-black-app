@@ -2,12 +2,14 @@
 export interface Barber {
   id: string;
   name: string;
-  avatar: string | null;
+  avatar?: string | null;
   specialties: string[];
-  workingHours: string[];
+  workingHours: string[] | any;
   active: boolean;
-  description?: string;
+  description?: string | null;
   rating?: number;
+  position?: string;
+  showInBooking?: boolean;
 }
 
 export interface Service {

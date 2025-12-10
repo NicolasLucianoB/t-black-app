@@ -180,6 +180,22 @@ export default function AdminDashboard() {
           />
 
           <AdminCard
+            title="Gerenciar Profissionais"
+            subtitle="Cadastrar e editar profissionais"
+            icon="people-outline"
+            variant="action"
+            onPress={() => router.push('/admin/profissionais')}
+          />
+
+          <AdminCard
+            title="Gerenciar Clientes"
+            subtitle="Ver e editar clientes cadastrados"
+            icon="person-outline"
+            variant="action"
+            onPress={() => router.push('/admin/clientes')}
+          />
+
+          <AdminCard
             title="Ver Agendamentos"
             subtitle="Aprovar e gerenciar horários"
             icon="calendar-outline"

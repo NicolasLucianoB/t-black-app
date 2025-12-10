@@ -134,7 +134,7 @@ export function AdminCard({
           </View>
         </View>
 
-        {value && <Text style={styles.value}>{value}</Text>}
+        {value !== undefined && value !== null && <Text style={styles.value}>{String(value)}</Text>}
       </View>
 
       {children && <View style={styles.content}>{children}</View>}
