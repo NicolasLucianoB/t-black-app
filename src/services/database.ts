@@ -198,7 +198,7 @@ export const databaseService = {
           status: booking.status,
           notes: booking.notes,
           total_price: booking.total_price,
-          client_name: booking.users?.name || 'Cliente',
+          client_name: booking.client_name || booking.users?.name || 'Cliente',
           barber_name: booking.barbers?.name || 'Barbeiro',
           service_name: booking.services?.name || 'Serviço',
           service_price: booking.services?.price || 0,
