@@ -25,10 +25,12 @@ export function AdminHeader({ title, subtitle, showBack = false, rightElement }:
 
   const styles = StyleSheet.create({
     container: {
-      backgroundColor: colors.error, // Vermelho para indicar modo admin
+      backgroundColor: colors.surface,
       paddingTop: 60,
       paddingHorizontal: 20,
       paddingBottom: 20,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
     },
     content: {
       flexDirection: 'row',
@@ -49,16 +51,15 @@ export function AdminHeader({ title, subtitle, showBack = false, rightElement }:
     title: {
       fontSize: 20,
       fontWeight: 'bold',
-      color: '#FFFFFF',
+      color: colors.text,
     },
     subtitle: {
       fontSize: 14,
-      color: '#FFFFFF',
-      opacity: 0.8,
+      color: colors.textSecondary,
       marginTop: 2,
     },
     adminBadge: {
-      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      backgroundColor: colors.accent,
       paddingHorizontal: 8,
       paddingVertical: 4,
       borderRadius: 12,
@@ -77,7 +78,7 @@ export function AdminHeader({ title, subtitle, showBack = false, rightElement }:
         <View style={styles.leftSection}>
           {showBack && (
             <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-              <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+              <Ionicons name="arrow-back" size={24} color={colors.text} />
             </TouchableOpacity>
           )}
 

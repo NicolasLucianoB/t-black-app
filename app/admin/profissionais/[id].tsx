@@ -18,6 +18,42 @@ import { AdminHeader } from 'src/components/AdminHeader';
 import { useTheme } from 'src/contexts/ThemeContext';
 import { databaseService } from 'src/services';
 
+interface DaySchedule {
+  enabled: boolean;
+  start: string;
+  end: string;
+}
+
+interface WeekSchedule {
+  monday: DaySchedule;
+  tuesday: DaySchedule;
+  wednesday: DaySchedule;
+  thursday: DaySchedule;
+  friday: DaySchedule;
+  saturday: DaySchedule;
+  sunday: DaySchedule;
+}
+
+const DAYS_PT: { [key: string]: string } = {
+  monday: 'Segunda-feira',
+  tuesday: 'Terça-feira',
+  wednesday: 'Quarta-feira',
+  thursday: 'Quinta-feira',
+  friday: 'Sexta-feira',
+  saturday: 'Sábado',
+  sunday: 'Domingo',
+};
+
+const DEFAULT_SCHEDULE: WeekSchedule = {
+  monday: { enabled: true, start: '09:00', end: '18:00' },
+  tuesday: { enabled: true, start: '09:00', end: '18:00' },
+  wednesday: { enabled: true, start: '09:00', end: '18:00' },
+  thursday: { enabled: true, start: '09:00', end: '18:00' },
+  friday: { enabled: true, start: '09:00', end: '18:00' },
+  saturday: { enabled: true, start: '09:00', end: '14:00' },
+  sunday: { enabled: false, start: '09:00', end: '18:00' },
+};
+
 export default function EditProfissionalScreen() {
   const { colors } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -29,7 +65,8 @@ export default function EditProfissionalScreen() {
   const [position, setPosition] = useState('Barbeiro');
   const [description, setDescription] = useState('');
   const [showInBooking, setShowInBooking] = useState(true);
-  const [workingHours, setWorkingHours] = useState('');
+  const [schedule, setSchedule] = useState<WeekSchedule>(DEFAULT_SCHEDULE);
+  const [scheduleExpanded, setScheduleExpanded] = useState(false);
 
   useEffect(() => {
     if (isEdit) {
@@ -49,7 +86,21 @@ export default function EditProfissionalScreen() {
         setPosition(data.position || 'Barbeiro');
         setDescription(data.description || '');
         setShowInBooking(data.showInBooking ?? true);
-        setWorkingHours(data.workingHours ? JSON.stringify(data.workingHours, null, 2) : '');
+
+        // Carregar horários ou usar padrão
+        if (data.workingHours && typeof data.workingHours === 'object') {
+          const loadedSchedule: any = { ...DEFAULT_SCHEDULE };
+          Object.keys(data.workingHours).forEach((day) => {
+            if (loadedSchedule[day]) {
+              const hours = data.workingHours[day];
+              if (typeof hours === 'string' && hours.includes('-')) {
+                const [start, end] = hours.split('-');
+                loadedSchedule[day] = { enabled: true, start, end };
+              }
+            }
+          });
+          setSchedule(loadedSchedule);
+        }
       }
     } catch (error) {
       console.error('Erro ao carregar profissional:', error);
@@ -67,23 +118,21 @@ export default function EditProfissionalScreen() {
 
     setLoading(true);
     try {
-      let parsedWorkingHours = null;
-      if (workingHours.trim()) {
-        try {
-          parsedWorkingHours = JSON.parse(workingHours);
-        } catch (e) {
-          Alert.alert('Erro', 'Formato de horários inválido. Use JSON válido.');
-          setLoading(false);
-          return;
+      // Converter schedule para formato do banco
+      const workingHours: any = {};
+      Object.keys(schedule).forEach((day) => {
+        const daySchedule = schedule[day as keyof WeekSchedule];
+        if (daySchedule.enabled) {
+          workingHours[day] = `${daySchedule.start}-${daySchedule.end}`;
         }
-      }
+      });
 
       const data = {
         name: name.trim(),
         position: position.trim(),
         description: description.trim() || null,
         showInBooking,
-        workingHours: parsedWorkingHours,
+        workingHours: Object.keys(workingHours).length > 0 ? workingHours : null,
       };
 
       if (isEdit) {
@@ -114,7 +163,6 @@ export default function EditProfissionalScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              // TODO: Implementar lógica de rebaixar para cliente
               await databaseService.barbers.delete(id);
               Alert.alert('Sucesso', 'Profissional removido!');
               router.back();
@@ -126,6 +174,20 @@ export default function EditProfissionalScreen() {
         },
       ],
     );
+  };
+
+  const toggleDay = (day: keyof WeekSchedule) => {
+    setSchedule((prev) => ({
+      ...prev,
+      [day]: { ...prev[day], enabled: !prev[day].enabled },
+    }));
+  };
+
+  const updateDayTime = (day: keyof WeekSchedule, field: 'start' | 'end', value: string) => {
+    setSchedule((prev) => ({
+      ...prev,
+      [day]: { ...prev[day], [field]: value },
+    }));
   };
 
   const styles = StyleSheet.create({
@@ -149,7 +211,7 @@ export default function EditProfissionalScreen() {
       justifyContent: 'center',
     },
     changePhotoText: {
-      color: colors.primary,
+      color: colors.accent,
       fontSize: 14,
       marginTop: 8,
     },
@@ -174,6 +236,49 @@ export default function EditProfissionalScreen() {
     textArea: {
       height: 120,
       textAlignVertical: 'top',
+    },
+    scheduleCard: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    scheduleCardDisabled: {
+      opacity: 0.5,
+    },
+    scheduleHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    dayName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    timeContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    timeInput: {
+      backgroundColor: colors.background,
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 16,
+      color: colors.text,
+      flex: 1,
+      textAlign: 'center',
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    timeSeparator: {
+      fontSize: 16,
+      color: colors.textSecondary,
+      fontWeight: '600',
     },
     switchContainer: {
       backgroundColor: colors.card,
@@ -202,7 +307,7 @@ export default function EditProfissionalScreen() {
     },
     button: {
       flex: 1,
-      backgroundColor: colors.primary,
+      backgroundColor: colors.accent,
       borderRadius: 12,
       padding: 16,
       alignItems: 'center',
@@ -235,6 +340,20 @@ export default function EditProfissionalScreen() {
       color: colors.textSecondary,
       marginTop: 4,
     },
+    scheduleToggle: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      borderWidth: 1,
+      borderColor: colors.border,
+      marginBottom: 12,
+    },
+    scheduleExpandedContent: {
+      marginTop: -12,
+    },
   });
 
   return (
@@ -242,6 +361,7 @@ export default function EditProfissionalScreen() {
       <AdminHeader
         title={isEdit ? 'Editar Profissional' : 'Novo Profissional'}
         subtitle={isEdit ? profissional?.name : 'Cadastrar novo membro'}
+        showBack={true}
       />
 
       <KeyboardAvoidingView
@@ -306,17 +426,71 @@ export default function EditProfissionalScreen() {
 
           {/* Horários de Trabalho */}
           <View style={styles.section}>
-            <Text style={styles.label}>Horários de Trabalho (JSON)</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              placeholder={'{\n  "monday": "09:00-18:00",\n  "tuesday": "09:00-18:00"\n}'}
-              placeholderTextColor={colors.textSecondary}
-              value={workingHours}
-              onChangeText={setWorkingHours}
-              multiline
-              numberOfLines={6}
-            />
-            <Text style={styles.hint}>Formato JSON. Deixe vazio para usar padrão.</Text>
+            <TouchableOpacity
+              style={styles.scheduleToggle}
+              onPress={() => setScheduleExpanded(!scheduleExpanded)}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={styles.label}>Horários de Trabalho</Text>
+                <Text style={styles.hint}>
+                  {Object.values(schedule).filter((d) => d.enabled).length} dias configurados
+                </Text>
+              </View>
+              <Ionicons
+                name={scheduleExpanded ? 'chevron-up' : 'chevron-down'}
+                size={24}
+                color={colors.text}
+              />
+            </TouchableOpacity>
+
+            {scheduleExpanded && (
+              <View style={styles.scheduleExpandedContent}>
+                {(Object.keys(schedule) as Array<keyof WeekSchedule>).map((day) => (
+                  <View
+                    key={day}
+                    style={[
+                      styles.scheduleCard,
+                      !schedule[day].enabled && styles.scheduleCardDisabled,
+                    ]}
+                  >
+                    <View style={styles.scheduleHeader}>
+                      <Text style={styles.dayName}>{DAYS_PT[day]}</Text>
+                      <Switch
+                        value={schedule[day].enabled}
+                        onValueChange={() => toggleDay(day)}
+                        trackColor={{ false: colors.border, true: colors.accent }}
+                        thumbColor="#fff"
+                      />
+                    </View>
+
+                    {schedule[day].enabled && (
+                      <View style={styles.timeContainer}>
+                        <TextInput
+                          style={styles.timeInput}
+                          placeholder="09:00"
+                          placeholderTextColor={colors.textSecondary}
+                          value={schedule[day].start}
+                          onChangeText={(value) => updateDayTime(day, 'start', value)}
+                          keyboardType="numbers-and-punctuation"
+                        />
+                        <Text style={styles.timeSeparator}>até</Text>
+                        <TextInput
+                          style={styles.timeInput}
+                          placeholder="18:00"
+                          placeholderTextColor={colors.textSecondary}
+                          value={schedule[day].end}
+                          onChangeText={(value) => updateDayTime(day, 'end', value)}
+                          keyboardType="numbers-and-punctuation"
+                        />
+                      </View>
+                    )}
+                  </View>
+                ))}
+                <Text style={styles.hint}>
+                  Ative os dias que o profissional trabalha e defina os horários.
+                </Text>
+              </View>
+            )}
           </View>
 
           {/* Exibir no Booking */}
@@ -329,7 +503,7 @@ export default function EditProfissionalScreen() {
               <Switch
                 value={showInBooking}
                 onValueChange={setShowInBooking}
-                trackColor={{ false: colors.border, true: colors.primary }}
+                trackColor={{ false: colors.border, true: colors.accent }}
                 thumbColor="#fff"
               />
             </View>

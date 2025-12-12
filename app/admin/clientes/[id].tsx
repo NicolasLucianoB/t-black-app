@@ -170,7 +170,7 @@ export default function EditClienteScreen() {
       justifyContent: 'center',
     },
     changePhotoText: {
-      color: colors.primary,
+      color: colors.accent,
       fontSize: 14,
       marginTop: 8,
     },
@@ -249,7 +249,7 @@ export default function EditClienteScreen() {
       borderColor: colors.border,
     },
     actionButtonText: {
-      color: colors.primary,
+      color: colors.accent,
       fontSize: 14,
       fontWeight: '600',
       marginTop: 4,
@@ -261,13 +261,13 @@ export default function EditClienteScreen() {
     },
     button: {
       flex: 1,
-      backgroundColor: colors.primary,
+      backgroundColor: colors.accent,
       borderRadius: 12,
       padding: 16,
       alignItems: 'center',
     },
     buttonText: {
-      color: '#fff',
+      color: '#FFFFFF',
       fontSize: 16,
       fontWeight: '600',
     },
@@ -296,6 +296,7 @@ export default function EditClienteScreen() {
       <AdminHeader
         title={isEdit ? 'Editar Cliente' : 'Novo Cliente'}
         subtitle={isEdit ? cliente?.name : 'Cadastrar novo cliente'}
+        showBack={true}
       />
 
       <KeyboardAvoidingView

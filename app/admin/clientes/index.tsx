@@ -92,16 +92,21 @@ export default function ClientesScreen() {
       color: colors.text,
     },
     addButton: {
-      backgroundColor: colors.primary,
+      backgroundColor: colors.accent,
       borderRadius: 16,
       padding: 20,
       alignItems: 'center',
       marginBottom: 20,
       flexDirection: 'row',
       justifyContent: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      elevation: 3,
     },
     addButtonText: {
-      color: '#fff',
+      color: '#FFFFFF',
       fontSize: 16,
       fontWeight: '600',
       marginLeft: 8,
@@ -178,7 +183,7 @@ export default function ClientesScreen() {
 
   return (
     <View style={styles.container}>
-      <AdminHeader title="Clientes" subtitle="Gerenciar clientes" />
+      <AdminHeader title="Clientes" subtitle="Gerenciar clientes" showBack={true} />
 
       <ScrollView
         style={styles.content}
@@ -207,7 +212,7 @@ export default function ClientesScreen() {
         </View>
 
         <TouchableOpacity style={styles.addButton} onPress={handleAddCliente}>
-          <Ionicons name="add-circle-outline" size={24} color="#fff" />
+          <Ionicons name="add-circle-outline" size={24} color="#FFFFFF" />
           <Text style={styles.addButtonText}>Adicionar Cliente</Text>
         </TouchableOpacity>
 
