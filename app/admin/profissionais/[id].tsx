@@ -44,6 +44,16 @@ const DAYS_PT: { [key: string]: string } = {
   sunday: 'Domingo',
 };
 
+const DAYS_PT_TO_DB: { [key: string]: string } = {
+  monday: 'segunda',
+  tuesday: 'terca',
+  wednesday: 'quarta',
+  thursday: 'quinta',
+  friday: 'sexta',
+  saturday: 'sabado',
+  sunday: 'domingo',
+};
+
 const DEFAULT_SCHEDULE: WeekSchedule = {
   monday: { enabled: true, start: '09:00', end: '18:00' },
   tuesday: { enabled: true, start: '09:00', end: '18:00' },
@@ -68,11 +78,42 @@ export default function EditProfissionalScreen() {
   const [schedule, setSchedule] = useState<WeekSchedule>(DEFAULT_SCHEDULE);
   const [scheduleExpanded, setScheduleExpanded] = useState(false);
 
+  // Seleção de usuário
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [users, setUsers] = useState<any[]>([]);
+  const [userSearchQuery, setUserSearchQuery] = useState('');
+  const [userExpanded, setUserExpanded] = useState(false);
+
+  // Seleção de serviços
+  const [availableServices, setAvailableServices] = useState<any[]>([]);
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [servicesExpanded, setServicesExpanded] = useState(false);
+
   useEffect(() => {
     if (isEdit) {
       loadProfissional();
     }
+    loadUsers();
+    loadServices();
   }, [id]);
+
+  const loadUsers = async () => {
+    try {
+      const data = await databaseService.users.getAll();
+      setUsers(data);
+    } catch (error) {
+      console.error('Erro ao carregar usuários:', error);
+    }
+  };
+
+  const loadServices = async () => {
+    try {
+      const data = await databaseService.services.getAll();
+      setAvailableServices(data);
+    } catch (error) {
+      console.error('Erro ao carregar serviços:', error);
+    }
+  };
 
   const loadProfissional = async () => {
     if (!id || id === 'new') return;
@@ -86,20 +127,40 @@ export default function EditProfissionalScreen() {
         setPosition(data.position || 'Barbeiro');
         setDescription(data.description || '');
         setShowInBooking(data.showInBooking ?? true);
+        setSelectedUserId(data.userId || null);
 
         // Carregar horários ou usar padrão
-        if (data.workingHours && typeof data.workingHours === 'object') {
-          const loadedSchedule: any = { ...DEFAULT_SCHEDULE };
-          Object.keys(data.workingHours).forEach((day) => {
-            if (loadedSchedule[day]) {
-              const hours = data.workingHours[day];
-              if (typeof hours === 'string' && hours.includes('-')) {
-                const [start, end] = hours.split('-');
-                loadedSchedule[day] = { enabled: true, start, end };
+        const loadedSchedule: WeekSchedule = { ...DEFAULT_SCHEDULE };
+        if (data.workingHours && Array.isArray(data.workingHours)) {
+          // Formato do banco: ["segunda:09:00-18:00", "terca:08:00-17:00", ...]
+          data.workingHours.forEach((entry: string) => {
+            const match = entry.match(
+              /^(segunda|terca|quarta|quinta|sexta|sabado|domingo):(\d{2}:\d{2})-(\d{2}:\d{2})$/,
+            );
+            if (match) {
+              const [_, dbDay, start, end] = match;
+              // Converter nome do dia do português para inglês
+              const dayMap: { [key: string]: keyof WeekSchedule } = {
+                segunda: 'monday',
+                terca: 'tuesday',
+                quarta: 'wednesday',
+                quinta: 'thursday',
+                sexta: 'friday',
+                sabado: 'saturday',
+                domingo: 'sunday',
+              };
+              const dayKey = dayMap[dbDay];
+              if (dayKey) {
+                loadedSchedule[dayKey] = { enabled: true, start, end };
               }
             }
           });
-          setSchedule(loadedSchedule);
+        }
+        setSchedule(loadedSchedule);
+
+        // Carregar serviços do profissional
+        if (data.services) {
+          setSelectedServices(data.services);
         }
       }
     } catch (error) {
@@ -116,31 +177,39 @@ export default function EditProfissionalScreen() {
       return;
     }
 
+    if (!isEdit && !selectedUserId) {
+      Alert.alert('Atenção', 'Selecione um usuário para vincular');
+      return;
+    }
+
     setLoading(true);
     try {
-      // Converter schedule para formato do banco
-      const workingHours: any = {};
+      // Converter schedule para formato do banco (array de strings)
+      const workingHoursArray: string[] = [];
       Object.keys(schedule).forEach((day) => {
         const daySchedule = schedule[day as keyof WeekSchedule];
         if (daySchedule.enabled) {
-          workingHours[day] = `${daySchedule.start}-${daySchedule.end}`;
+          const dbDay = DAYS_PT_TO_DB[day];
+          workingHoursArray.push(`${dbDay}:${daySchedule.start}-${daySchedule.end}`);
         }
       });
 
       const data = {
         name: name.trim(),
         position: position.trim(),
-        description: description.trim() || null,
+        description: description.trim() || undefined,
         showInBooking,
-        workingHours: Object.keys(workingHours).length > 0 ? workingHours : null,
+        workingHours: workingHoursArray.length > 0 ? workingHoursArray : undefined,
+        userId: selectedUserId || undefined,
+        services: selectedServices.length > 0 ? selectedServices : undefined,
       };
 
       if (isEdit) {
-        await databaseService.barbers.update(id, data);
+        const result = await databaseService.barbers.update(id, data);
         Alert.alert('Sucesso', 'Profissional atualizado!');
       } else {
-        await databaseService.barbers.create(data);
-        Alert.alert('Sucesso', 'Profissional criado!');
+        const result = await databaseService.barbers.create(data);
+        Alert.alert('Sucesso', 'Profissional criado e usuário promovido!');
       }
 
       router.back();
@@ -189,6 +258,27 @@ export default function EditProfissionalScreen() {
       [day]: { ...prev[day], [field]: value },
     }));
   };
+
+  const toggleService = (serviceId: string) => {
+    setSelectedServices((prev) =>
+      prev.includes(serviceId) ? prev.filter((id) => id !== serviceId) : [...prev, serviceId],
+    );
+  };
+
+  const selectUser = (userId: string) => {
+    const user = users.find((u) => u.id === userId);
+    if (user) {
+      setSelectedUserId(userId);
+      setName(user.name || '');
+      setUserExpanded(false);
+    }
+  };
+
+  const filteredUsers = users.filter(
+    (user) =>
+      user.name?.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+      user.email?.toLowerCase().includes(userSearchQuery.toLowerCase()),
+  );
 
   const styles = StyleSheet.create({
     container: {
@@ -354,6 +444,71 @@ export default function EditProfissionalScreen() {
     scheduleExpandedContent: {
       marginTop: -12,
     },
+    searchContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: 12,
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    searchInput: {
+      flex: 1,
+      marginLeft: 8,
+      fontSize: 16,
+      color: colors.text,
+    },
+    userItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 8,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    userItemSelected: {
+      borderColor: colors.accent,
+      backgroundColor: `${colors.accent}10`,
+    },
+    userInfo: {
+      flex: 1,
+    },
+    userName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 4,
+    },
+    userEmail: {
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+    serviceItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 8,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    serviceName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 4,
+    },
+    servicePrice: {
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
   });
 
   return (
@@ -383,6 +538,65 @@ export default function EditProfissionalScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* Selecionar Usuário (apenas para novo) */}
+          {!isEdit && (
+            <View style={styles.section}>
+              <TouchableOpacity
+                style={styles.scheduleToggle}
+                onPress={() => setUserExpanded(!userExpanded)}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.label}>Vincular Usuário</Text>
+                  <Text style={styles.hint}>
+                    {selectedUserId
+                      ? users.find((u) => u.id === selectedUserId)?.name || 'Usuário selecionado'
+                      : 'Selecione um usuário para promover'}
+                  </Text>
+                </View>
+                <Ionicons
+                  name={userExpanded ? 'chevron-up' : 'chevron-down'}
+                  size={24}
+                  color={colors.text}
+                />
+              </TouchableOpacity>
+
+              {userExpanded && (
+                <View style={styles.scheduleExpandedContent}>
+                  <View style={styles.searchContainer}>
+                    <Ionicons name="search" size={20} color={colors.textSecondary} />
+                    <TextInput
+                      style={styles.searchInput}
+                      placeholder="Buscar por nome ou email..."
+                      placeholderTextColor={colors.textSecondary}
+                      value={userSearchQuery}
+                      onChangeText={setUserSearchQuery}
+                    />
+                  </View>
+                  <ScrollView style={{ maxHeight: 300 }}>
+                    {filteredUsers.map((user) => (
+                      <TouchableOpacity
+                        key={user.id}
+                        style={[
+                          styles.userItem,
+                          selectedUserId === user.id && styles.userItemSelected,
+                        ]}
+                        onPress={() => selectUser(user.id)}
+                      >
+                        <View style={styles.userInfo}>
+                          <Text style={styles.userName}>{user.name}</Text>
+                          <Text style={styles.userEmail}>{user.email}</Text>
+                        </View>
+                        {selectedUserId === user.id && (
+                          <Ionicons name="checkmark-circle" size={24} color={colors.accent} />
+                        )}
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+            </View>
+          )}
+
           {/* Nome */}
           <View style={styles.section}>
             <Text style={styles.label}>Nome *</Text>
@@ -392,7 +606,11 @@ export default function EditProfissionalScreen() {
               placeholderTextColor={colors.textSecondary}
               value={name}
               onChangeText={setName}
+              editable={!selectedUserId}
             />
+            {selectedUserId && (
+              <Text style={styles.hint}>Nome preenchido automaticamente do usuário vinculado</Text>
+            )}
           </View>
 
           {/* Cargo */}
@@ -488,6 +706,52 @@ export default function EditProfissionalScreen() {
                 ))}
                 <Text style={styles.hint}>
                   Ative os dias que o profissional trabalha e defina os horários.
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {/* Serviços Oferecidos */}
+          <View style={styles.section}>
+            <TouchableOpacity
+              style={styles.scheduleToggle}
+              onPress={() => setServicesExpanded(!servicesExpanded)}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={styles.label}>Serviços Oferecidos</Text>
+                <Text style={styles.hint}>{selectedServices.length} serviços selecionados</Text>
+              </View>
+              <Ionicons
+                name={servicesExpanded ? 'chevron-up' : 'chevron-down'}
+                size={24}
+                color={colors.text}
+              />
+            </TouchableOpacity>
+
+            {servicesExpanded && (
+              <View style={styles.scheduleExpandedContent}>
+                {availableServices.map((service) => (
+                  <TouchableOpacity
+                    key={service.id}
+                    style={styles.serviceItem}
+                    onPress={() => toggleService(service.id)}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.serviceName}>{service.name}</Text>
+                      <Text style={styles.servicePrice}>
+                        R$ {service.price?.toFixed(2)} • {service.duration} min
+                      </Text>
+                    </View>
+                    <Switch
+                      value={selectedServices.includes(service.id)}
+                      onValueChange={() => toggleService(service.id)}
+                      trackColor={{ false: colors.border, true: colors.accent }}
+                      thumbColor="#fff"
+                    />
+                  </TouchableOpacity>
+                ))}
+                <Text style={styles.hint}>
+                  Selecione os serviços que este profissional pode realizar
                 </Text>
               </View>
             )}

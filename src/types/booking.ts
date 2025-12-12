@@ -10,6 +10,8 @@ export interface Barber {
   rating?: number;
   position?: string;
   showInBooking?: boolean;
+  userId?: string;
+  services?: string[];
 }
 
 export interface Service {

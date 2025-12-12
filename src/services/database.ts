@@ -321,7 +321,7 @@ export const databaseService = {
 
         const allSlots: string[] = [];
 
-        ranges.forEach((range, index) => {
+        ranges.forEach((range: string) => {
           const [start, end] = range.split('-');
 
           if (start && end) {
@@ -563,12 +563,14 @@ export const databaseService = {
           name: barber.name,
           avatar: barber.profile_image,
           specialties: barber.specialty ? [barber.specialty] : [],
-          workingHours: barber.available_times || [],
+          workingHours: barber.working_hours || [],
           active: barber.active,
           description: barber.description,
           rating: barber.rating,
           position: barber.position,
           showInBooking: barber.show_in_booking,
+          userId: barber.user_id,
+          services: barber.services,
         }));
       } catch (error) {
         console.error('Error:', error);
@@ -593,12 +595,14 @@ export const databaseService = {
           name: data.name,
           avatar: data.profile_image,
           specialties: data.specialty ? [data.specialty] : [],
-          workingHours: data.available_times || [],
+          workingHours: data.working_hours || [],
           active: data.active,
           description: data.description,
           rating: data.rating,
           position: data.position,
           showInBooking: data.show_in_booking,
+          userId: data.user_id,
+          services: data.services,
         };
       } catch (error) {
         console.error('Error:', error);
@@ -608,36 +612,47 @@ export const databaseService = {
 
     async update(id: string, updates: Partial<Barber>): Promise<Barber | null> {
       try {
+        // Build update object only with defined fields
+        const updateData: any = {};
+        if (updates.name !== undefined) updateData.name = updates.name;
+        if (updates.position !== undefined) updateData.position = updates.position;
+        if (updates.description !== undefined) updateData.description = updates.description;
+        if (updates.showInBooking !== undefined) updateData.show_in_booking = updates.showInBooking;
+        if (updates.workingHours !== undefined) updateData.working_hours = updates.workingHours;
+        if (updates.avatar !== undefined) updateData.profile_image = updates.avatar;
+        if (updates.userId !== undefined) updateData.user_id = updates.userId;
+        if (updates.services !== undefined) updateData.services = updates.services;
+
         const { data, error } = await supabase
           .from('barbers')
-          .update({
-            name: updates.name,
-            position: updates.position,
-            description: updates.description,
-            show_in_booking: updates.showInBooking,
-            available_times: updates.workingHours,
-            profile_image: updates.avatar,
-          })
+          .update(updateData)
           .eq('id', id)
-          .select()
-          .single();
+          .select();
 
         if (error) {
           console.error('Error updating barber:', error);
           return null;
         }
 
+        if (!data || data.length === 0) {
+          return null;
+        }
+
+        const barberData = data[0];
+
         return {
-          id: data.id,
-          name: data.name,
-          avatar: data.profile_image,
-          specialties: data.specialty ? [data.specialty] : [],
-          workingHours: data.available_times || [],
-          active: data.active,
-          description: data.description,
-          rating: data.rating,
-          position: data.position,
-          showInBooking: data.show_in_booking,
+          id: barberData.id,
+          name: barberData.name,
+          avatar: barberData.profile_image,
+          specialties: barberData.specialty ? [barberData.specialty] : [],
+          workingHours: barberData.working_hours || [],
+          active: barberData.active,
+          description: barberData.description,
+          rating: barberData.rating,
+          position: barberData.position,
+          showInBooking: barberData.show_in_booking,
+          userId: barberData.user_id,
+          services: barberData.services,
         };
       } catch (error) {
         console.error('Error:', error);
@@ -654,8 +669,10 @@ export const databaseService = {
             position: barberData.position || 'Barbeiro',
             description: barberData.description,
             show_in_booking: barberData.showInBooking ?? true,
-            available_times: barberData.workingHours || [],
+            working_hours: barberData.workingHours || {},
             profile_image: barberData.avatar,
+            user_id: barberData.userId,
+            services: barberData.services,
             active: true,
           })
           .select()
@@ -671,12 +688,14 @@ export const databaseService = {
           name: data.name,
           avatar: data.profile_image,
           specialties: data.specialty ? [data.specialty] : [],
-          workingHours: data.available_times || [],
+          workingHours: data.working_hours || [],
           active: data.active,
           description: data.description,
           rating: data.rating,
           position: data.position,
           showInBooking: data.show_in_booking,
+          userId: data.user_id,
+          services: data.services,
         };
       } catch (error) {
         console.error('Error:', error);
