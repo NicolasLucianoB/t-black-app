@@ -15,7 +15,9 @@ export function ProfessionalsTab() {
     const loadBarbeiros = async () => {
       try {
         const data = await databaseService.barbers.getAll();
-        setBarbeiros(data);
+        // Filtrar apenas profissionais visíveis
+        const visibleBarbers = data.filter((barber) => barber.showInBooking !== false);
+        setBarbeiros(visibleBarbers);
       } catch (error) {
         console.error('Erro ao carregar barbeiros:', error);
         Alert.alert('Erro', 'Não foi possível carregar os profissionais');

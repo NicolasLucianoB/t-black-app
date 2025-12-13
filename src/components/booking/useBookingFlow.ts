@@ -79,7 +79,30 @@ export function useBookingFlow(userId: string) {
 
     try {
       const allBarbers = await databaseService.barbers.getAll();
-      setBarbeiros(allBarbers);
+
+      // Filtrar barbeiros visíveis e que oferecem o serviço selecionado
+      const availableBarbers = allBarbers.filter((barber) => {
+        // Filtrar apenas profissionais visíveis no booking
+        if (barber.showInBooking === false) return false;
+
+        // Filtrar apenas profissionais que oferecem este serviço
+        if (barber.services && Array.isArray(barber.services)) {
+          return barber.services.includes(servico.id);
+        }
+
+        // Se não tem lista de serviços definida, não mostrar
+        return false;
+      });
+
+      console.log('🔍 Filtro de barbeiros:', {
+        servicoId: servico.id,
+        servicoNome: servico.name,
+        totalBarbers: allBarbers.length,
+        barbeirosVisiveis: availableBarbers.length,
+        barbeiros: availableBarbers.map((b) => ({ nome: b.name, services: b.services })),
+      });
+
+      setBarbeiros(availableBarbers);
       setStep('professional');
     } catch (error) {
       console.error('Erro ao carregar profissionais:', error);

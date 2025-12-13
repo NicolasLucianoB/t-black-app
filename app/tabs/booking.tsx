@@ -846,39 +846,76 @@ function AgendaAdminTab() {
                   <Text style={[styles.sectionTitle, { color: colors.text }]}>Profissional</Text>
                 </View>
 
-                {barbeiros.map((barber) => (
-                  <TouchableOpacity
-                    key={barber.id}
-                    style={[
-                      styles.inputField,
-                      {
-                        backgroundColor: colors.card,
-                        borderColor:
-                          selectedBarbierModal?.id === barber.id ? colors.primary : colors.border,
-                        borderWidth: selectedBarbierModal?.id === barber.id ? 2 : 1,
-                        marginBottom: 12,
-                      },
-                    ]}
-                    onPress={() => {
-                      setSelectedBarbierModal(barber);
-                    }}
-                  >
-                    <View style={styles.professionalOption}>
-                      <View
-                        style={[styles.professionalAvatar, { backgroundColor: colors.primary }]}
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingVertical: 4 }}
+                >
+                  {barbeiros
+                    .filter((barber) => {
+                      // Filtrar apenas profissionais visíveis no booking
+                      if (barber.showInBooking === false) return false;
+
+                      // Se um serviço foi selecionado, mostrar apenas profissionais que oferecem esse serviço
+                      if (selectedService) {
+                        if (barber.services && Array.isArray(barber.services)) {
+                          return barber.services.includes(selectedService.id);
+                        }
+                        // Se não tem serviços cadastrados, não mostrar quando há filtro de serviço
+                        return false;
+                      }
+
+                      return true;
+                    })
+                    .map((barber, index) => (
+                      <TouchableOpacity
+                        key={barber.id}
+                        style={[
+                          styles.professionalCardVertical,
+                          {
+                            marginRight: 12,
+                          },
+                        ]}
+                        onPress={() => {
+                          setSelectedBarbierModal(barber);
+                        }}
                       >
-                        <Text style={[styles.professionalInitial, { color: colors.card }]}>
-                          {barber.name?.charAt(0) || 'P'}
-                        </Text>
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text style={[styles.inputText, { color: colors.text }]}>
-                          {barber.name}
-                        </Text>
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                ))}
+                        <View
+                          style={[
+                            styles.professionalCardVerticalAvatar,
+                            { backgroundColor: colors.border },
+                          ]}
+                        >
+                          <Text
+                            style={[styles.professionalCardVerticalInitial, { color: colors.text }]}
+                          >
+                            {barber.name?.charAt(0) || 'P'}
+                          </Text>
+                        </View>
+                        <View
+                          style={[
+                            styles.professionalCardVerticalNameContainer,
+                            selectedBarbierModal?.id === barber.id && {
+                              backgroundColor: colors.accent,
+                            },
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.professionalCardVerticalName,
+                              {
+                                color:
+                                  selectedBarbierModal?.id === barber.id ? '#FFFFFF' : colors.text,
+                              },
+                            ]}
+                            numberOfLines={1}
+                          >
+                            {barber.name.split(' ')[0]}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                </ScrollView>
               </View>
 
               {/* Cliente */}
@@ -1694,5 +1731,79 @@ const styles = StyleSheet.create({
   confirmButtonText: {
     fontSize: 16,
     fontWeight: '600',
+  },
+  professionalCard: {
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 12,
+    width: 100,
+    borderWidth: 1,
+  },
+  professionalCardAvatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  professionalCardInitial: {
+    fontSize: 24,
+    fontWeight: '600',
+  },
+  professionalCardName: {
+    fontSize: 13,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  professionalCardCompact: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 8,
+  },
+  professionalCardCompactAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  professionalCardCompactInitial: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  professionalCardCompactName: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  professionalCardVertical: {
+    alignItems: 'center',
+    width: 70,
+  },
+  professionalCardVerticalAvatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  professionalCardVerticalInitial: {
+    fontSize: 20,
+    fontWeight: '600',
+  },
+  professionalCardVerticalNameContainer: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  professionalCardVerticalName: {
+    fontSize: 12,
+    fontWeight: '500',
+    textAlign: 'center',
   },
 });
