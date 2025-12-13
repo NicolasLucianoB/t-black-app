@@ -875,13 +875,6 @@ function AgendaAdminTab() {
                         <Text style={[styles.inputText, { color: colors.text }]}>
                           {barber.name}
                         </Text>
-                        {barber.description && (
-                          <Text
-                            style={[{ color: colors.textSecondary, fontSize: 12, marginTop: 2 }]}
-                          >
-                            {barber.description}
-                          </Text>
-                        )}
                       </View>
                     </View>
                   </TouchableOpacity>
